@@ -462,6 +462,146 @@ def _validate_noun(
                 )
 
 
+def _validate_verb_prefixes(
+    verb: Mapping[str, Any],
+    infinitive: str | None,
+    path: str,
+    issues: list[QaIssue],
+) -> None:
+    separable = _clean(verb.get("separablePrefix"))
+    inseparable = _clean(verb.get("inseparablePrefix"))
+    if separable is not None and inseparable is not None:
+        _error(
+            issues,
+            "verb.prefix_conflict",
+            path,
+            "verb cannot declare both separable and inseparable prefixes",
+        )
+    if infinitive is not None and separable is not None and not infinitive.startswith(separable):
+        _error(
+            issues,
+            "verb.separable_prefix_mismatch",
+            path + ".separablePrefix",
+            "separable prefix must be a prefix of infinitive",
+        )
+    if infinitive is not None and inseparable is not None and not infinitive.startswith(inseparable):
+        _error(
+            issues,
+            "verb.inseparable_prefix_mismatch",
+            path + ".inseparablePrefix",
+            "inseparable prefix must be a prefix of infinitive",
+        )
+
+
+def _validate_verb_valency_frames(
+    verb: Mapping[str, Any],
+    path: str,
+    issues: list[QaIssue],
+) -> None:
+    frames = verb.get("valencyFrames", [])
+    if not isinstance(frames, list):
+        return
+
+    seen_frames: set[str] = set()
+    for index, raw_frame in enumerate(frames):
+        frame_path = path + f".valencyFrames[{index}]"
+        if not isinstance(raw_frame, Mapping):
+            _error(
+                issues,
+                "valency.invalid_frame",
+                frame_path,
+                "valency frame must be an object",
+            )
+            continue
+        frame_id = _clean(raw_frame.get("id"))
+        if frame_id is None:
+            _error(
+                issues,
+                "valency.blank_frame_id",
+                frame_path + ".id",
+                "frame id cannot be blank",
+            )
+        elif frame_id in seen_frames:
+            _error(
+                issues,
+                "valency.duplicate_frame_id",
+                frame_path + ".id",
+                "frame id must be unique per verb",
+            )
+        else:
+            seen_frames.add(frame_id)
+
+        role = _clean(raw_frame.get("semanticRole"))
+        if role is None:
+            _error(
+                issues,
+                "valency.blank_semantic_role",
+                frame_path + ".semanticRole",
+                "semantic role cannot be blank",
+            )
+        governed = _clean(raw_frame.get("governedCase"))
+        preposition = _clean(raw_frame.get("preposition"))
+        preposition_case = _clean(raw_frame.get("prepositionCase"))
+        if (preposition is None) != (preposition_case is None):
+            _error(
+                issues,
+                "valency.preposition_case_pair",
+                frame_path,
+                "preposition and prepositionCase must be declared together",
+            )
+        if governed is None and not (
+            preposition is not None and preposition_case is not None
+        ):
+            _error(
+                issues,
+                "valency.missing_government",
+                frame_path,
+                "valency frame requires case or preposition government",
+            )
+
+
+def _validate_verb_forms(
+    verb: Mapping[str, Any],
+    path: str,
+    issues: list[QaIssue],
+) -> None:
+    forms = verb.get("forms", [])
+    if not isinstance(forms, list):
+        return
+
+    seen_forms: set[tuple[str, str]] = set()
+    for index, raw_form in enumerate(forms):
+        form_path = path + f".forms[{index}]"
+        if not isinstance(raw_form, Mapping):
+            _error(
+                issues,
+                "verb.invalid_form",
+                form_path,
+                "verb form must be an object",
+            )
+            continue
+        tense = _clean(raw_form.get("tense"))
+        person = _clean(raw_form.get("personKey"))
+        form = _clean(raw_form.get("form"))
+        if tense is None or person is None or form is None:
+            _error(
+                issues,
+                "verb.form_field_blank",
+                form_path,
+                "tense, personKey and form are required",
+            )
+            continue
+        key = (tense, person)
+        if key in seen_forms:
+            _error(
+                issues,
+                "verb.duplicate_form_key",
+                form_path,
+                "tense/personKey must be unique",
+            )
+        seen_forms.add(key)
+
+
 def _validate_verb(
     verb: Mapping[str, Any],
     surface: str | None,
@@ -494,122 +634,9 @@ def _validate_verb(
             "canonical verb requires explicit reflexivity metadata",
         )
 
-    separable = _clean(verb.get("separablePrefix"))
-    inseparable = _clean(verb.get("inseparablePrefix"))
-    if separable is not None and inseparable is not None:
-        _error(
-            issues,
-            "verb.prefix_conflict",
-            path,
-            "verb cannot declare both separable and inseparable prefixes",
-        )
-    if infinitive is not None and separable is not None and not infinitive.startswith(separable):
-        _error(
-            issues,
-            "verb.separable_prefix_mismatch",
-            path + ".separablePrefix",
-            "separable prefix must be a prefix of infinitive",
-        )
-    if infinitive is not None and inseparable is not None and not infinitive.startswith(inseparable):
-        _error(
-            issues,
-            "verb.inseparable_prefix_mismatch",
-            path + ".inseparablePrefix",
-            "inseparable prefix must be a prefix of infinitive",
-        )
-
-    frames = verb.get("valencyFrames", [])
-    if isinstance(frames, list):
-        seen_frames: set[str] = set()
-        for index, raw_frame in enumerate(frames):
-            frame_path = path + f".valencyFrames[{index}]"
-            if not isinstance(raw_frame, Mapping):
-                _error(
-                    issues,
-                    "valency.invalid_frame",
-                    frame_path,
-                    "valency frame must be an object",
-                )
-                continue
-            frame_id = _clean(raw_frame.get("id"))
-            if frame_id is None:
-                _error(
-                    issues,
-                    "valency.blank_frame_id",
-                    frame_path + ".id",
-                    "frame id cannot be blank",
-                )
-            elif frame_id in seen_frames:
-                _error(
-                    issues,
-                    "valency.duplicate_frame_id",
-                    frame_path + ".id",
-                    "frame id must be unique per verb",
-                )
-            else:
-                seen_frames.add(frame_id)
-
-            role = _clean(raw_frame.get("semanticRole"))
-            if role is None:
-                _error(
-                    issues,
-                    "valency.blank_semantic_role",
-                    frame_path + ".semanticRole",
-                    "semantic role cannot be blank",
-                )
-            governed = _clean(raw_frame.get("governedCase"))
-            preposition = _clean(raw_frame.get("preposition"))
-            preposition_case = _clean(raw_frame.get("prepositionCase"))
-            if (preposition is None) != (preposition_case is None):
-                _error(
-                    issues,
-                    "valency.preposition_case_pair",
-                    frame_path,
-                    "preposition and prepositionCase must be declared together",
-                )
-            if governed is None and not (
-                preposition is not None and preposition_case is not None
-            ):
-                _error(
-                    issues,
-                    "valency.missing_government",
-                    frame_path,
-                    "valency frame requires case or preposition government",
-                )
-
-    forms = verb.get("forms", [])
-    if isinstance(forms, list):
-        seen_forms: set[tuple[str, str]] = set()
-        for index, raw_form in enumerate(forms):
-            form_path = path + f".forms[{index}]"
-            if not isinstance(raw_form, Mapping):
-                _error(
-                    issues,
-                    "verb.invalid_form",
-                    form_path,
-                    "verb form must be an object",
-                )
-                continue
-            tense = _clean(raw_form.get("tense"))
-            person = _clean(raw_form.get("personKey"))
-            form = _clean(raw_form.get("form"))
-            if tense is None or person is None or form is None:
-                _error(
-                    issues,
-                    "verb.form_field_blank",
-                    form_path,
-                    "tense, personKey and form are required",
-                )
-                continue
-            key = (tense, person)
-            if key in seen_forms:
-                _error(
-                    issues,
-                    "verb.duplicate_form_key",
-                    form_path,
-                    "tense/personKey must be unique",
-                )
-            seen_forms.add(key)
+    _validate_verb_prefixes(verb, infinitive, path, issues)
+    _validate_verb_valency_frames(verb, path, issues)
+    _validate_verb_forms(verb, path, issues)
 
 
 def assert_german_source(document: Mapping[str, Any]) -> QaReport:
