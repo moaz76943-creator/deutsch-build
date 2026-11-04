@@ -14,11 +14,13 @@ void main() {
   });
 
   test('Calculate ease executes successfully', () async {
-    final result = await PersistentCpuWorker.instance.calculateNewEaseFactor(2.5, 4);
+    final result =
+        await PersistentCpuWorker.instance.calculateNewEaseFactor(2.5, 4);
     expect(result, isNotNull);
   });
 
-  test('Queue exhausted exception is thrown when adding too many tasks', () async {
+  test('Queue exhausted exception is thrown when adding too many tasks',
+      () async {
     final worker = PersistentCpuWorker.instance;
     final List<Future<double>> futures = [];
 
@@ -44,9 +46,11 @@ void main() {
     // Wait for microtasks
     await Future.microtask(() {});
 
-    expect(exceptionThrown, true, reason: 'Expected WorkerQueueExhaustedException');
+    expect(exceptionThrown, true,
+        reason: 'Expected WorkerQueueExhaustedException');
 
-    worker.cancelAll(); // Cleanup queue so no unhandled completions run after tearDown
+    worker
+        .cancelAll(); // Cleanup queue so no unhandled completions run after tearDown
 
     for (final f in futures) {
       try {
@@ -87,14 +91,11 @@ void main() {
 
     // Create an invalid input that will cause a cast exception in heavySrsMath
     try {
-      await worker.executeTask<Map<String, dynamic>, double>(
-        (data) {
-          // Intentional cast error
-          data['invalid'] as int;
-          return 0.0;
-        },
-        {'invalid': 'string_value'}
-      );
+      await worker.executeTaskWithPayload<Map<String, dynamic>, double>((data) {
+        // Intentional cast error
+        data['invalid'] as int;
+        return 0.0;
+      }, {'invalid': 'string_value'});
       fail('Expected an exception');
     } catch (e) {
       expect(e, isNot(isA<WorkerCancelledException>()));

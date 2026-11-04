@@ -38,7 +38,7 @@ void main() {
       final results = await Future.wait(tasks);
       expect(results.length, 10);
       for (var result in results) {
-         expect(result, closeTo(2.5, 0.001));
+        expect(result, closeTo(2.5, 0.001));
       }
     });
 
@@ -49,10 +49,10 @@ void main() {
       for (int i = 0; i < 100; i++) {
         // We do not await, we just push 100 tasks synchronously
         worker.calculateNewEaseFactor(2.5, 4).catchError((e) {
-            if (e is WorkerQueueExhaustedException) {
-              exhaustCount++;
-            }
-            return 0.0;
+          if (e is WorkerQueueExhaustedException) {
+            exhaustCount++;
+          }
+          return 0.0;
         });
       }
 
@@ -77,10 +77,10 @@ void main() {
       for (int i = 0; i < 10; i++) {
         // Fire asynchronously to test queuing and cancellation
         futures.add(worker.calculateNewEaseFactor(2.5, 4).catchError((e) {
-            if (e is WorkerCancelledException) {
-              return -1.0;
-            }
-            throw e;
+          if (e is WorkerCancelledException) {
+            return -1.0;
+          }
+          throw e;
         }));
       }
 
@@ -88,10 +88,10 @@ void main() {
 
       int cancelledCount = 0;
       for (var f in futures) {
-          final result = await f;
-          if (result == -1.0) {
-            cancelledCount++;
-          }
+        final result = await f;
+        if (result == -1.0) {
+          cancelledCount++;
+        }
       }
 
       expect(cancelledCount, 10);
@@ -103,10 +103,10 @@ void main() {
       List<Future<double>> futures = [];
       for (int i = 0; i < 10; i++) {
         futures.add(worker.calculateNewEaseFactor(2.5, 4).catchError((e) {
-            if (e is WorkerCancelledException) {
-              return -1.0;
-            }
-            throw e;
+          if (e is WorkerCancelledException) {
+            return -1.0;
+          }
+          throw e;
         }));
       }
 
@@ -128,7 +128,8 @@ void main() {
 
       bool failed = false;
       try {
-        await worker.executeTask<dynamic, double>(_failingMathTask, {});
+        await worker
+            .executeTaskWithPayload<dynamic, double>(_failingMathTask, {});
       } catch (e) {
         failed = true;
         expect(e.toString(), contains("Simulated worker failure"));
@@ -147,7 +148,8 @@ void main() {
       // Submit 50 tasks (at the queue limit) and await them all
       List<Future<double>> futures = [];
       for (int i = 0; i < 50; i++) {
-        futures.add(worker.executeTask<dynamic, double>(_dummyMathTask, {}));
+        futures.add(
+            worker.executeTaskWithPayload<dynamic, double>(_dummyMathTask, {}));
       }
 
       final results = await Future.wait(futures);
