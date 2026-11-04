@@ -73,6 +73,7 @@ def _load_rows(source: Path, expected_count: int) -> list[dict[str, str]]:
         return rows
 
 
+
 def _init_schema(db: sqlite3.Connection) -> None:
     db.execute("PRAGMA page_size=4096")
     db.execute("PRAGMA journal_mode=DELETE")
@@ -147,17 +148,17 @@ def _init_schema(db: sqlite3.Connection) -> None:
     """)
 
 
-def _insert_metadata(db: sqlite3.Connection, row_count: int) -> None:
+def _insert_metadata(db: sqlite3.Connection, num_rows: int) -> None:
     metadata = {
         "schemaVersion": "2.0.0", "languageCode": "de", "packId": "de",
-        "contentRows": str(row_count), "verbRows": "0", "version": "1.0.0",
+        "contentRows": str(num_rows), "verbRows": "0", "version": "1.0.0",
         "contractVersion": "1.0.0", "textDirection": "ltr",
         "source": "tools/ingestion/data/de_ar_curated_master.tsv",
     }
     db.executemany("INSERT INTO metadata VALUES (?,?)", sorted(metadata.items()))
 
 
-def _insert_rows(db: sqlite3.Connection, rows: list[dict[str, str]]) -> None:
+def _insert_lexicon_data(db: sqlite3.Connection, rows: list[dict[str, str]]) -> None:
     for row in rows:
         lemma, pos, arabic, ipa, cefr, article = (
             row[name] for name in ("lemma", "pos", "translation_ar", "ipa", "cefr", "gender_article")
@@ -192,29 +193,33 @@ def _insert_rows(db: sqlite3.Connection, rows: list[dict[str, str]]) -> None:
             (lemma, lemma, lemma, lexicon_id))
 
 
-def _finalize_fts_and_check(db: sqlite3.Connection, expected_count: int) -> None:
+def _populate_fts(db: sqlite3.Connection) -> None:
     db.execute("""INSERT INTO lexicon_fts(rowid,surface,translation_ar)
         SELECT l.rowid, l.surface, json_extract(l.fields_json,'$.translation_ar')
         FROM lexicon AS l ORDER BY l.rowid""")
     db.execute("INSERT INTO lexicon_fts(lexicon_fts) VALUES ('integrity-check')")
-    db.execute("PRAGMA user_version=2")
-    db.commit()
+
+
+def _verify_database(db: sqlite3.Connection, num_rows: int) -> None:
     if db.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
         raise ValueError("SQLite integrity check failed")
     if db.execute("PRAGMA foreign_key_check").fetchall():
         raise ValueError("SQLite foreign key check failed")
     count = db.execute("SELECT COUNT(*) FROM lexicon_fts").fetchone()[0]
-    if count != expected_count:
-        raise ValueError(f"FTS mismatch {count} != {expected_count}")
-    db.execute("VACUUM")
+    if count != num_rows:
+        raise ValueError(f"FTS mismatch {count} != {num_rows}")
 
 
 def _make_sqlite(destination: Path, rows: list[dict[str, str]]) -> None:
     with sqlite3.connect(destination) as db:
         _init_schema(db)
         _insert_metadata(db, len(rows))
-        _insert_rows(db, rows)
-        _finalize_fts_and_check(db, len(rows))
+        _insert_lexicon_data(db, rows)
+        _populate_fts(db)
+        db.execute("PRAGMA user_version=2")
+        db.commit()
+        _verify_database(db, len(rows))
+        db.execute("VACUUM")
 
 
 def build_curated_sqlite(source: Path, output: Path, *, expected_count: int = 1000,
