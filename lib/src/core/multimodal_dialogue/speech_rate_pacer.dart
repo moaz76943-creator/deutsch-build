@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 /// Speech fluency and cadence metrics report.
 class SpeechFluencyMetrics {
   final double wordsPerMinute; // WPM
@@ -34,10 +36,12 @@ class SpeechRatePacer {
     }
 
     final wpm = (totalWords / totalDurationSeconds) * 60.0;
-    final speakingDuration = math.max(0.1, totalDurationSeconds - silenceDurationSeconds);
+    final speakingDuration =
+        math.max(0.1, totalDurationSeconds - silenceDurationSeconds);
     // Approximation: 1.5 syllables per word
     final articulationRate = (totalWords * 1.5) / speakingDuration;
-    final pauseRatio = (silenceDurationSeconds / totalDurationSeconds).clamp(0.0, 1.0);
+    final pauseRatio =
+        (silenceDurationSeconds / totalDurationSeconds).clamp(0.0, 1.0);
 
     String cefr;
     double speedMultiplier;

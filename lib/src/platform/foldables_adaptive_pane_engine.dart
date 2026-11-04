@@ -30,7 +30,7 @@ class FoldablesAdaptivePaneEngine {
   }) {
     if (windowWidthDp >= 840 || isHingeSeparating) {
       // Large tablet or book-spanned foldable (50/50 balanced split)
-      return const AdaptivePaneConfig(
+      return AdaptivePaneConfig(
         layoutMode: ViewportLayoutMode.dualPaneBookSpanned,
         leftPaneWidthFraction: 0.50,
         rightPaneWidthFraction: 0.50,

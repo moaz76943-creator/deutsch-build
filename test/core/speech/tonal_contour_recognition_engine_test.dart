@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/core/speech/tonal_contour_recognition_engine.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/core/speech/tonal_contour_recognition_engine.dart';
 
 void main() {
   group('TonalContourRecognitionEngine Tests', () {

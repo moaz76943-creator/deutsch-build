@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/audio/engine/dynamic_speech_rate_pacer.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/audio/engine/dynamic_speech_rate_pacer.dart';
 
 void main() {
   group('DynamicSpeechRatePacer Tests', () {
@@ -13,7 +13,8 @@ void main() {
 
     test('Inserts longer cognitive pauses at punctuation boundaries', () {
       const text = 'Hallo, wie geht es dir? Gut.';
-      final pacedUnits = pacer.paceText(text, level: CefrPacingLevel.a1Beginner);
+      final pacedUnits =
+          pacer.paceText(text, level: CefrPacingLevel.a1Beginner);
 
       expect(pacedUnits.length, equals(6));
       // Unit ending with comma must have medium clause pause
@@ -21,7 +22,8 @@ void main() {
       expect(commaUnit.pauseAfterSeconds, greaterThanOrEqualTo(0.3));
 
       // Unit ending with question mark must have long terminal pause
-      final questionUnit = pacedUnits.firstWhere((u) => u.textToken.contains('?'));
+      final questionUnit =
+          pacedUnits.firstWhere((u) => u.textToken.contains('?'));
       expect(questionUnit.pauseAfterSeconds, greaterThanOrEqualTo(0.6));
     });
   });

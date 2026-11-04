@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import '../../lib/src/core/multimodal_dialogue/speech_rate_pacer.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/core/multimodal_dialogue/speech_rate_pacer.dart';
 
 void main() {
   group('SpeechRatePacer Unit Tests (N068)', () {
@@ -18,7 +18,8 @@ void main() {
       expect(metrics.pauseRatio, equals(0.50));
     });
 
-    test('Evaluates fluent B2 conversation and keeps AI model tempo at 1.05x', () {
+    test('Evaluates fluent B2 conversation and keeps AI model tempo at 1.05x',
+        () {
       final metrics = pacer.evaluateFluency(
         totalWords: 160,
         totalDurationSeconds: 60.0, // 160 WPM
