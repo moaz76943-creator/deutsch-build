@@ -13,9 +13,6 @@ on:
       - main
       - staging/v2-full-platform
     paths-ignore:
-      # Workflow-only edits need YAML/contract review, not a Flutter SDK run.
-      # The manual dispatch remains available for full verification.
-      - '.github/**'
       - 'docs/**'
       - 'reports/**'
       - 'tools/agents/state/**'
