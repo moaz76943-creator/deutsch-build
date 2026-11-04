@@ -1,6 +1,4 @@
-import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:deutsch_bilarabi/core/bootstrap/isolated_bootstrap_pipeline.dart';
@@ -144,8 +142,8 @@ void main() {
       // Without DB initialized, it falls into a critical error for preferences or DB
       // We just ensure it doesn't infinite loop.
       expect(
-          outcome.state == StartupState.CRITICAL_ERROR ||
-              outcome.state == StartupState.DEGRADED,
+          outcome.state == StartupState.fatal ||
+              outcome.state == StartupState.degraded,
           isTrue);
     });
 
@@ -154,7 +152,7 @@ void main() {
       final ops = DeviceStartupOperations(guard: mockGuard);
       final outcome = await ops.start();
 
-      expect(outcome.state, StartupState.SAFE_MODE);
+      expect(outcome.state, StartupState.safeMode);
     });
   });
 }
