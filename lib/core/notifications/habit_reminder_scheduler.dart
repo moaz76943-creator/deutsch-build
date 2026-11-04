@@ -124,12 +124,4 @@ class HabitReminderScheduler {
     }
     return false;
   }
-
-  static Future<void> generateGrowthReport(int daysActive) async {
-    if (daysActive == 30) {
-      // Display motivational message for first month
-    } else if (daysActive == 90) {
-      // Display quarterly report
-    }
-  }
 }
