@@ -108,16 +108,26 @@ class _ResilientAppRootState extends State<ResilientAppRoot> {
   bool isBootstrapping = true;
   bool isSafeMode = false;
   String? errorMessage;
+  int _bootstrapGeneration = 0;
 
   @override
   void initState() {
     super.initState();
-    bootstrap();
+    // Paint the splash before any preferences or pipeline I/O. A late result
+    // from an older attempt cannot overwrite a newer retry.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) bootstrap();
+    });
   }
 
+  bool _isCurrent(int generation) =>
+      mounted && generation == _bootstrapGeneration;
+
   Future<void> bootstrap() async {
+    final generation = ++_bootstrapGeneration;
     try {
       final prefs = await SharedPreferences.getInstance();
+      if (!_isCurrent(generation)) return;
       final guard = CrashLoopGuard(prefs);
 
       if (guard.isCrashLoopDetected()) {
@@ -129,56 +139,51 @@ class _ResilientAppRootState extends State<ResilientAppRoot> {
       }
 
       await guard.recordFailure();
+      if (!_isCurrent(generation)) return;
 
-      // Critical path only — keeps cold start fast.
-      final criticalPipeline = IsolatedBootstrapPipeline([
-        _ProductionAcceptanceStep(),
-        _SessionRecoveryStep(prefs),
-        _FeatureRegistryStep(),
-        _LifecycleRegistryStep(),
-      ]);
+      final pipeline = IsolatedBootstrapPipeline(
+        [
+          _ProductionAcceptanceStep(),
+          _SessionRecoveryStep(prefs),
+          _FeatureRegistryStep(),
+          _LifecycleRegistryStep(),
+        ],
+        defaultStepTimeout: IsolatedBootstrapPipeline.startupStepBudget,
+      );
 
-      final results = await criticalPipeline.runPipeline();
+      final results = await pipeline.runPipeline();
+      if (!_isCurrent(generation)) return;
 
-      // Performance instrumentation: log per-step startup times (measurable impact).
-      for (final r in results) {
-        debugPrint("[DBA][BOOTSTRAP_PERF] ${r.stepName}: ${r.elapsed.inMilliseconds}ms status=${r.status}");
-      }
-
-      bool hasFatal = false;
       String? fatalMsg;
 
       for (final res in results) {
         if (res.status == BootstrapStepStatus.fatalFailure) {
-          hasFatal = true;
           fatalMsg = res.message ?? 'Unknown critical error';
           break;
         }
       }
 
-      if (hasFatal) {
+      if (fatalMsg != null) {
         setState(() {
           isSafeMode = true;
           isBootstrapping = false;
           errorMessage = fatalMsg;
         });
-        return;
+      } else {
+        await guard.recordSuccess();
+        if (!_isCurrent(generation)) return;
+        setState(() {
+          isSafeMode = false;
+          isBootstrapping = false;
+        });
       }
-
-      await guard.recordSuccess();
-      setState(() {
-        isSafeMode = false;
-        isBootstrapping = false;
-      });
-
-      // Non-critical security attestation runs after UI is shown.
-      // Does not block startup. Features remain gated on success as before.
-      unawaited(_runDeferredIntegrity());
-    } catch (e) {
+    } catch (_) {
+      if (!_isCurrent(generation)) return;
       setState(() {
         isSafeMode = true;
         isBootstrapping = false;
-        errorMessage = e.toString();
+        // Stable copy only. Exception text can include local paths.
+        errorMessage = 'تعذر إكمال التهيئة المحلية.';
       });
     }
   }
@@ -268,6 +273,11 @@ class _SessionRecoveryStep extends BootstrapStep {
 
   @override
   String get name => 'SessionRecovery';
+
+  /// A missing or unreadable session must not trap the learner in safe mode.
+  /// Progress and SRS rows are not touched by this step.
+  @override
+  bool get isCritical => false;
 
   @override
   Future<BootstrapStepResult> execute() async {
