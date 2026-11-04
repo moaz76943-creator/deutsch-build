@@ -190,6 +190,7 @@ class LocalLearningAnalytics {
         return 'وسام المائة بطاقة المتقنة';
       }
     }
+
     return null;
   }
 }
