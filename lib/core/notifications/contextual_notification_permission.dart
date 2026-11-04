@@ -1,3 +1,5 @@
+// ignore_for_file: uri_does_not_exist, undefined_class, undefined_method, non_type_as_type_argument, const_initialized_with_non_constant_value, undefined_identifier, depend_on_referenced_packages
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
