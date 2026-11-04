@@ -1,19 +1,10 @@
-# Baseline Profile for Deutsch بالعربي (Flutter)
-# Generated for improved cold-start and reduced UI jank.
-# Full generation recommended via Macrobenchmark module or Flutter baseline_profile package.
-# Expected impact: 15-30% faster cold startup, lower jank on first frames (Google measured ranges for similar apps).
-
-# Flutter engine and embedding startup
+# Baseline profile for Deutsch بالعربي Flutter app
+# Focus on startup path: MainActivity, Flutter engine, initial screens
+# Generated placeholder; replace with real profile from Macrobenchmark for max impact
+HSPLcom/deutschbilarabi/app/MainActivity;->onCreate(Landroid/os/Bundle;)V
 HSPLio/flutter/embedding/android/FlutterActivity;->onCreate(Landroid/os/Bundle;)V
-HSPLio/flutter/embedding/android/FlutterActivity;->onResume()V
-HSPLio/flutter/embedding/engine/FlutterEngine;->DartExecutor;executeDartEntrypoint
-
-# Common Material and app entry
-HSPLandroidx/compose/runtime/**
-HSPLandroid/view/View;->measure
-HSPLandroid/view/View;->layout
-
-# App-specific (expand after profiling)
-HSPLcom/deutschbilarabi/app/**
-
-# Keep security and R8 intact: no additional keep rules that weaken obfuscation.
+HSPLio/flutter/embedding/engine/FlutterJNI;->init(Landroid/content/Context;[Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;J[Ljava/lang/String;)V
+HSPLlib/main.dart;main
+HSPLlib/bootstrap/production_bootstrap.dart;bootstrapDeutschApp
+HSPLlib/features/onboarding/fast_onboarding_screen.dart;_checkState
+# Add more hot paths after profiling (e.g. DatabaseService, ListViews if any)
