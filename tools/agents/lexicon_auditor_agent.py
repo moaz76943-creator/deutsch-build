@@ -224,15 +224,10 @@ def _normalized_entry(
     return dict(entry)
 
 
-def audit_entry(
+def _audit_base_fields(
     entry: Mapping[str, Any],
-    *,
-    language_code: str | None = None,
-) -> LexiconAuditReport:
-    entry = _normalized_entry(entry, language_code)
-    errors: list[LexiconIssue] = []
-    warnings: list[LexiconIssue] = []
-
+    errors: list[LexiconIssue],
+) -> tuple[str, str, str]:
     lemma = _text(entry.get("lemma"))
     language = _primary_language(entry.get("language"))
     part_of_speech = _text(entry.get("partOfSpeech")).lower()
@@ -258,7 +253,14 @@ def audit_entry(
             "partOfSpeech must be explicit",
             "partOfSpeech",
         )
+    return lemma, language, part_of_speech
 
+
+def _audit_usage_and_register(
+    entry: Mapping[str, Any],
+    errors: list[LexiconIssue],
+    language: str,
+) -> None:
     usage_band = _text(entry.get("usageBand")).lower()
     if usage_band not in COMMON_USAGE_BANDS:
         _error(
@@ -304,6 +306,12 @@ def audit_entry(
                 "usageEvidence",
             )
 
+
+def _audit_translation(
+    entry: Mapping[str, Any],
+    errors: list[LexiconIssue],
+    language: str,
+) -> tuple[str, str]:
     translation = entry.get("translation")
     if not isinstance(translation, Mapping):
         _error(
@@ -359,7 +367,15 @@ def audit_entry(
             "senseId is required to prevent semantic drift",
             "translation.senseId",
         )
+    return target_language, translated_text
 
+
+def _audit_article(
+    entry: Mapping[str, Any],
+    errors: list[LexiconIssue],
+    language: str,
+    part_of_speech: str,
+) -> None:
     article = _text(entry.get("article")).lower()
     gender = _text(entry.get("gender")).lower()
     color_token = _text(entry.get("articleColorToken"))
@@ -410,6 +426,14 @@ def audit_entry(
             "article",
         )
 
+
+def _audit_false_friends(
+    errors: list[LexiconIssue],
+    language: str,
+    target_language: str,
+    lemma: str,
+    translated_text: str,
+) -> None:
     if language == "de" and target_language == "en" and lemma:
         traps = KNOWN_DE_EN_FALSE_FRIENDS.get(
             lemma.lower(),
@@ -424,6 +448,13 @@ def audit_entry(
                 "translation.text",
             )
 
+
+def _audit_verb_structure(
+    entry: Mapping[str, Any],
+    errors: list[LexiconIssue],
+    part_of_speech: str,
+    lemma: str,
+) -> None:
     separable = entry.get("separable")
     prefix = _text(entry.get("separablePrefix"))
     stem = _text(entry.get("stem"))
@@ -452,6 +483,11 @@ def audit_entry(
                 "separablePrefix",
             )
 
+
+def _audit_idioms(
+    entry: Mapping[str, Any],
+    errors: list[LexiconIssue],
+) -> None:
     idioms = entry.get("idioms", [])
     if not isinstance(idioms, list):
         _error(
@@ -499,6 +535,11 @@ def audit_entry(
                     f"idioms[{index}]",
                 )
 
+
+def _audit_connotations(
+    entry: Mapping[str, Any],
+    errors: list[LexiconIssue],
+) -> None:
     connotations_raw = entry.get("connotations", [])
     connotations = (
         {
@@ -521,6 +562,29 @@ def audit_entry(
             "and an explicit usageNote",
             "connotations",
         )
+
+
+def audit_entry(
+    entry: Mapping[str, Any],
+    *,
+    language_code: str | None = None,
+) -> LexiconAuditReport:
+    entry = _normalized_entry(entry, language_code)
+    errors: list[LexiconIssue] = []
+    warnings: list[LexiconIssue] = []
+
+    lemma, language, part_of_speech = _audit_base_fields(entry, errors)
+    _audit_usage_and_register(entry, errors, language)
+    target_language, translated_text = _audit_translation(
+        entry, errors, language
+    )
+    _audit_article(entry, errors, language, part_of_speech)
+    _audit_false_friends(
+        errors, language, target_language, lemma, translated_text
+    )
+    _audit_verb_structure(entry, errors, part_of_speech, lemma)
+    _audit_idioms(entry, errors)
+    _audit_connotations(entry, errors)
 
     return LexiconAuditReport(
         lemma=lemma,
