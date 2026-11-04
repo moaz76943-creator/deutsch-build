@@ -1,0 +1,18 @@
+# Baseline Profile for Deutsch BilArabi app startup and core paths
+# Generated as initial set; refine with Macrobenchmark for production
+# Covers MainActivity, Flutter engine entry, and secure session handlers
+
+HSPLcom/deutschbilarabi/app/MainActivity;-><init>()V
+HSPLcom/deutschbilarabi/app/MainActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLcom/deutschbilarabi/app/MainActivity;->configureFlutterEngine(Lio/flutter/embedding/engine/FlutterEngine;)V
+PLcom/deutschbilarabi/app/MainActivity;->onCreate(Landroid/os/Bundle;)V
+
+# Flutter embedding critical paths
+HSPLio/flutter/embedding/android/FlutterActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLio/flutter/embedding/engine/FlutterEngine;-><init>(Landroid/content/Context;)V
+
+# Security components (lazy where possible, but keep for init)
+HSPLcom/deutschbilarabi/app/AndroidSecureSessionStorage;-><init>(Landroid/content/Context;)V
+
+# Startup boundary related (Dart side compiled to native via Flutter)
+# Note: Full Dart methods are captured best via Macrobenchmark runs
