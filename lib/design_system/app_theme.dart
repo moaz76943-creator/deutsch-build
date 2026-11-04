@@ -1,128 +1,115 @@
 import 'package:flutter/material.dart';
 
+import 'app_colors.dart';
+import 'app_typography.dart';
+
 class AppTheme {
-  // Seed colors tuned for German learning (trust + energy) while staying MD3-friendly.
-  static const Color _lightSeed = Color(0xFF365AA8);
-  static const Color _darkSeed = Color(0xFFAFC6FF);
-
-  static ThemeData get lightTheme => _buildTheme(Brightness.light, _lightSeed);
-  static ThemeData get darkTheme => _buildTheme(Brightness.dark, _darkSeed);
-
-  static ThemeData _buildTheme(Brightness brightness, Color seed) {
+  static ThemeData get lightTheme {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: seed,
-      brightness: brightness,
-      // Dynamic contrast helpers for better a11y
-      dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
+      seedColor: AppColors.primary,
+      brightness: Brightness.light,
+      primary: AppColors.primary,
+      secondary: AppColors.secondary,
+      tertiary: AppColors.tertiary,
+      surface: AppColors.lightSurface,
+      background: AppColors.lightBackground,
     );
-
-    final isDark = brightness == Brightness.dark;
 
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
       fontFamily: 'Cairo',
+      fontFamilyFallback: AppTypography.fallbackFontFamilies,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: colorScheme.surface,
-      textTheme: _textTheme.apply(
-        bodyColor: colorScheme.onSurface,
-        displayColor: colorScheme.onSurface,
-      ),
-      // Accessibility: larger default touch targets + clear focus
-      visualDensity: VisualDensity.adaptivePlatformDensity,
-      splashFactory: InkSparkle.splashFactory, // Smoother MD3 ripples
-      pageTransitionsTheme: const PageTransitionsTheme(
-        builders: {
-          TargetPlatform.android: ZoomPageTransitionsBuilder(), // Smoother shared-axis style
-          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-        },
-      ),
-      appBarTheme: AppBarTheme(
-        elevation: 0,
-        scrolledUnderElevation: 0.5,
-        centerTitle: true,
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
-        titleTextStyle: AppTypography.title.copyWith(
-          color: colorScheme.onSurface,
-          fontSize: 20,
-        ),
-      ),
+      scaffoldBackgroundColor: AppColors.lightBackground,
+      textTheme: _buildTextTheme(colorScheme),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          minimumSize: const Size(48, 48),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          elevation: 0,
-          textStyle: AppTypography.label.copyWith(fontSize: 15, fontWeight: FontWeight.w600),
+          minimumSize: const Size(64, 48), // Accessibility: larger touch targets
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size(48, 48),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
-      ),
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size(48, 48),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          minimumSize: const Size(64, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
       ),
       cardTheme: CardTheme(
-        elevation: isDark ? 1 : 0.5,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        color: colorScheme.surfaceContainer,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        elevation: 1,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        color: colorScheme.surface,
       ),
-      navigationBarTheme: NavigationBarThemeData(
-        height: 72,
-        labelTextStyle: WidgetStateProperty.resolveWith((states) {
-          return AppTypography.label.copyWith(
-            fontSize: 12,
-            fontWeight: states.contains(WidgetState.selected) ? FontWeight.w600 : FontWeight.w500,
-          );
-        }),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      ),
-      // Better dark mode contrast
-      dividerTheme: DividerThemeData(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+      // Support dynamic font scaling and high contrast via system settings
+      visualDensity: VisualDensity.adaptivePlatformDensity,
     );
   }
 
-  static TextTheme get _textTheme => const TextTheme(
-    displayLarge: AppTypography.display,
-    displayMedium: AppTypography.display,
-    headlineLarge: AppTypography.h1,
-    headlineMedium: AppTypography.h1,
-    titleLarge: AppTypography.title,
-    titleMedium: AppTypography.h2,
-    bodyLarge: AppTypography.body,
-    bodyMedium: AppTypography.body,
-    labelLarge: AppTypography.label,
-    labelMedium: AppTypography.label,
-    labelSmall: AppTypography.caption,
-  );
+  static ThemeData get darkTheme {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: AppColors.primaryDark,
+      brightness: Brightness.dark,
+      primary: AppColors.primaryDark,
+      secondary: AppColors.secondaryDark,
+      tertiary: AppColors.tertiaryDark,
+      surface: AppColors.darkSurface,
+      background: AppColors.darkBackground,
+    );
 
-  /// Dynamic color (Material You) for Android 12+.
-  /// Usage in MaterialApp: theme: AppTheme.withDynamic(dynamicLight, false), etc.
-  static ThemeData withDynamic(ColorScheme dynamicScheme, bool isDark) {
-    final base = isDark ? darkTheme : lightTheme;
-    return base.copyWith(
-      colorScheme: dynamicScheme,
-      scaffoldBackgroundColor: dynamicScheme.surface,
-      appBarTheme: base.appBarTheme.copyWith(
-        backgroundColor: dynamicScheme.surface,
-        foregroundColor: dynamicScheme.onSurface,
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      fontFamily: 'Cairo',
+      fontFamilyFallback: AppTypography.fallbackFontFamilies,
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: AppColors.darkBackground,
+      textTheme: _buildTextTheme(colorScheme),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size(64, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        ),
       ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(64, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        ),
+      ),
+      cardTheme: CardTheme(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        color: colorScheme.surface,
+      ),
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+    );
+  }
+
+  static TextTheme _buildTextTheme(ColorScheme colorScheme) {
+    return TextTheme(
+      displayLarge: AppTypography.display.copyWith(color: colorScheme.onSurface),
+      displayMedium: AppTypography.display.copyWith(
+        fontSize: 28,
+        color: colorScheme.onSurface,
+      ),
+      headlineLarge: AppTypography.h1.copyWith(color: colorScheme.onSurface),
+      headlineMedium: AppTypography.h2.copyWith(color: colorScheme.onSurface),
+      titleLarge: AppTypography.title.copyWith(color: colorScheme.onSurface),
+      titleMedium: AppTypography.title.copyWith(
+        fontSize: 16,
+        color: colorScheme.onSurface,
+      ),
+      bodyLarge: AppTypography.body.copyWith(color: colorScheme.onSurface),
+      bodyMedium: AppTypography.body.copyWith(
+        fontSize: 14,
+        color: colorScheme.onSurface,
+      ),
+      labelLarge: AppTypography.label.copyWith(color: colorScheme.onSurface),
+      labelMedium: AppTypography.label.copyWith(
+        fontSize: 12,
+        color: colorScheme.onSurfaceVariant,
+      ),
+      // Flutter automatically scales these with MediaQuery.textScaleFactor for accessibility
     );
   }
 }
