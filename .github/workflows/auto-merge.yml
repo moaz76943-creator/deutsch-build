@@ -10,6 +10,7 @@ on:
     types: [completed]
 
 permissions:
+  contents: read
   contents: write
   pull-requests: write
   actions: read
@@ -24,7 +25,8 @@ jobs:
       vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true' &&
       (
         github.event_name != 'workflow_run' ||
-        github.event.workflow_run.event == 'pull_request'
+        github.event.workflow_run.pull_requests[0].base.ref == 'staging/v2-full-platform' ||
+        github.event.workflow_run.pull_requests[0].base.ref == 'main'
       )
     runs-on: ubuntu-latest
     timeout-minutes: 3
@@ -55,7 +57,10 @@ jobs:
                     [.[] | select(
                       .state == "open"
                       and .head.sha == $sha
-                      and .base.ref == "staging/v2-full-platform"
+                      and (
+                        .base.ref == "main"
+                        or .base.ref == "staging/v2-full-platform"
+                      )
                     ) | .number]
                     | if length == 1 then .[0] else empty end
                   ' <<< "$candidates")"
@@ -105,7 +110,7 @@ jobs:
             echo '::notice::PR state, repository, or opt-in label changed; merge not attempted.'
             exit 0
           fi
-          if [[ "$base_ref" != 'staging/v2-full-platform' ]]; then
+          if [[ "$base_ref" != 'staging/v2-full-platform' && "$base_ref" != main ]]; then
             echo '::notice::Unsupported integration target; merge not attempted.'
             exit 0
           fi
