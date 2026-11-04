@@ -146,10 +146,7 @@ def _parse_level(raw: Any, field: str) -> CefrLevel:
         ) from exc
 
 
-def _item_from_mapping(
-    raw: Mapping[str, Any],
-    index: int,
-) -> IngestedContentItem:
+def _check_missing_and_unknown_fields(raw: Mapping[str, Any], index: int) -> None:
     unknown = sorted(set(raw) - _ALLOWED_FIELDS)
     if unknown:
         raise ContentIngestionError(
@@ -161,17 +158,22 @@ def _item_from_mapping(
             f"items[{index}] is missing required fields: {', '.join(missing)}"
         )
 
+
+def _parse_id(raw_id: Any, index: int) -> str:
     content_id = _visible_string(
-        raw.get("id"),
+        raw_id,
         f"items[{index}].id",
         required=True,
         max_length=128,
     )
     if not _ID_RE.fullmatch(content_id):
         raise ContentIngestionError(f"items[{index}].id is malformed")
+    return content_id
 
+
+def _parse_part_of_speech(raw_pos: Any, index: int) -> str:
     part_of_speech = _visible_string(
-        raw.get("partOfSpeech"),
+        raw_pos,
         f"items[{index}].partOfSpeech",
         default="other",
         max_length=64,
@@ -180,9 +182,12 @@ def _item_from_mapping(
         raise ContentIngestionError(
             f"items[{index}].partOfSpeech is unsupported: {part_of_speech}"
         )
+    return part_of_speech
 
+
+def _parse_register(raw_register: Any, index: int) -> str:
     register = _visible_string(
-        raw.get("register"),
+        raw_register,
         f"items[{index}].register",
         default="neutral",
         max_length=16,
@@ -191,9 +196,12 @@ def _item_from_mapping(
         raise ContentIngestionError(
             f"items[{index}].register must be formal, neutral, or informal"
         )
+    return register
 
+
+def _parse_article(raw_article: Any, index: int) -> str:
     article = _visible_string(
-        raw.get("article"),
+        raw_article,
         f"items[{index}].article",
         max_length=8,
     ).lower()
@@ -201,9 +209,17 @@ def _item_from_mapping(
         raise ContentIngestionError(
             f"items[{index}].article must be der, die, das, or empty"
         )
+    return article
+
+
+def _item_from_mapping(
+    raw: Mapping[str, Any],
+    index: int,
+) -> IngestedContentItem:
+    _check_missing_and_unknown_fields(raw, index)
 
     return IngestedContentItem(
-        id=content_id,
+        id=_parse_id(raw.get("id"), index),
         level=_parse_level(raw.get("level"), f"items[{index}].level"),
         german=_visible_string(
             raw.get("german"),
@@ -215,8 +231,8 @@ def _item_from_mapping(
             f"items[{index}].arabic",
             required=True,
         ),
-        part_of_speech=part_of_speech,
-        article=article,
+        part_of_speech=_parse_part_of_speech(raw.get("partOfSpeech"), index),
+        article=_parse_article(raw.get("article"), index),
         plural=_visible_string(
             raw.get("plural"),
             f"items[{index}].plural",
@@ -241,7 +257,7 @@ def _item_from_mapping(
             default="vocabulary",
             max_length=120,
         ),
-        register=register,
+        register=_parse_register(raw.get("register"), index),
         accepted=_accepted_forms(
             raw.get("accepted"),
             f"items[{index}].accepted",
