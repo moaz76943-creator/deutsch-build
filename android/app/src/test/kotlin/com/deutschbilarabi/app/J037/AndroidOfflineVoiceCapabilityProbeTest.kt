@@ -1,6 +1,5 @@
 package com.deutschbilarabi.app.J037
 
-import android.content.Context
 import android.speech.tts.TextToSpeech
 import com.deutschbilarabi.app.AndroidOfflineVoiceCapabilityProbe
 import com.deutschbilarabi.app.VoiceCapabilitySnapshot
@@ -57,16 +56,9 @@ class AndroidOfflineVoiceCapabilityProbeTest {
         assertEquals(listOf("de-DE"), offline)
     }
 
-        val voices = setOf(voiceLocal, voiceNetwork, voiceNotInstalled)
-
-        val offlineVoices = voices.filter { voice ->
-            val features = voice.features ?: emptySet()
-            !voice.isNetworkConnectionRequired && !features.contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED)
-        }.map { voice ->
-            voice.locale.toLanguageTag()
-        }.distinct()
-
-        assertEquals(1, offlineVoices.size)
-        assertEquals("de-DE", offlineVoices[0])
+    @Test
+    fun missingVoiceInventoryFailsClosed() {
+        assertTrue(offlineVoiceLanguageTags(null).isEmpty())
+        assertTrue(offlineVoiceLanguageTags(emptyList()).isEmpty())
     }
 }
