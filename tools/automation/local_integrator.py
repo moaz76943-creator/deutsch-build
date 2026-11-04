@@ -211,13 +211,90 @@ def _restore_original_head(repo: Path, original_head: str) -> None:
         _git(repo, "reset", "--merge", original_head)
 
 
-def _find_ready_candidate(
-    repository: Path,
-    backlog_path: str | Path,
-    backlog: Mapping[str, Any] | None,
-    dependencies: Mapping[int, Iterable[int]] | None,
-    pr_branches: Mapping[int, str] | None,
-) -> tuple[dict[str, Any] | None, dict[str, Any]]:
+def _attempt_merge(repository: Path, original_head: str, candidate_head: str, candidate: dict[str, Any]) -> tuple[str, dict[str, Any] | None]:
+    fast_forward = _is_ancestor(repository, original_head, candidate_head)
+    merge_mode = "fast-forward" if fast_forward else "merge"
+
+    merge_args = (
+        ("merge", "--ff-only", candidate_head)
+        if fast_forward
+        else ("merge", "--no-ff", "--no-edit", candidate_head)
+    )
+    merge = _git(repository, *merge_args, check=False)
+    if merge.returncode != 0:
+        _restore_original_head(repository, original_head)
+        return merge_mode, {
+            "status": "MERGE_FAILED",
+            "exit_code": 1,
+            "pr_number": candidate["pr_number"],
+            "branch": candidate["branch"],
+            "merge_mode": merge_mode,
+            "merge_stderr": merge.stderr.strip(),
+            "rolled_back": True,
+        }
+    return merge_mode, None
+
+
+def _run_post_merge_gatekeeper(repository: Path, original_head: str, candidate: dict[str, Any], merge_mode: str, gatekeeper_command: Sequence[str] | None) -> subprocess.CompletedProcess[str] | dict[str, Any]:
+    command = tuple(gatekeeper_command) if gatekeeper_command is not None else _default_gatekeeper_command()
+    gate = _run_gatekeeper(repository, command)
+    if gate.returncode != 0:
+        _restore_original_head(repository, original_head)
+        restored = verify_tree(repository)
+        return {
+            "status": "ROLLED_BACK_GATE_FAILURE",
+            "exit_code": 1,
+            "pr_number": candidate["pr_number"],
+            "branch": candidate["branch"],
+            "merge_mode": merge_mode,
+            "gatekeeper_exit_code": gate.returncode,
+            "gatekeeper_stdout": gate.stdout.strip(),
+            "gatekeeper_stderr": gate.stderr.strip(),
+            "rolled_back": restored["head"] == original_head,
+            "head": restored["head"],
+        }
+    return gate
+
+
+def _verify_post_merge_tree(repository: Path, original_head: str, candidate: dict[str, Any], merge_mode: str) -> dict[str, Any]:
+    post_state = verify_tree(repository)
+    if not post_state["clean"]:
+        _restore_original_head(repository, original_head)
+        restored = verify_tree(repository)
+        return {
+            "status": "ROLLED_BACK_TREE_VERIFICATION_FAILURE",
+            "exit_code": 1,
+            "pr_number": candidate["pr_number"],
+            "branch": candidate["branch"],
+            "merge_mode": merge_mode,
+            "rolled_back": restored["head"] == original_head,
+            "tree_clean_after_restore": restored["clean"],
+        }
+    return post_state
+
+
+def apply_next(
+    *,
+    repo: str | Path = ".",
+    backlog_path: str | Path = DEFAULT_BACKLOG,
+    backlog: Mapping[str, Any] | None = None,
+    dependencies: Mapping[int, Iterable[int]] | None = None,
+    pr_branches: Mapping[int, str] | None = None,
+    gatekeeper_command: Sequence[str] | None = None,
+    dry_run: bool = False,
+) -> dict[str, Any]:
+    """Integrate the next dependency-ready candidate into the current branch.
+
+    The repository must start clean. The selected candidate is preflighted by
+    ``rebase_healer`` against the exact current HEAD. Only CLEAN and
+    AUTO_RESOLVABLE preflight results may proceed. Gatekeeper failure restores
+    the exact original HEAD before returning a failure result.
+    """
+
+    repository = Path(repo).resolve()
+    original_state = _require_clean_tree(repository)
+    original_head = str(original_state["head"])
+
     backlog_data = dict(backlog) if backlog is not None else load_backlog(backlog_path)
     dependency_map = (
         {int(number): frozenset(int(dep) for dep in deps) for number, deps in dependencies.items()}
@@ -251,90 +328,31 @@ def _preflight_candidate(
     )
     return preflight, boundaries
 
-
-def _perform_integration(
-    repository: Path,
-    candidate: dict[str, Any],
-    original_head: str,
-    preflight: dict[str, Any],
-    gatekeeper_command: Sequence[str] | None,
-) -> dict[str, Any]:
-    candidate_head = str(candidate["candidate_head"])
-    fast_forward = _is_ancestor(repository, original_head, candidate_head)
-    merge_mode = "fast-forward" if fast_forward else "merge"
-
-    return _attempt_integration(
-        repository=repository,
-        original_head=original_head,
-        candidate=candidate,
-        candidate_head=candidate_head,
-        fast_forward=fast_forward,
-        merge_mode=merge_mode,
-        preflight=preflight,
-        gatekeeper_command=gatekeeper_command,
-    )
-
-
-def _attempt_integration(
-    *,
-    repository: Path,
-    original_head: str,
-    candidate: dict[str, Any],
-    candidate_head: str,
-    fast_forward: bool,
-    merge_mode: str,
-    preflight: dict[str, Any],
-    gatekeeper_command: Sequence[str] | None,
-) -> dict[str, Any]:
-    merge_args = (
-        ("merge", "--ff-only", candidate_head)
-        if fast_forward
-        else ("merge", "--no-ff", "--no-edit", candidate_head)
-    )
-    merge = _git(repository, *merge_args, check=False)
-    if merge.returncode != 0:
-        _restore_original_head(repository, original_head)
+    if dry_run:
+        fast_forward = _is_ancestor(repository, original_head, candidate_head)
         return {
-            "status": "MERGE_FAILED",
-            "exit_code": 1,
+            "status": "DRY_RUN",
+            "exit_code": 0,
             "pr_number": candidate["pr_number"],
             "branch": candidate["branch"],
-            "merge_mode": merge_mode,
-            "merge_stderr": merge.stderr.strip(),
-            "rolled_back": True,
+            "candidate_head": candidate_head,
+            "target_head": original_head,
+            "merge_mode": "fast-forward" if fast_forward else "merge",
+            "preflight": preflight,
+            "boundaries": list(boundaries),
         }
 
-    command = tuple(gatekeeper_command) if gatekeeper_command is not None else _default_gatekeeper_command()
-    gate = _run_gatekeeper(repository, command)
-    if gate.returncode != 0:
-        _restore_original_head(repository, original_head)
-        restored = verify_tree(repository)
-        return {
-            "status": "ROLLED_BACK_GATE_FAILURE",
-            "exit_code": 1,
-            "pr_number": candidate["pr_number"],
-            "branch": candidate["branch"],
-            "merge_mode": merge_mode,
-            "gatekeeper_exit_code": gate.returncode,
-            "gatekeeper_stdout": gate.stdout.strip(),
-            "gatekeeper_stderr": gate.stderr.strip(),
-            "rolled_back": restored["head"] == original_head,
-            "head": restored["head"],
-        }
+    merge_mode, merge_err = _attempt_merge(repository, original_head, candidate_head, candidate)
+    if merge_err:
+        return merge_err
 
-    post_state = verify_tree(repository)
-    if not post_state["clean"]:
-        _restore_original_head(repository, original_head)
-        restored = verify_tree(repository)
-        return {
-            "status": "ROLLED_BACK_TREE_VERIFICATION_FAILURE",
-            "exit_code": 1,
-            "pr_number": candidate["pr_number"],
-            "branch": candidate["branch"],
-            "merge_mode": merge_mode,
-            "rolled_back": restored["head"] == original_head,
-            "tree_clean_after_restore": restored["clean"],
-        }
+    gate = _run_post_merge_gatekeeper(repository, original_head, candidate, merge_mode, gatekeeper_command)
+    if isinstance(gate, dict):
+        return gate
+
+    post_state = _verify_post_merge_tree(repository, original_head, candidate, merge_mode)
+    if "status" in post_state:
+        return post_state
 
     return {
         "status": "INTEGRATED",
