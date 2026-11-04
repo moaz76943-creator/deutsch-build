@@ -6,10 +6,30 @@
 HSPLcom/deutschbilarabi/app/MainActivity;->onCreate(Landroid/os/Bundle;)V
 HSPLcom/deutschbilarabi/app/MainActivity;-><init>()V
 HSPLio/flutter/embedding/android/FlutterActivity;->onCreate(Landroid/os/Bundle;)V
-HSPLio/flutter/embedding/engine/FlutterEngine;-><init>(Landroid/content/Context;)V
-HSPLio/flutter/embedding/engine/FlutterJNI;->init()V
-HSPLio/flutter/plugins/GeneratedPluginRegistrant;->registerWith(Lio/flutter/embedding/engine/FlutterEngine;)V
-HSPLcom/deutschbilarabi/app/AndroidPackDatabaseKeyStore;-><init>()V
-HSPLcom/deutschbilarabi/app/AndroidSecureSessionStorage;-><init>()V
-# Additional critical methods from startup boundary and database service
-HSPLcom/deutschbilarabi/app/AndroidGamificationClockIntegritySource;-><init>()V
+HSPLio/flutter/embedding/android/FlutterActivity;->onStart()V
+HSPLio/flutter/embedding/android/FlutterActivity;->onResume()V
+HSPLio/flutter/embedding/android/FlutterActivity;->configureFlutterEngine(Lio/flutter/embedding/engine/FlutterEngine;)V
+HSPLio/flutter/embedding/engine/FlutterJNI;->init(Landroid/content/Context;[Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;J)V
+HSPLio/flutter/embedding/engine/FlutterJNI;->attachToNative()V
+HSPLio/flutter/embedding/engine/loader/FlutterLoader;->ensureInitializationComplete(Landroid/content/Context;[Ljava/lang/String;)V
+HSPLio/flutter/embedding/engine/loader/FlutterLoader;->startInitialization(Landroid/content/Context;)V
+HSPLio/flutter/view/FlutterView;->onDraw(Landroid/graphics/Canvas;)V
+HSPLio/flutter/view/FlutterView;->onLayout(ZIIII)V
+HSPLio/flutter/embedding/engine/dart/DartExecutor;->executeDartEntrypoint(Lio/flutter/embedding/engine/dart/DartExecutor$DartEntrypoint;)V
+HSPLio/flutter/plugin/common/BinaryMessenger;->send(Ljava/lang/String;Ljava/nio/ByteBuffer;)V
+HSPLio/flutter/embedding/engine/systemchannels/PlatformChannel;->setApplicationSwitcherDescription(Lio/flutter/embedding/engine/systemchannels/PlatformChannel$AppSwitcherDescription;)V
+HSPLio/flutter/embedding/engine/systemchannels/TextInputChannel;->updateEditingState(ILjava/util/HashMap;)V
+HSPLandroidx/profileinstaller/ProfileInstaller;->writeProfile(Landroid/content/Context;)V
+# Additional for common UI and DB access paths during startup
+HSPLio/flutter/plugin/common/MethodChannel;->invokeMethod(Ljava/lang/String;Ljava/lang/Object;Lio/flutter/plugin/common/MethodChannel$Result;)V
+HSPLcom/tekartik/sqflite/SqflitePlugin;->onMethodCall(Lio/flutter/plugin/common/MethodCall;Lio/flutter/plugin/common/MethodChannel$Result;)V
+
+# Enhanced for UI jank reduction: list rendering, scrolling, and common widget builds
+HSPLio/flutter/plugins/imagepicker/ImagePickerPlugin;->onMethodCall(Lio/flutter/plugin/common/MethodCall;Lio/flutter/plugin/common/MethodChannel$Result;)V
+HSPLio/flutter/embedding/engine/systemchannels/SettingsChannel;->sendMessage(Lio/flutter/embedding/engine/systemchannels/SettingsChannel$Message;)V
+HSPLio/flutter/view/AccessibilityBridge;->onAccessibilityStateChange(Z)V
+HSPLandroid/view/View;->draw(Landroid/graphics/Canvas;)V
+HSPLandroid/widget/TextView;->onDraw(Landroid/graphics/Canvas;)V
+HSPLandroidx/recyclerview/widget/RecyclerView;->onDraw(Landroid/graphics/Canvas;)V
+HSPLandroidx/recyclerview/widget/RecyclerView;->scrollBy(II)V
+HSPLio/flutter/plugin/platform/PlatformViewsController;->onDisplayPlatformView(IIZLio/flutter/embedding/engine/systemchannels/PlatformViewsChannel$PlatformViewCreationRequest;)V
