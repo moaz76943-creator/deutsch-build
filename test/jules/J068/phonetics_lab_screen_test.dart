@@ -120,4 +120,13 @@ void main() {
 
     expect(find.text('حروف التملق (Umlaut) وكيفية تدوير الشفاه بالألمانية'), findsOneWidget);
   });
+
+  testWidgets('Invalid IPA renders safely', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: PhoneticsLabScreen(),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+  });
 }
