@@ -6,6 +6,13 @@ import 'transaction_persistence_port.dart';
 /// Validates the immutable review contract before forwarding to one durable
 /// transaction authority. Never independently updates progress or SRS.
 class ReviewTransactionManager {
+  // Pair keys use underscores as separators; locale/version components must
+  // never contain them or two different directed pairs can share one key.
+  static final RegExp _languageTagPattern =
+      RegExp(r'^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*$');
+  static final RegExp _versionPattern =
+      RegExp(r'^[A-Za-z0-9][A-Za-z0-9.+-]*$');
+
   final TransactionPersistencePort persistencePort;
   final DateTime Function() clock;
 
@@ -25,7 +32,10 @@ class ReviewTransactionManager {
         target != target.trim() ||
         version.trim().isEmpty ||
         version != version.trim() ||
-        source == target ||
+        source.toLowerCase() == target.toLowerCase() ||
+        !_languageTagPattern.hasMatch(source) ||
+        !_languageTagPattern.hasMatch(target) ||
+        !_versionPattern.hasMatch(version) ||
         command.pairEpoch < 0) {
       throw ArgumentError('Invalid review event, version, or directed pair');
     }
@@ -55,3 +65,4 @@ class DurableReviewCommandPort implements ReviewCommandPort {
     await manager.processTransaction(command);
   }
 }
+
