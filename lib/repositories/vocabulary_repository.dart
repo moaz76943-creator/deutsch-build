@@ -12,6 +12,7 @@ class VocabularyRepository {
   static const String _legacyKey = 'custom_vocabulary';
 
   List<Map<String, dynamic>> _offlineCache = [];
+  bool _isCacheValid = false;
 
   Future<Database> _getDb() async {
     final db = await DatabaseService.instance.progressDb;
@@ -34,7 +35,15 @@ class VocabularyRepository {
     return db;
   }
 
+  void _invalidateCache() {
+    _isCacheValid = false;
+    _offlineCache = [];
+  }
+
   Future<List<Map<String, dynamic>>> getVocabularyList() async {
+    if (_isCacheValid && _offlineCache.isNotEmpty) {
+      return _offlineCache;
+    }
     try {
       final db = await _getDb().timeout(const Duration(seconds: 5));
       final List<Map<String, dynamic>> records = await db.query(
@@ -45,6 +54,7 @@ class VocabularyRepository {
       if (records.isEmpty) {
         final seeded = await _seedAndMigrate(db);
         _offlineCache = seeded;
+        _isCacheValid = true;
         return seeded;
       }
 
@@ -53,6 +63,7 @@ class VocabularyRepository {
         return Map<String, dynamic>.from(jsonDecode(jsonStr) as Map);
       }).toList();
       _offlineCache = results;
+      _isCacheValid = true;
       return results;
     } catch (_) {
       return _offlineCache;
@@ -112,6 +123,7 @@ class VocabularyRepository {
         );
       }
       await batch.commit(noResult: true);
+      _invalidateCache();
       return true;
     } catch (_) {
       return false;
@@ -151,6 +163,7 @@ class VocabularyRepository {
           where: 'word = ?',
           whereArgs: [word],
         );
+        _invalidateCache();
         return true;
       }
       return false;
@@ -181,6 +194,7 @@ class VocabularyRepository {
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
+      _invalidateCache();
       return true;
     } catch (_) {
       return false;
@@ -191,6 +205,7 @@ class VocabularyRepository {
     try {
       final db = await _getDb();
       await db.delete('vocabulary_items', where: 'word = ?', whereArgs: [word]);
+      _invalidateCache();
       return true;
     } catch (_) {
       return false;

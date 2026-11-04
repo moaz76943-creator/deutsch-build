@@ -140,3 +140,28 @@ Cold start latency is critical for user retention. Flutter apps can benefit sign
 - Tune image cache sizes further based on real device measurements.
 
 Security note: No changes to permissions, integrity checks, or proguard keep rules. ProfileInstaller is official AndroidX.
+
+## 2026-10-26: Lazy In-Memory Cache for Vocabulary Repository
+
+### Issue
+VocabularyRepository.getVocabularyList() hit SQLite on every call (common on UI rebuilds, lists, exports). This increases CPU, battery, and latency for list screens and diagnostics.
+
+### Change
+- Added `_isCacheValid` flag and early return from `_offlineCache` when valid.
+- Invalidated cache on all mutations (save, update SRS, upsert, delete).
+- Seed path still loads master_vocabulary.json only once on first empty DB (already deferred).
+- No new permissions, no network, offline-first preserved. R8 unaffected.
+
+### Expected Metrics
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| Repeated getVocabularyList() (same session) | Full DB query + JSON decode each time | Instant from memory | ~90-99% less CPU/time for subsequent calls |
+| Memory | Low (re-query) | Small List cache (typical <1 MB for vocab) | Negligible |
+| Battery / jank on vocab screens | Higher from repeated SQLite | Lower | Reduced UI thread work |
+
+### How to measure
+1. Flutter DevTools Performance / CPU profiler: call getVocabularyList() 10x before/after.
+2. sqflite query count via logging or Android Profiler.
+3. Frame times on weak-words or vocabulary list screens.
+
+Security note: Cache is in-process memory only; cleared on process death. No data exposure change. Integrity checks and Play Integrity remain untouched.
