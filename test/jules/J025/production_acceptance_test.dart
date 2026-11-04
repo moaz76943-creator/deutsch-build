@@ -4,99 +4,99 @@ import 'package:deutsch_bilarabi/core/quality/production_acceptance_gate.dart';
 void main() {
   group('ProductionAcceptanceGate', () {
     test('Perfect evidence yields PASSED/APPROVED', () {
-      final evidence = AcceptanceEvidence(
+      final evidence = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        verifiedLanguages: ['en', 'de'],
+        registeredLanguages: {'en', 'de'}, verifiedDictionaries: {'en', 'de'},
       );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
+      final result = ProductionAcceptanceGate.evaluateReadiness(evidence);
       expect(result.outcome, GateOutcome.passed);
-      expect(result.state, EligibilityState.approved);
+      expect(result.eligibility, PromotionEligibility.approved);
       expect(result.isReady, isTrue);
     });
 
     test('Missing optional features yields PASSED/DEGRADED', () {
-      final evidence = AcceptanceEvidence(
+      final evidence = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        missingOptionalFeatures: true,
+        hasOptionalAudio: false,
       );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
+      final result = ProductionAcceptanceGate.evaluateReadiness(evidence);
       expect(result.outcome, GateOutcome.passed);
-      expect(result.state, EligibilityState.degraded);
+      expect(result.eligibility, PromotionEligibility.degraded);
       expect(result.isReady, isTrue);
     });
 
     test('Missing evidence (null) yields NOT_RUN/NOT_VERIFIED', () {
-      final result = ProductionAcceptanceGate.evaluateEvidence(null);
+      final result = ProductionAcceptanceGate.evaluateReadiness(null);
       expect(result.outcome, GateOutcome.notRun);
-      expect(result.state, EligibilityState.notVerified);
+      expect(result.eligibility, PromotionEligibility.notVerified);
       expect(result.isReady, isFalse);
     });
 
     test('Stale evidence yields NOT_RUN/NOT_VERIFIED', () {
-      final evidence = AcceptanceEvidence(
+      final evidence = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        isStale: true,
+        isVerificationStale: true,
       );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
+      final result = ProductionAcceptanceGate.evaluateReadiness(evidence);
       expect(result.outcome, GateOutcome.notRun);
-      expect(result.state, EligibilityState.notVerified);
+      expect(result.eligibility, PromotionEligibility.notVerified);
       expect(result.isReady, isFalse);
     });
 
     test('Corrupted content yields BLOCKED/BLOCKED', () {
-      final evidence = AcceptanceEvidence(
+      final evidence = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        hasCorruptedContent: true,
+        isContentCorrupted: true,
       );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
+      final result = ProductionAcceptanceGate.evaluateReadiness(evidence);
       expect(result.outcome, GateOutcome.blocked);
-      expect(result.state, EligibilityState.blocked);
+      expect(result.eligibility, PromotionEligibility.blocked);
       expect(result.isReady, isFalse);
     });
 
     test('Regressions yield BLOCKED/BLOCKED', () {
-      final evidence = AcceptanceEvidence(
+      final evidence = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        hasRegressions: true,
+        isStartupRecoveryFailed: true,
       );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
+      final result = ProductionAcceptanceGate.evaluateReadiness(evidence);
       expect(result.outcome, GateOutcome.blocked);
-      expect(result.state, EligibilityState.blocked);
+      expect(result.eligibility, PromotionEligibility.blocked);
       expect(result.isReady, isFalse);
     });
 
     test('Missing mandatory infrastructure yields FAILED/BLOCKED', () {
-      final evidence = AcceptanceEvidence(
+      final evidence = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: false,
         isLifecycleManaged: true,
       );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
+      final result = ProductionAcceptanceGate.evaluateReadiness(evidence);
       expect(result.outcome, GateOutcome.failed);
-      expect(result.state, EligibilityState.blocked);
+      expect(result.eligibility, PromotionEligibility.blocked);
       expect(result.isReady, isFalse);
     });
 
     test('Unsupported language claims yields FAILED/BLOCKED', () {
-      final evidence = AcceptanceEvidence(
+      final evidence = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        verifiedLanguages: ['fr'], // 'fr' is assetsReady, not productionReady
+        registeredLanguages: {'fr'}, verifiedDictionaries: {}, // 'fr' is assetsReady, not productionReady
       );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
+      final result = ProductionAcceptanceGate.evaluateReadiness(evidence);
       expect(result.outcome, GateOutcome.failed);
-      expect(result.state, EligibilityState.blocked);
+      expect(result.eligibility, PromotionEligibility.blocked);
       expect(result.isReady, isFalse);
     });
 

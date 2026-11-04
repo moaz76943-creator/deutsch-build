@@ -32,6 +32,8 @@ class J095VerificationResult {
     this.isEvidenceStale = false,
     this.hasMissingMandatoryEvidence = false,
   });
+
+  bool get isReady => outcome == GateOutcome.passed;
 }
 
 class J025StartupContract {
@@ -115,7 +117,15 @@ class ProductionAcceptanceGate {
   }
 
   static J095VerificationResult evaluateReadiness(
-      J025StartupContract contract) {
+      J025StartupContract? contract) {
+    if (contract == null) {
+      return const J095VerificationResult(
+        outcome: GateOutcome.notRun,
+        eligibility: PromotionEligibility.notVerified,
+        reason: 'No contract provided.',
+      );
+    }
+
     if (!contract.hasExecutedTests) {
       return const J095VerificationResult(
         outcome: GateOutcome.notRun,
@@ -142,7 +152,7 @@ class ProductionAcceptanceGate {
 
     if (contract.isContentCorrupted) {
       return const J095VerificationResult(
-        outcome: GateOutcome.failed,
+        outcome: GateOutcome.blocked,
         eligibility: PromotionEligibility.blocked,
         reason: 'Corrupted content detected.',
       );
@@ -150,7 +160,7 @@ class ProductionAcceptanceGate {
 
     if (contract.isStartupRecoveryFailed) {
       return const J095VerificationResult(
-        outcome: GateOutcome.failed,
+        outcome: GateOutcome.blocked,
         eligibility: PromotionEligibility.blocked,
         reason: 'Startup recovery failed.',
       );

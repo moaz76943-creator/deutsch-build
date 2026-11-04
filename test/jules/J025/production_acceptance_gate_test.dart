@@ -24,7 +24,7 @@ void main() {
     });
 
     test('Missing integrity evidence blocks acceptance', () {
-      final contract = ReadinessContract(
+      final contract = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
@@ -37,7 +37,7 @@ void main() {
     });
 
     test('Corrupted content fails acceptance', () {
-      final contract = ReadinessContract(
+      final contract = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
@@ -45,12 +45,12 @@ void main() {
       );
 
       final result = ProductionAcceptanceGate.evaluateReadiness(contract);
-      expect(result.outcome, GateOutcome.failed);
+      expect(result.outcome, GateOutcome.blocked);
       expect(result.eligibility, PromotionEligibility.blocked);
     });
 
     test('Failed startup recovery fails acceptance', () {
-      final contract = ReadinessContract(
+      final contract = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
@@ -58,12 +58,12 @@ void main() {
       );
 
       final result = ProductionAcceptanceGate.evaluateReadiness(contract);
-      expect(result.outcome, GateOutcome.failed);
+      expect(result.outcome, GateOutcome.blocked);
       expect(result.eligibility, PromotionEligibility.blocked);
     });
 
     test('Missing infrastructure fails acceptance', () {
-      final contract = ReadinessContract(
+      final contract = J025StartupContract(
         isOfflineSafe: false,
         isStorageGuarded: true,
         isLifecycleManaged: true,
@@ -75,7 +75,7 @@ void main() {
     });
 
     test('Unexecuted tests mark as not run', () {
-      final contract = ReadinessContract(
+      final contract = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
@@ -88,7 +88,7 @@ void main() {
     });
 
     test('Stale verification marks as not run', () {
-      final contract = ReadinessContract(
+      final contract = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
@@ -101,7 +101,7 @@ void main() {
     });
 
     test('Unsupported language claims fail acceptance', () {
-      final contract = ReadinessContract(
+      final contract = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
@@ -115,7 +115,7 @@ void main() {
     });
 
     test('Missing optional audio results in degraded but passed acceptance', () {
-      final contract = ReadinessContract(
+      final contract = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
@@ -128,7 +128,7 @@ void main() {
     });
 
     test('Successful pass', () {
-      final contract = ReadinessContract(
+      final contract = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
