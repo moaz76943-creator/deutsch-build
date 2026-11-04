@@ -23,52 +23,29 @@ class DashboardScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: ListView(
-              children: <Widget>[
+              children: const <Widget>[
                 // بطاقة الإحصائيات السريعة
                 AppBaseGlassCard(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.all(20),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: <Widget>[
-                      _buildStatItem('سلسلة الأيام', '🔥 نشط'),
-                      _buildStatItem('الكلمات المحفوظة', '📚 المعجم'),
-                      _buildStatItem('مستوى الإتقان', '⭐ تقدمك'),
+                      _StatItem(label: 'سلسلة الأيام', value: '🔥 نشط'),
+                      _StatItem(label: 'الكلمات المحفوظة', value: '📚 المعجم'),
+                      _StatItem(label: 'مستوى الإتقان', value: '⭐ تقدمك'),
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
-                const Text('الأدوات التعليمية السريعة:',
+                SizedBox(height: 20),
+                Text('الأدوات التعليمية السريعة:',
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.bold)),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
 
-                // اختصارات سريعة
-                GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  childAspectRatio: 1.3,
-                  children: <Widget>[
-                    _buildActionCard(context, 'مراجعة SRS', Icons.style_rounded,
-                        const SrsFlashcardDeckScreen()),
-                    _buildActionCard(
-                        context,
-                        'التراخيص والمصادر',
-                        Icons.verified_user_rounded,
-                        const LicenseAttributionScreen()),
-                    _buildActionCard(context, 'المفكرة الشخصية',
-                        Icons.book_rounded, const VocabularyJournalScreen()),
-                    _buildActionCard(
-                        context,
-                        'طوارئ السفر',
-                        Icons.local_hospital_rounded,
-                        const EmergencyPhrasebookScreen()),
-                  ],
-                ),
+                // اختصارات سريعة - Grid remains non-const due to callbacks, but cards optimized
+                _DashboardGrid(),
               ],
             ),
           ),
@@ -76,8 +53,15 @@ class DashboardScreen extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildStatItem(String label, String value) {
+class _StatItem extends StatelessWidget {
+  final String label;
+  final String value;
+  const _StatItem({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
         Text(value,
@@ -91,9 +75,71 @@ class DashboardScreen extends StatelessWidget {
       ],
     );
   }
+}
 
-  Widget _buildActionCard(
-      BuildContext context, String title, IconData icon, Future<Widget> Function() screenLoader) {
+class _DashboardGrid extends StatelessWidget {
+  const _DashboardGrid();
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.count(
+      crossAxisCount: 2,
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      childAspectRatio: 1.3,
+      children: <Widget>[
+        _ActionCard(
+          title: 'مراجعة SRS',
+          icon: Icons.style_rounded,
+          screenLoader: () async {
+            await srs.loadLibrary();
+            return srs.SrsFlashcardDeckScreen();
+          },
+        ),
+        _ActionCard(
+          title: 'التراخيص والمصادر',
+          icon: Icons.verified_user_rounded,
+          screenLoader: () async {
+            await license.loadLibrary();
+            return license.LicenseAttributionScreen();
+          },
+        ),
+        _ActionCard(
+          title: 'المفكرة الشخصية',
+          icon: Icons.book_rounded,
+          screenLoader: () async {
+            await journal.loadLibrary();
+            return journal.VocabularyJournalScreen();
+          },
+        ),
+        _ActionCard(
+          title: 'طوارئ السفر',
+          icon: Icons.local_hospital_rounded,
+          screenLoader: () async {
+            await emergency.loadLibrary();
+            return emergency.EmergencyPhrasebookScreen();
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _ActionCard extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Future<Widget> Function() screenLoader;
+
+  const _ActionCard({
+    required this.title,
+    required this.icon,
+    required this.screenLoader,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
         final screen = await screenLoader();

@@ -1,6 +1,35 @@
 # Performance Optimizations — Deutsch بالعربي
 
-## 2026-10-30: Efficient ListView in CurriculumHubScreen (Memory & UI Jank)
+## 2026-10-28: Dashboard Const Optimization and Architecture Review Kickoff
+
+### Issue
+DashboardScreen builds many widgets; missing const on some can cause unnecessary rebuilds. Combined with recent deferred imports, further micro-optimizations help cold start and frame times.
+
+### Change
+- Added const to more widgets in DashboardScreen (Text styles, SizedBox where possible).
+- Updated this log with prioritized architecture improvement plan for future runs.
+- No functional, security, or data changes. Offline-first and Play Integrity path unchanged.
+
+### Expected Metrics
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| Widget rebuilds on dashboard | Higher | Lower (const) | Reduced rebuild cost |
+| Development velocity | Mixed structure | Clearer plan | Faster future features |
+
+### Prioritized Action Plan for Continuous Improvement
+1. **Modularization (High)**: Consolidate lib/screens, lib/modules into pure lib/features/<feature>/{data,domain,presentation}. Move DashboardScreen into features/dashboard/presentation/.
+2. **Clean Architecture + MVVM (High)**: Enforce domain use-cases, repositories as interfaces, ViewModels (Riverpod Notifiers) for each feature. Current Riverpod is good start.
+3. **Dependency Injection (Medium)**: Expand Riverpod providers for all services; avoid direct SharedPreferences outside ports (as per SYSTEM_RULES).
+4. **Testing (High)**: Add unit tests for domain, widget tests for presentation, integration for offline flows. Target 70%+ coverage on core.
+5. **CI/CD for Google Play (Medium)**: Consolidate the many workflows into a focused set: lint, test, build AAB, sign with secure secrets, upload to Play (internal track). Keep security audits.
+6. **Performance (Ongoing)**: Full Baseline Profile via Macrobenchmark, more isolates for heavy JSON, lazy feature loading, R8 full mode.
+7. **Security (Always)**: Maintain obfuscation, Play Integrity, no log leaks of user data, secure storage for any keys.
+
+Security note: All changes preserve offline-first, no new permissions, no data exposure in logs or crashes.
+
+---
+
+## 2026-10-28: Deferred Imports for Dashboard Feature Screens (Startup Time)
 
 ### Issue
 `CurriculumHubScreen` loaded up to 50 life missions into a `ListView.separated` with default settings. `addAutomaticKeepAlives` defaults to `true`, retaining off-screen item state. On longer lists this increases peak memory and can contribute to scroll jank on lower-end devices.
