@@ -170,7 +170,7 @@ void main() {
           name: 'Arabic',
           nativeName: 'العربية',
           sizeBytes: size,
-          packFile: 'ar-1.pack.gz',
+          packFile: 'ar-1.0.0.pack.gz',
           sha256Hex: sha256.convert(<int>[1, 2, 3]).toString(),
           isAvailable: true,
         );
