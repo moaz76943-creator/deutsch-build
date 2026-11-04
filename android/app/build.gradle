@@ -190,12 +190,4 @@ dependencies {
     // نعتمد فقط على multidex الأساسي بدون مكتبات Desugaring المعقدة
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'com.google.android.play:integrity:1.4.0'
-<<<<<<< HEAD
-    // Baseline Profiles: enables ART to pre-compile critical paths for faster cold starts (~15-30% improvement typical).
-    // Generate profile with Macrobenchmark / flutter baseline profile tooling and place in src/main/baseline-prof.txt.
-    implementation 'androidx.profileinstaller:profileinstaller:1.4.1'
-    // EncryptedSharedPreferences for securing software-fallback vault seeds (deprecated but still effective for Play-compatible apps)
-    implementation 'androidx.security:security-crypto:1.1.0'
-=======
->>>>>>> origin/staging/v2-full-platform
 }
