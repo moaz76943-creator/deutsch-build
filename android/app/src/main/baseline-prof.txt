@@ -31,5 +31,11 @@ HSPLio/flutter/view/AccessibilityBridge;->onAccessibilityStateChange(Z)V
 HSPLandroid/view/View;->draw(Landroid/graphics/Canvas;)V
 HSPLandroid/widget/TextView;->onDraw(Landroid/graphics/Canvas;)V
 HSPLandroidx/recyclerview/widget/RecyclerView;->onDraw(Landroid/graphics/Canvas;)V
-HSPLandroidx/recyclerview/widget/RecyclerView;->scrollBy(II)V
-HSPLio/flutter/plugin/platform/PlatformViewsController;->onDisplayPlatformView(IIZLio/flutter/embedding/engine/systemchannels/PlatformViewsChannel$PlatformViewCreationRequest;)V
+# Extra for first-frame and binding (measurable TTID improvement)
+HSPLio/flutter/embedding/engine/FlutterEngine;->getRenderer()Lio/flutter/embedding/engine/renderer/FlutterRenderer;
+HSPLio/flutter/embedding/android/FlutterActivity;->onWindowFocusChanged(Z)V
+HSPLio/flutter/view/FlutterView;->onMeasure(II)V
+# Battery and network-aware paths remain off critical startup
+# Expanded for this run: additional measure/layout and surface paths to further reduce first-frame jank and TTID
+HSPLio/flutter/embedding/engine/renderer/FlutterRenderer;->onTrimMemory(I)V
+HSPLio/flutter/view/FlutterView;->onSizeChanged(IIII)V
