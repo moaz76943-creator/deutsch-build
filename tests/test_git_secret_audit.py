@@ -85,3 +85,78 @@ def test_clean_history_does_not_approve_publication(repo):
     assert code == 0
     assert report["finding_count"] == 0
     assert report["publication_approved"] is False
+
+
+
+def _synthetic_scanner(repo, *, report_text=None, exit_code=0, noise=""):
+    """Imitate the Gitleaks JSON contract without storing a real credential."""
+    executable = repo / "synthetic-gitleaks"
+    script = [
+        "#!/usr/bin/env python3",
+        "import pathlib, sys",
+        "path = pathlib.Path(sys.argv[sys.argv.index('--report-path') + 1])",
+    ]
+    if report_text is not None:
+        script.append(f"path.write_text({report_text!r}, encoding='utf-8')")
+    if noise:
+        script.extend((f"print({noise!r})", f"print({noise!r}, file=sys.stderr)"))
+    script.append(f"sys.exit({exit_code})")
+    executable.write_text("\n".join(script) + "\n", encoding="utf-8")
+    executable.chmod(0o700)
+    return str(executable)
+
+
+def test_synthetic_clean_report_passes_without_approving_publication(repo):
+    code, report = AUDIT.audit(repo, _synthetic_scanner(repo, report_text="[]"))
+    assert code == 0
+    assert report["status"] == "NO_FINDINGS_IN_FETCHED_HISTORY"
+    assert report["publication_approved"] is False
+
+
+def test_synthetic_secret_is_detected_and_never_printed(repo, capsys):
+    marker = "SYNTHETIC_DO_NOT_DISCLOSE_FIXTURE"
+    result = [{"RuleID": "generic-api-key", "File": "fixture.txt",
+               "StartLine": 1, "Commit": "0" * 40, "Secret": marker}]
+    scanner = _synthetic_scanner(
+        repo, report_text=json.dumps(result), exit_code=10, noise=marker,
+    )
+    code, report = AUDIT.audit(repo, scanner)
+    assert code == 1
+    assert report["status"] == "FINDINGS"
+    assert report["finding_count"] == 1
+    assert marker not in json.dumps(report)
+    assert marker not in capsys.readouterr().out
+    assert "Secret" not in report["findings"][0]
+
+
+@pytest.mark.parametrize("report_text,exit_code", [
+    ("{bad-json", 10),
+    ('{"unexpected": "object"}', 0),
+    ('[{"RuleID":"x"}]', 10),
+    ("[]", 10),
+])
+def test_malformed_or_inconsistent_scanner_report_is_incomplete(
+    repo, report_text, exit_code,
+):
+    scanner = _synthetic_scanner(repo, report_text=report_text, exit_code=exit_code)
+    code, report = AUDIT.audit(repo, scanner)
+    assert code == 2
+    assert report["status"] == "INCOMPLETE"
+    assert "findings" not in report
+
+
+def test_missing_report_is_incomplete_and_scanner_output_is_redacted(repo, capsys):
+    marker = "SYNTHETIC_STDERR_SECRET_FIXTURE"
+    scanner = _synthetic_scanner(repo, report_text=None, noise=marker)
+    code, report = AUDIT.audit(repo, scanner)
+    assert code == 2
+    assert report["status"] == "INCOMPLETE"
+    output = capsys.readouterr()
+    assert marker not in output.out + output.err
+
+
+def test_security_audit_workflow_does_not_upload_secret_reports():
+    workflow = (Path(__file__).resolve().parents[1] /
+                ".github/workflows/security_audit.yml").read_text(encoding="utf-8")
+    assert "upload-artifact" not in workflow
+    assert "--redact=100" in workflow or "tool/git_secret_audit.py" in workflow
