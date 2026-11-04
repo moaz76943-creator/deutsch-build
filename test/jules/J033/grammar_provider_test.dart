@@ -1,5 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/language_intelligence/language_grammar_rule_provider.dart';
+import 'package:deutsch_bilarabi/core/language_intelligence/grammar_profile.dart';
+import 'package:deutsch_bilarabi/core/language_intelligence/grammar_capabilities.dart';
+
 
 // Dummy Analytic Language (e.g., English)
 class EnglishGrammarProvider extends LanguageGrammarRuleProvider {
@@ -7,7 +10,7 @@ class EnglishGrammarProvider extends LanguageGrammarRuleProvider {
   String get languageCode => 'en';
 
   @override
-  GrammarProfile get profile => const GrammarProfile(
+  GrammarProfile get profile => GrammarProfile(
         supportedFeatures: {
           GrammarFeature.analytic,
           GrammarFeature.number,
@@ -35,7 +38,7 @@ class EnglishGrammarProvider extends LanguageGrammarRuleProvider {
   }
 
   @override
-  GrammaticalNumber determineNumber(String word, {String? context}) {
+  GrammaticalNumber? determineNumber(String word, {String? context}) {
     if (word.endsWith('s')) return GrammaticalNumber.plural;
     return GrammaticalNumber.singular;
   }
@@ -47,7 +50,7 @@ class ArabicGrammarProvider extends LanguageGrammarRuleProvider {
   String get languageCode => 'ar';
 
   @override
-  GrammarProfile get profile => const GrammarProfile(
+  GrammarProfile get profile => GrammarProfile(
         supportedFeatures: {
           GrammarFeature.gender,
           GrammarFeature.number,
@@ -92,7 +95,7 @@ class TurkishGrammarProvider extends LanguageGrammarRuleProvider {
   String get languageCode => 'tr';
 
   @override
-  GrammarProfile get profile => const GrammarProfile(
+  GrammarProfile get profile => GrammarProfile(
         supportedFeatures: {
           GrammarFeature.agglutinative,
           GrammarFeature.number,
@@ -143,7 +146,7 @@ void main() {
       expect(english.determineNumber('cats'), GrammaticalNumber.plural);
 
       // determineCase uses default implementation and returns none
-      expect(english.determineCase('dog'), GrammaticalCase.none);
+      expect(english.determineCase('dog'), isNull);
     });
 
     test('Semitic Language (Arabic) supports root-pattern and dual number', () {
@@ -159,7 +162,7 @@ void main() {
       expect(arabic.determineGender('كتاب'), GrammaticalGender.masculine);
 
       // Default fallback handles unsupported tense correctly
-      expect(arabic.determineTense('ذهب'), GrammaticalTense.none);
+      expect(arabic.determineTense('ذهب'), isNull);
     });
 
     test('Agglutinative Language (Turkish) supports various cases but no gender', () {
@@ -179,19 +182,19 @@ void main() {
 
       // Calling all determine* methods that rely on defaults
       expect(() => english.determineCase('test'), returnsNormally);
-      expect(english.determineCase('test'), GrammaticalCase.none);
+      expect(english.determineCase('test'), isNull);
 
       expect(() => english.determinePerson('test'), returnsNormally);
-      expect(english.determinePerson('test'), GrammaticalPerson.none);
+      expect(english.determinePerson('test'), isNull);
 
       expect(() => english.determineTense('test'), returnsNormally);
-      expect(english.determineTense('test'), GrammaticalTense.none);
+      expect(english.determineTense('test'), GrammaticalTense.unknown);
 
       expect(() => english.determineAspect('test'), returnsNormally);
-      expect(english.determineAspect('test'), GrammaticalAspect.none);
+      expect(english.determineAspect('test'), isNull);
 
       expect(() => english.determineMood('test'), returnsNormally);
-      expect(english.determineMood('test'), GrammaticalMood.none);
+      expect(english.determineMood('test'), isNull);
     });
   });
 }

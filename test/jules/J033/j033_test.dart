@@ -1,5 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/language_intelligence/language_grammar_rule_provider.dart';
+import 'package:deutsch_bilarabi/core/language_intelligence/grammar_profile.dart';
+import 'package:deutsch_bilarabi/core/language_intelligence/grammar_capabilities.dart';
+
 
 import 'fixtures.dart';
 

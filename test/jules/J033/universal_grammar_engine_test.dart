@@ -9,13 +9,13 @@ import 'package:deutsch_bilarabi/core/language_intelligence/universal_grammar_en
 
 class EnglishGrammarProvider extends UniversalGrammarProvider {
   @override
-  GrammarProfile get profile => const GrammarProfile(
+  GrammarProfile get profile => GrammarProfile(
         languageCode: 'en',
         capabilities: {GrammarCapability.analytic, GrammarCapability.number, GrammarCapability.tense, GrammarCapability.person},
       );
 
   @override
-  GrammaticalNumber extractNumber(String word) {
+  GrammaticalNumber? extractNumber(String word) {
     if (word.endsWith('s')) return GrammaticalNumber.plural;
     return GrammaticalNumber.singular;
   }
@@ -23,13 +23,13 @@ class EnglishGrammarProvider extends UniversalGrammarProvider {
 
 class TurkishGrammarProvider extends UniversalGrammarProvider {
   @override
-  GrammarProfile get profile => const GrammarProfile(
+  GrammarProfile get profile => GrammarProfile(
         languageCode: 'tr',
         capabilities: {GrammarCapability.agglutinative, GrammarCapability.caseSystem, GrammarCapability.number},
       );
 
   @override
-  GrammaticalCase extractCase(String word) {
+  GrammaticalCase? extractCase(String word) {
     if (word.endsWith('ı') || word.endsWith('i') || word.endsWith('u') || word.endsWith('ü')) {
       return GrammaticalCase.accusative;
     }
@@ -39,7 +39,7 @@ class TurkishGrammarProvider extends UniversalGrammarProvider {
 
 class ArabicGrammarProvider extends UniversalGrammarProvider {
   @override
-  GrammarProfile get profile => const GrammarProfile(
+  GrammarProfile get profile => GrammarProfile(
         languageCode: 'ar',
         capabilities: {
           GrammarCapability.rootPattern,
@@ -58,7 +58,7 @@ class ArabicGrammarProvider extends UniversalGrammarProvider {
 
 class RussianGrammarProvider extends UniversalGrammarProvider {
   @override
-  GrammarProfile get profile => const GrammarProfile(
+  GrammarProfile get profile => GrammarProfile(
         languageCode: 'ru',
         capabilities: {
           GrammarCapability.inflectional,

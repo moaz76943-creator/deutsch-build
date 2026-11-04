@@ -1,8 +1,6 @@
-/// Capabilities a directed-pair grammar profile can declare.
-/// Inflection enums live on [LanguageGrammarRuleProvider] so the two
-/// libraries do not define the same type twice.
-enum GrammarCapability {
+enum GrammarFeature {
   gender,
+  grammaticalCase,
   caseSystem,
   nounClasses,
   number,
@@ -16,3 +14,5 @@ enum GrammarCapability {
   agglutinative,
   analytic,
 }
+
+typedef GrammarCapability = GrammarFeature;
