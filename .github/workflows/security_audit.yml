@@ -16,7 +16,9 @@ permissions:
   pull-requests: none
 
 concurrency:
-  group: security-audit-${{ github.workflow }}-${{ github.ref }}
+  # Dependency pushes also trigger the PR audit. Both check the same exact
+  # source SHA; retain one audit instead of charging twice for identical work.
+  group: security-audit-${{ github.workflow }}-${{ github.event.pull_request.head.sha || github.sha }}
   cancel-in-progress: true
 
 jobs:
