@@ -1,0 +1,6752 @@
+[
+  {
+    "id": "technology_engineering_1_0",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_1_1",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_1_2",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_2_3",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_2_4",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_2_5",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_3_6",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_3_7",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_3_8",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_4_9",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_4_10",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_4_11",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_5_12",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_5_13",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_5_14",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_6_15",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_6_16",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_6_17",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_7_18",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_7_19",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_7_20",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_8_21",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_8_22",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_8_23",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_9_24",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_9_25",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_9_26",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_10_27",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_10_28",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_10_29",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_11_30",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_11_31",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_11_32",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_12_33",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_12_34",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_12_35",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_13_36",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_13_37",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_13_38",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_14_39",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_14_40",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_14_41",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_15_42",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_15_43",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_15_44",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_16_45",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_16_46",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_16_47",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_17_48",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_17_49",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_17_50",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_18_51",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_18_52",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_18_53",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_19_54",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_19_55",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_19_56",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_20_57",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_20_58",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_20_59",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_21_60",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_21_61",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_21_62",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_22_63",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_22_64",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_22_65",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_23_66",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_23_67",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_23_68",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_24_69",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_24_70",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_24_71",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_25_72",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_25_73",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_25_74",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_26_75",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_26_76",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_26_77",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_27_78",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_27_79",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_27_80",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_28_81",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_28_82",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_28_83",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_29_84",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_29_85",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_29_86",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_30_87",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_30_88",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_30_89",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_31_90",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_31_91",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_31_92",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_32_93",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_32_94",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_32_95",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_33_96",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_33_97",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_33_98",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_34_99",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_34_100",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_34_101",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_35_102",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_35_103",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_35_104",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_36_105",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_36_106",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_36_107",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_37_108",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_37_109",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_37_110",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_38_111",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_38_112",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_38_113",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_39_114",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_39_115",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_39_116",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_40_117",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_40_118",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_40_119",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_41_120",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_41_121",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_41_122",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_42_123",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_42_124",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_42_125",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_43_126",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_43_127",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_43_128",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_44_129",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_44_130",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_44_131",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_45_132",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_45_133",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_45_134",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_46_135",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_46_136",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_46_137",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_47_138",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_47_139",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_47_140",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_48_141",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_48_142",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_48_143",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_49_144",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_49_145",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_49_146",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_50_147",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_50_148",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_50_149",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_51_150",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_51_151",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_51_152",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_52_153",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_52_154",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_52_155",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_53_156",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_53_157",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_53_158",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_54_159",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_54_160",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_54_161",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_55_162",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_55_163",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_55_164",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_56_165",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_56_166",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_56_167",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_57_168",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_57_169",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_57_170",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_58_171",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_58_172",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_58_173",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_59_174",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_59_175",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_59_176",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_60_177",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_60_178",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_60_179",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_61_180",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_61_181",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_61_182",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_62_183",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_62_184",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_62_185",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_63_186",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_63_187",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_63_188",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_64_189",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_64_190",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_64_191",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_65_192",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_65_193",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_65_194",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_66_195",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_66_196",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_66_197",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_67_198",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_67_199",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_67_200",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_68_201",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_68_202",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_68_203",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_69_204",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_69_205",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_69_206",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_70_207",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_70_208",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_70_209",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_71_210",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_71_211",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_71_212",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_72_213",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_72_214",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_72_215",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_73_216",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_73_217",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_73_218",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_74_219",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_74_220",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_74_221",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_75_222",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_75_223",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_75_224",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_76_225",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_76_226",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_76_227",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_77_228",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_77_229",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_77_230",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_78_231",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_78_232",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_78_233",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_79_234",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_79_235",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_79_236",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_80_237",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_80_238",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_80_239",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_81_240",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_81_241",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_81_242",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_82_243",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_82_244",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_82_245",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_83_246",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_83_247",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_83_248",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_84_249",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_84_250",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_84_251",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_85_252",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_85_253",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_85_254",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_86_255",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_86_256",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_86_257",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_87_258",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_87_259",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_87_260",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_88_261",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_88_262",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_88_263",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_89_264",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_89_265",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_89_266",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_90_267",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_90_268",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_90_269",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_91_270",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_91_271",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_91_272",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_92_273",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_92_274",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_92_275",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_93_276",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_93_277",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_93_278",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_94_279",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_94_280",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_94_281",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_95_282",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_95_283",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_95_284",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_96_285",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_96_286",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_96_287",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_97_288",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_97_289",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_97_290",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_98_291",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_98_292",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_98_293",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_99_294",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_99_295",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_99_296",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_100_297",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_100_298",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_100_299",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_101_300",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_101_301",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_101_302",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_102_303",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_102_304",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_102_305",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_103_306",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_103_307",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_103_308",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_104_309",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_104_310",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_104_311",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_105_312",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_105_313",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_105_314",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_106_315",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_106_316",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_106_317",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_107_318",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_107_319",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_107_320",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_108_321",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_108_322",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_108_323",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_109_324",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_109_325",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_109_326",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_110_327",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_110_328",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_110_329",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_111_330",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_111_331",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_111_332",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_112_333",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_112_334",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_112_335",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_113_336",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_113_337",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_113_338",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_114_339",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_114_340",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_114_341",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_115_342",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_115_343",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_115_344",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_116_345",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_116_346",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_116_347",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_117_348",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_117_349",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_117_350",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_118_351",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_118_352",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_118_353",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_119_354",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_119_355",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_119_356",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_120_357",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_120_358",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_120_359",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_121_360",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_121_361",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_121_362",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_122_363",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_122_364",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_122_365",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_123_366",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_123_367",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_123_368",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_124_369",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_124_370",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_124_371",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_125_372",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_125_373",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_125_374",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_126_375",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_126_376",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_126_377",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_127_378",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_127_379",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_127_380",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_128_381",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_128_382",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_128_383",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_129_384",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_129_385",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_129_386",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_130_387",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_130_388",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_130_389",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_131_390",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_131_391",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_131_392",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_132_393",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_132_394",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_132_395",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_133_396",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_133_397",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_133_398",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_134_399",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_134_400",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_134_401",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_135_402",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_135_403",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_135_404",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_136_405",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_136_406",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_136_407",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_137_408",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_137_409",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_137_410",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_138_411",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_138_412",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_138_413",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_139_414",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_139_415",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_139_416",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_140_417",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_140_418",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_140_419",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_141_420",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_141_421",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_141_422",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_142_423",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_142_424",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_142_425",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_143_426",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_143_427",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_143_428",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_144_429",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_144_430",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_144_431",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_145_432",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_145_433",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_145_434",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_146_435",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_146_436",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_146_437",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_147_438",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_147_439",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_147_440",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_148_441",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_148_442",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_148_443",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_149_444",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_149_445",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_149_446",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_150_447",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_150_448",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_150_449",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_151_450",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_151_451",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_151_452",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_152_453",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_152_454",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_152_455",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_153_456",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_153_457",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_153_458",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_154_459",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_154_460",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_154_461",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_155_462",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_155_463",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_155_464",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_156_465",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_156_466",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_156_467",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_157_468",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_157_469",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_157_470",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_158_471",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_158_472",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_158_473",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_159_474",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_159_475",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_159_476",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_160_477",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_160_478",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_160_479",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_161_480",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_161_481",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_161_482",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_162_483",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_162_484",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_162_485",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_163_486",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_163_487",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_163_488",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_164_489",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_164_490",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_164_491",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_165_492",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_165_493",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_165_494",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_166_495",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_166_496",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_166_497",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_167_498",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_167_499",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_167_500",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_168_501",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_168_502",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_168_503",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_169_504",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_169_505",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_169_506",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_170_507",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_170_508",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_170_509",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_171_510",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_171_511",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_171_512",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_172_513",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_172_514",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_172_515",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_173_516",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_173_517",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_173_518",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_174_519",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_174_520",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_174_521",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_175_522",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_175_523",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_175_524",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_176_525",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_176_526",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_176_527",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_177_528",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_177_529",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_177_530",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_178_531",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_178_532",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_178_533",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_179_534",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_179_535",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_179_536",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_180_537",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_180_538",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_180_539",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_181_540",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_181_541",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_181_542",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_182_543",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_182_544",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_182_545",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_183_546",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_183_547",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_183_548",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_184_549",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_184_550",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_184_551",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_185_552",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_185_553",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_185_554",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_186_555",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_186_556",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_186_557",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_187_558",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_187_559",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_187_560",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_188_561",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_188_562",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_188_563",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_189_564",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_189_565",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_189_566",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_190_567",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_190_568",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_190_569",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_191_570",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_191_571",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_191_572",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_192_573",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_192_574",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_192_575",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_193_576",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_193_577",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_193_578",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_194_579",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_194_580",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_194_581",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_195_582",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_195_583",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_195_584",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_196_585",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_196_586",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_196_587",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_197_588",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_197_589",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_197_590",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_198_591",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_198_592",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_198_593",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_199_594",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_199_595",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_199_596",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_200_597",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_200_598",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_200_599",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_201_600",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_201_601",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_201_602",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_202_603",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_202_604",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_202_605",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_203_606",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_203_607",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_203_608",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_204_609",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_204_610",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_204_611",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_205_612",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_205_613",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_205_614",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_206_615",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_206_616",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_206_617",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_207_618",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_207_619",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_207_620",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_208_621",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_208_622",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_208_623",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_209_624",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_209_625",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_209_626",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_210_627",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_210_628",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_210_629",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_211_630",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_211_631",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_211_632",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_212_633",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_212_634",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_212_635",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_213_636",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_213_637",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_213_638",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_214_639",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_214_640",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_214_641",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_215_642",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_215_643",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_215_644",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_216_645",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_216_646",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_216_647",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_217_648",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_217_649",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_217_650",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_218_651",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_218_652",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_218_653",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_219_654",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_219_655",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_219_656",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_220_657",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_220_658",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_220_659",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_221_660",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_221_661",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_221_662",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_222_663",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_222_664",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_222_665",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_223_666",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_223_667",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_223_668",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_224_669",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_224_670",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_224_671",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_225_672",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_225_673",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_225_674",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_226_675",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_226_676",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_226_677",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_227_678",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_227_679",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_227_680",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_228_681",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_228_682",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_228_683",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_229_684",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_229_685",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_229_686",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_230_687",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_230_688",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_230_689",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_231_690",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_231_691",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_231_692",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_232_693",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_232_694",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_232_695",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_233_696",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_233_697",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_233_698",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_234_699",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_234_700",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_234_701",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_235_702",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_235_703",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_235_704",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_236_705",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_236_706",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_236_707",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_237_708",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_237_709",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_237_710",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_238_711",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_238_712",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_238_713",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_239_714",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_239_715",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_239_716",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_240_717",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_240_718",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_240_719",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_241_720",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_241_721",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_241_722",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_242_723",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_242_724",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_242_725",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_243_726",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_243_727",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_243_728",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_244_729",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_244_730",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_244_731",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_245_732",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_245_733",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_245_734",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_246_735",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_246_736",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_246_737",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_247_738",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_247_739",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_247_740",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_248_741",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_248_742",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_248_743",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_249_744",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_249_745",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_249_746",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_250_747",
+    "source": "Die Softwarearchitektur",
+    "target": "معمارية البرمجيات",
+    "phonetic": "/diː ˈzɔftvɛːɐ̯ʔaʁçitɛkˌtuːɐ̯/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_250_748",
+    "source": "Die künstliche Intelligenz",
+    "target": "الذكاء الاصطناعي",
+    "phonetic": "/diː ˈkʏnstlɪçə ɪntɛliˈɡɛnts/",
+    "cefr": "B2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "technology_engineering_250_749",
+    "source": "Die Datenbankoptimierung",
+    "target": "تحسين قواعد البيانات",
+    "phonetic": "/diː ˈdaːtn̩baŋkʔɔptiˌmiːʁʊŋ/",
+    "cefr": "C1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  }
+]

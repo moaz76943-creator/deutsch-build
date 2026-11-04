@@ -1,0 +1,6752 @@
+[
+  {
+    "id": "medical_communication_1_0",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_1_1",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_1_2",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_2_3",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_2_4",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_2_5",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_3_6",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_3_7",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_3_8",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_4_9",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_4_10",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_4_11",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_5_12",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_5_13",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_5_14",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_6_15",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_6_16",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_6_17",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_7_18",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_7_19",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_7_20",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_8_21",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_8_22",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_8_23",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_9_24",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_9_25",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_9_26",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_10_27",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_10_28",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_10_29",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_11_30",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_11_31",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_11_32",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_12_33",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_12_34",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_12_35",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_13_36",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_13_37",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_13_38",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_14_39",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_14_40",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_14_41",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_15_42",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_15_43",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_15_44",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_16_45",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_16_46",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_16_47",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_17_48",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_17_49",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_17_50",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_18_51",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_18_52",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_18_53",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_19_54",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_19_55",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_19_56",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_20_57",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_20_58",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_20_59",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_21_60",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_21_61",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_21_62",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_22_63",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_22_64",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_22_65",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_23_66",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_23_67",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_23_68",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_24_69",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_24_70",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_24_71",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_25_72",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_25_73",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_25_74",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_26_75",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_26_76",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_26_77",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_27_78",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_27_79",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_27_80",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_28_81",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_28_82",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_28_83",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_29_84",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_29_85",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_29_86",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_30_87",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_30_88",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_30_89",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_31_90",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_31_91",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_31_92",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_32_93",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_32_94",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_32_95",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_33_96",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_33_97",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_33_98",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_34_99",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_34_100",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_34_101",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_35_102",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_35_103",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_35_104",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_36_105",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_36_106",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_36_107",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_37_108",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_37_109",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_37_110",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_38_111",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_38_112",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_38_113",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_39_114",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_39_115",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_39_116",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_40_117",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_40_118",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_40_119",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_41_120",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_41_121",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_41_122",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_42_123",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_42_124",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_42_125",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_43_126",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_43_127",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_43_128",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_44_129",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_44_130",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_44_131",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_45_132",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_45_133",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_45_134",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_46_135",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_46_136",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_46_137",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_47_138",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_47_139",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_47_140",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_48_141",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_48_142",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_48_143",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_49_144",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_49_145",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_49_146",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_50_147",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_50_148",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_50_149",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_51_150",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_51_151",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_51_152",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_52_153",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_52_154",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_52_155",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_53_156",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_53_157",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_53_158",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_54_159",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_54_160",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_54_161",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_55_162",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_55_163",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_55_164",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_56_165",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_56_166",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_56_167",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_57_168",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_57_169",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_57_170",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_58_171",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_58_172",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_58_173",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_59_174",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_59_175",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_59_176",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_60_177",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_60_178",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_60_179",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_61_180",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_61_181",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_61_182",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_62_183",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_62_184",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_62_185",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_63_186",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_63_187",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_63_188",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_64_189",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_64_190",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_64_191",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_65_192",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_65_193",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_65_194",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_66_195",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_66_196",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_66_197",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_67_198",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_67_199",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_67_200",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_68_201",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_68_202",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_68_203",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_69_204",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_69_205",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_69_206",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_70_207",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_70_208",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_70_209",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_71_210",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_71_211",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_71_212",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_72_213",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_72_214",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_72_215",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_73_216",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_73_217",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_73_218",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_74_219",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_74_220",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_74_221",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_75_222",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_75_223",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_75_224",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_76_225",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_76_226",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_76_227",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_77_228",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_77_229",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_77_230",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_78_231",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_78_232",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_78_233",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_79_234",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_79_235",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_79_236",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_80_237",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_80_238",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_80_239",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_81_240",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_81_241",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_81_242",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_82_243",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_82_244",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_82_245",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_83_246",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_83_247",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_83_248",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_84_249",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_84_250",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_84_251",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_85_252",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_85_253",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_85_254",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_86_255",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_86_256",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_86_257",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_87_258",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_87_259",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_87_260",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_88_261",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_88_262",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_88_263",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_89_264",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_89_265",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_89_266",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_90_267",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_90_268",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_90_269",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_91_270",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_91_271",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_91_272",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_92_273",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_92_274",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_92_275",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_93_276",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_93_277",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_93_278",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_94_279",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_94_280",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_94_281",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_95_282",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_95_283",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_95_284",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_96_285",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_96_286",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_96_287",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_97_288",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_97_289",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_97_290",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_98_291",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_98_292",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_98_293",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_99_294",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_99_295",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_99_296",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_100_297",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_100_298",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_100_299",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_101_300",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_101_301",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_101_302",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_102_303",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_102_304",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_102_305",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_103_306",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_103_307",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_103_308",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_104_309",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_104_310",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_104_311",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_105_312",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_105_313",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_105_314",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_106_315",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_106_316",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_106_317",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_107_318",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_107_319",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_107_320",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_108_321",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_108_322",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_108_323",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_109_324",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_109_325",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_109_326",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_110_327",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_110_328",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_110_329",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_111_330",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_111_331",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_111_332",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_112_333",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_112_334",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_112_335",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_113_336",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_113_337",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_113_338",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_114_339",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_114_340",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_114_341",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_115_342",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_115_343",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_115_344",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_116_345",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_116_346",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_116_347",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_117_348",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_117_349",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_117_350",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_118_351",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_118_352",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_118_353",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_119_354",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_119_355",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_119_356",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_120_357",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_120_358",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_120_359",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_121_360",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_121_361",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_121_362",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_122_363",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_122_364",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_122_365",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_123_366",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_123_367",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_123_368",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_124_369",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_124_370",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_124_371",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_125_372",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_125_373",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_125_374",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_126_375",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_126_376",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_126_377",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_127_378",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_127_379",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_127_380",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_128_381",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_128_382",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_128_383",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_129_384",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_129_385",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_129_386",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_130_387",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_130_388",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_130_389",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_131_390",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_131_391",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_131_392",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_132_393",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_132_394",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_132_395",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_133_396",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_133_397",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_133_398",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_134_399",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_134_400",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_134_401",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_135_402",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_135_403",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_135_404",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_136_405",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_136_406",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_136_407",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_137_408",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_137_409",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_137_410",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_138_411",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_138_412",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_138_413",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_139_414",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_139_415",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_139_416",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_140_417",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_140_418",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_140_419",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_141_420",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_141_421",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_141_422",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_142_423",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_142_424",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_142_425",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_143_426",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_143_427",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_143_428",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_144_429",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_144_430",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_144_431",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_145_432",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_145_433",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_145_434",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_146_435",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_146_436",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_146_437",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_147_438",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_147_439",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_147_440",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_148_441",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_148_442",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_148_443",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_149_444",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_149_445",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_149_446",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_150_447",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_150_448",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_150_449",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_151_450",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_151_451",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_151_452",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_152_453",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_152_454",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_152_455",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_153_456",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_153_457",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_153_458",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_154_459",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_154_460",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_154_461",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_155_462",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_155_463",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_155_464",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_156_465",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_156_466",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_156_467",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_157_468",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_157_469",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_157_470",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_158_471",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_158_472",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_158_473",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_159_474",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_159_475",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_159_476",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_160_477",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_160_478",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_160_479",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_161_480",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_161_481",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_161_482",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_162_483",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_162_484",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_162_485",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_163_486",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_163_487",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_163_488",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_164_489",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_164_490",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_164_491",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_165_492",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_165_493",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_165_494",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_166_495",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_166_496",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_166_497",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_167_498",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_167_499",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_167_500",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_168_501",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_168_502",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_168_503",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_169_504",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_169_505",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_169_506",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_170_507",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_170_508",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_170_509",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_171_510",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_171_511",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_171_512",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_172_513",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_172_514",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_172_515",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_173_516",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_173_517",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_173_518",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_174_519",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_174_520",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_174_521",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_175_522",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_175_523",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_175_524",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_176_525",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_176_526",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_176_527",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_177_528",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_177_529",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_177_530",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_178_531",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_178_532",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_178_533",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_179_534",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_179_535",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_179_536",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_180_537",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_180_538",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_180_539",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_181_540",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_181_541",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_181_542",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_182_543",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_182_544",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_182_545",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_183_546",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_183_547",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_183_548",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_184_549",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_184_550",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_184_551",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_185_552",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_185_553",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_185_554",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_186_555",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_186_556",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_186_557",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_187_558",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_187_559",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_187_560",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_188_561",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_188_562",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_188_563",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_189_564",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_189_565",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_189_566",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_190_567",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_190_568",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_190_569",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_191_570",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_191_571",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_191_572",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_192_573",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_192_574",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_192_575",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_193_576",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_193_577",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_193_578",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_194_579",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_194_580",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_194_581",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_195_582",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_195_583",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_195_584",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_196_585",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_196_586",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_196_587",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_197_588",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_197_589",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_197_590",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_198_591",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_198_592",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_198_593",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_199_594",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_199_595",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_199_596",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_200_597",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_200_598",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_200_599",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_201_600",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_201_601",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_201_602",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_202_603",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_202_604",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_202_605",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_203_606",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_203_607",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_203_608",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_204_609",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_204_610",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_204_611",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_205_612",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_205_613",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_205_614",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_206_615",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_206_616",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_206_617",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_207_618",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_207_619",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_207_620",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_208_621",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_208_622",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_208_623",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_209_624",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_209_625",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_209_626",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_210_627",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_210_628",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_210_629",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_211_630",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_211_631",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_211_632",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_212_633",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_212_634",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_212_635",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_213_636",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_213_637",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_213_638",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_214_639",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_214_640",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_214_641",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_215_642",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_215_643",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_215_644",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_216_645",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_216_646",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_216_647",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_217_648",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_217_649",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_217_650",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_218_651",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_218_652",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_218_653",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_219_654",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_219_655",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_219_656",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_220_657",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_220_658",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_220_659",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_221_660",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_221_661",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_221_662",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_222_663",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_222_664",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_222_665",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_223_666",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_223_667",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_223_668",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_224_669",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_224_670",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_224_671",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_225_672",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_225_673",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_225_674",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_226_675",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_226_676",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_226_677",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_227_678",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_227_679",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_227_680",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_228_681",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_228_682",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_228_683",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_229_684",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_229_685",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_229_686",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_230_687",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_230_688",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_230_689",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_231_690",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_231_691",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_231_692",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_232_693",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_232_694",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_232_695",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_233_696",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_233_697",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_233_698",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_234_699",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_234_700",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_234_701",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_235_702",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_235_703",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_235_704",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_236_705",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_236_706",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_236_707",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_237_708",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_237_709",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_237_710",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_238_711",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_238_712",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_238_713",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_239_714",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_239_715",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_239_716",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_240_717",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_240_718",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_240_719",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_241_720",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_241_721",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_241_722",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_242_723",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_242_724",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_242_725",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_243_726",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_243_727",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_243_728",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_244_729",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_244_730",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_244_731",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_245_732",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_245_733",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_245_734",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_246_735",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_246_736",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_246_737",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_247_738",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_247_739",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_247_740",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_248_741",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_248_742",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_248_743",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_249_744",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_249_745",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_249_746",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_250_747",
+    "source": "Ich habe einen Termin beim Arzt",
+    "target": "لدي موعد لدى الطبيب",
+    "phonetic": "/ɪç ˈhaːbə ˈaɪ̯nən tɛʁˈmiːn baɪ̯m ˈʔaːɐ̯tst/",
+    "cefr": "A2",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_250_748",
+    "source": "Gute Besserung",
+    "target": "أتمنى لك الشفاء العاجل",
+    "phonetic": "/ˈɡuːtə ˈbɛsəʁʊŋ/",
+    "cefr": "A1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  },
+  {
+    "id": "medical_communication_250_749",
+    "source": "Die Krankenversicherung",
+    "target": "التأمين الصحي",
+    "phonetic": "/diː ˈkʁaŋkn̩fɛɐ̯ˌzɪçəʁʊŋ/",
+    "cefr": "B1",
+    "mastery_score": 0.0,
+    "repetition_interval": 1
+  }
+]
