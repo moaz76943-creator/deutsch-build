@@ -8,7 +8,9 @@ on:
 permissions: {}
 
 env:
-  PRIVACY_POLICY_URL: https://sali97m-cpu.github.io/deutsch-bilarabi/privacy.html
+  # Official public privacy policy (must be live via GitHub Pages before Play Console submission).
+  # Correct repo: moaz76943-creator/deutsch-bilarabi-privacy
+  PRIVACY_POLICY_URL: https://moaz76943-creator.github.io/deutsch-bilarabi-privacy/privacy.html
 
 concurrency:
   group: privacy-policy-health-check
@@ -47,7 +49,7 @@ jobs:
           echo "Privacy policy URL status code: $status"
 
           if [[ "$status" != "200" ]]; then
-            echo "::error::Privacy policy page is down or returned status $status."
+            echo "::error::Privacy policy page is down or returned status $status. Enable GitHub Pages on deutsch-bilarabi-privacy (Settings → Pages → Deploy from branch main / root)."
             exit 1
           fi
 
