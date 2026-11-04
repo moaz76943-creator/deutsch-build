@@ -1,11 +1,14 @@
 import 'package:deutsch_bilarabi/core/language_intelligence/language_grammar_rule_provider.dart';
+import 'package:deutsch_bilarabi/core/language_intelligence/grammar_profile.dart';
+import 'package:deutsch_bilarabi/core/language_intelligence/grammar_capabilities.dart';
 
-class ArabicGrammarProvider implements LanguageGrammarRuleProvider {
+
+class ArabicGrammarProvider extends LanguageGrammarRuleProvider {
   @override
   String get languageCode => 'ar';
 
   @override
-  GrammarCapabilityProfile get capabilityProfile => const GrammarCapabilityProfile(
+  GrammarCapabilityProfile get capabilityProfile => GrammarCapabilityProfile(
         hasGender: true,
         hasCases: true, // Nominative, Accusative, Genitive
         hasNumber: true, // Singular, Dual, Plural
@@ -36,7 +39,7 @@ class ArabicGrammarProvider implements LanguageGrammarRuleProvider {
   }
 
   @override
-  GrammaticalNumber? determineNumber(String word) {
+  GrammaticalNumber? determineNumber(String word, {String? context}) {
     if (word.endsWith('ان') || word.endsWith('ين')) return GrammaticalNumber.dual;
     if (word.endsWith('ون') || word.endsWith('ات')) return GrammaticalNumber.plural;
     return GrammaticalNumber.singular;
@@ -92,12 +95,12 @@ class ArabicGrammarProvider implements LanguageGrammarRuleProvider {
   }
 }
 
-class TurkishGrammarProvider implements LanguageGrammarRuleProvider {
+class TurkishGrammarProvider extends LanguageGrammarRuleProvider {
   @override
   String get languageCode => 'tr';
 
   @override
-  GrammarCapabilityProfile get capabilityProfile => const GrammarCapabilityProfile(
+  GrammarCapabilityProfile get capabilityProfile => GrammarCapabilityProfile(
         isAgglutinative: true,
         hasCases: true,
         hasNumber: true,
@@ -129,7 +132,7 @@ class TurkishGrammarProvider implements LanguageGrammarRuleProvider {
   }
 
   @override
-  GrammaticalNumber? determineNumber(String word) {
+  GrammaticalNumber? determineNumber(String word, {String? context}) {
     if (word.contains('lar') || word.contains('ler')) return GrammaticalNumber.plural;
     return GrammaticalNumber.singular;
   }
@@ -176,12 +179,12 @@ class TurkishGrammarProvider implements LanguageGrammarRuleProvider {
   }
 }
 
-class ChineseGrammarProvider implements LanguageGrammarRuleProvider {
+class ChineseGrammarProvider extends LanguageGrammarRuleProvider {
   @override
   String get languageCode => 'zh';
 
   @override
-  GrammarCapabilityProfile get capabilityProfile => const GrammarCapabilityProfile(
+  GrammarCapabilityProfile get capabilityProfile => GrammarCapabilityProfile(
         isAnalytic: true,
       );
 
@@ -201,7 +204,7 @@ class ChineseGrammarProvider implements LanguageGrammarRuleProvider {
   }
 
   @override
-  GrammaticalNumber? determineNumber(String word) => null;
+  GrammaticalNumber? determineNumber(String word, {String? context}) => null;
 
   @override
   GrammaticalPerson? determinePerson(String word) => null;
@@ -231,12 +234,12 @@ class ChineseGrammarProvider implements LanguageGrammarRuleProvider {
   String? determineNounClass(String word) => null;
 }
 
-class GermanGrammarProviderMock implements LanguageGrammarRuleProvider {
+class GermanGrammarProviderMock extends LanguageGrammarRuleProvider {
   @override
   String get languageCode => 'de';
 
   @override
-  GrammarCapabilityProfile get capabilityProfile => const GrammarCapabilityProfile(
+  GrammarCapabilityProfile get capabilityProfile => GrammarCapabilityProfile(
         hasGender: true,
         hasCases: true,
         hasNumber: true,
@@ -271,7 +274,7 @@ class GermanGrammarProviderMock implements LanguageGrammarRuleProvider {
   }
 
   @override
-  GrammaticalNumber? determineNumber(String word) => GrammaticalNumber.unknown;
+  GrammaticalNumber? determineNumber(String word, {String? context}) => GrammaticalNumber.unknown;
 
   @override
   GrammaticalPerson? determinePerson(String word) => GrammaticalPerson.unknown;

@@ -1,12 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/language_intelligence/language_grammar_rule_provider.dart';
+import 'package:deutsch_bilarabi/core/language_intelligence/grammar_profile.dart';
+import 'package:deutsch_bilarabi/core/language_intelligence/grammar_capabilities.dart';
+
 
 class MockSemiticGrammarProvider extends LanguageGrammarRuleProvider {
   @override
   String get languageCode => 'ar';
 
   @override
-  GrammarCapabilityProfile get profile => const GrammarCapabilityProfile(
+  GrammarCapabilityProfile get profile => GrammarCapabilityProfile(
         supportedGenders: {GrammaticalGender.masculine, GrammaticalGender.feminine},
         supportedNumbers: {GrammaticalNumber.singular, GrammaticalNumber.dual, GrammaticalNumber.plural},
         morphologyType: MorphologyType.rootPattern,
@@ -42,7 +45,7 @@ class MockGermanicGrammarProvider extends LanguageGrammarRuleProvider {
   String get languageCode => 'de';
 
   @override
-  GrammarCapabilityProfile get profile => const GrammarCapabilityProfile(
+  GrammarCapabilityProfile get profile => GrammarCapabilityProfile(
         supportedGenders: {GrammaticalGender.masculine, GrammaticalGender.feminine, GrammaticalGender.neuter},
         supportedCases: {GrammaticalCase.nominative, GrammaticalCase.accusative, GrammaticalCase.dative, GrammaticalCase.genitive},
         morphologyType: MorphologyType.inflectional,
@@ -76,7 +79,7 @@ class MockAnalyticGrammarProvider extends LanguageGrammarRuleProvider {
   String get languageCode => 'zh';
 
   @override
-  GrammarCapabilityProfile get profile => const GrammarCapabilityProfile(
+  GrammarCapabilityProfile get profile => GrammarCapabilityProfile(
         morphologyType: MorphologyType.analytic,
         supportsAgreement: false,
       );

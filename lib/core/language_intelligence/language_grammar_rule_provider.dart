@@ -1,181 +1,128 @@
-enum GrammaticalGender {
-  masculine,
-  feminine,
-  neuter,
-  common,
-  none,
-}
+import 'grammar_capabilities.dart';
+import 'grammar_profile.dart';
 
-enum GrammaticalCategory {
-  noun,
-  verb,
-  adjective,
-  adverb,
-  preposition,
-  particle,
-  unknown,
-}
+enum GrammaticalGender { masculine, feminine, neuter, common, none }
+enum GrammaticalCategory { noun, verb, adjective, adverb, preposition, particle, unknown }
+enum GrammaticalNumber { singular, dual, plural, none, unknown }
+enum GrammaticalPerson { first, second, third, none, unknown }
+enum GrammaticalCase { nominative, accusative, dative, genitive, instrumental, prepositional, vocative, locative, ablative, none, unknown }
+enum GrammaticalTense { past, present, future, none, unknown }
+enum GrammaticalAspect { perfective, imperfective, continuous, none, unknown }
+enum GrammaticalMood { indicative, subjunctive, imperative, conditional, optative, none, unknown }
+enum MorphologyType { rootPattern, inflectional, agglutinative, analytic, unknown }
 
-enum GrammaticalNumber {
-  singular,
-  dual,
-  plural,
-  none,
-  unknown,
-}
+typedef Tense = GrammaticalTense;
+typedef Aspect = GrammaticalAspect;
+typedef Mood = GrammaticalMood;
 
-enum GrammaticalPerson {
-  first,
-  second,
-  third,
-  none,
-  unknown,
-}
+class VerifiedGrammarEvidence {
+  final bool isSupported;
+  final String? root;
+  final String? pattern;
+  final GrammaticalTense? tense;
+  final GrammaticalPerson? person;
+  final GrammaticalAspect? aspect;
 
-enum GrammaticalCase {
-  nominative,
-  accusative,
-  dative,
-  genitive,
-  instrumental,
-  prepositional,
-  vocative,
-  locative,
-  ablative,
-  none,
-  unknown,
-}
-
-enum Tense {
-  past,
-  present,
-  future,
-  none,
-  unknown,
-}
-
-enum Aspect {
-  perfective,
-  imperfective,
-  continuous,
-  none,
-  unknown,
-}
-
-enum Mood {
-  indicative,
-  subjunctive,
-  imperative,
-  conditional,
-  optative,
-  none,
-  unknown,
-}
-
-class GrammarCapabilityProfile {
-  final bool hasGender;
-  final bool hasCases;
-  final bool hasNumber;
-  final bool hasPerson;
-  final bool hasTense;
-  final bool hasAspect;
-  final bool hasMood;
-  final bool hasRootPatternMorphology;
-  final bool isAgglutinative;
-  final bool isAnalytic;
-  final bool hasNounClasses;
-
-  const GrammarCapabilityProfile({
-    this.hasGender = false,
-    this.hasCases = false,
-    this.hasNumber = false,
-    this.hasPerson = false,
-    this.hasTense = false,
-    this.hasAspect = false,
-    this.hasMood = false,
-    this.hasRootPatternMorphology = false,
-    this.isAgglutinative = false,
-    this.isAnalytic = false,
-    this.hasNounClasses = false,
+  const VerifiedGrammarEvidence({
+    required this.isSupported,
+    this.root,
+    this.pattern,
+    this.tense,
+    this.person,
+    this.aspect,
   });
+
+  factory VerifiedGrammarEvidence.unsupported() {
+    return const VerifiedGrammarEvidence(isSupported: false);
+  }
 }
 
 abstract class LanguageGrammarRuleProvider {
   String get languageCode;
 
-  /// Returns the grammar capability profile for the specific language
-  GrammarCapabilityProfile get capabilityProfile =>
-      const GrammarCapabilityProfile();
+  GrammarProfile get profile => const GrammarProfile();
 
-  /// استنتاج الجنس النحوي للكلمة
+  GrammarCapabilityProfile get capabilityProfile {
+    if (profile is GrammarCapabilityProfile) {
+      return profile as GrammarCapabilityProfile;
+    }
+    return GrammarCapabilityProfile(
+      hasGender: profile.supportsFeature(GrammarFeature.gender),
+      hasCases: profile.supportsFeature(GrammarFeature.grammaticalCase) || profile.supportsFeature(GrammarFeature.caseSystem),
+      hasNumber: profile.supportsFeature(GrammarFeature.number),
+      hasPerson: profile.supportsFeature(GrammarFeature.person),
+      hasTense: profile.supportsFeature(GrammarFeature.tense),
+      hasAspect: profile.supportsFeature(GrammarFeature.aspect),
+      hasMood: profile.supportsFeature(GrammarFeature.mood),
+      hasRootPatternMorphology: profile.supportsFeature(GrammarFeature.rootPattern) || profile.morphologyType == MorphologyType.rootPattern,
+      isAgglutinative: profile.supportsFeature(GrammarFeature.agglutinative) || profile.morphologyType == MorphologyType.agglutinative,
+      isAnalytic: profile.supportsFeature(GrammarFeature.analytic) || profile.morphologyType == MorphologyType.analytic,
+      hasNounClasses: profile.supportsFeature(GrammarFeature.nounClasses),
+    );
+  }
+
+  bool supportsFeature(GrammarFeature feature) {
+    if (profile is GrammarCapabilityProfile) {
+      return profile.supportsFeature(feature);
+    }
+    return profile.supportsFeature(feature);
+  }
+
   GrammaticalGender determineGender(String word, {String? article});
-
-  /// استنتاج الفئة النحوية
   GrammaticalCategory determineCategory(String word, {String? article});
-
-  /// التحقق مما إذا كانت الأداة مطابقة للكلمة
   bool isValidArticle(String word, String article);
 
-  // New capabilities returning nullable values if the language doesn't support them
-  // or unknown if supported but not determined.
-
-  /// Determine the grammatical number
-  GrammaticalNumber? determineNumber(String word) {
-    if (!capabilityProfile.hasNumber) return null;
+  GrammaticalNumber? determineNumber(String word, {String? context}) {
+    if (!supportsFeature(GrammarFeature.number)) return null;
     return GrammaticalNumber.unknown;
   }
 
-  /// Determine the grammatical person
   GrammaticalPerson? determinePerson(String word) {
-    if (!capabilityProfile.hasPerson) return null;
+    if (!supportsFeature(GrammarFeature.person)) return null;
     return GrammaticalPerson.unknown;
   }
 
-  /// Determine the grammatical case
   GrammaticalCase? determineCase(String word, {String? context}) {
-    if (!capabilityProfile.hasCases) return null;
+    if (!supportsFeature(GrammarFeature.grammaticalCase) && !supportsFeature(GrammarFeature.caseSystem)) return null;
     return GrammaticalCase.unknown;
   }
 
-  /// Determine the tense
-  Tense? determineTense(String word) {
-    if (!capabilityProfile.hasTense) return null;
-    return Tense.unknown;
+  GrammaticalTense? determineTense(String word) {
+    if (!supportsFeature(GrammarFeature.tense)) return null;
+    return GrammaticalTense.unknown;
   }
 
-  /// Determine the aspect
-  Aspect? determineAspect(String word) {
-    if (!capabilityProfile.hasAspect) return null;
-    return Aspect.unknown;
+  GrammaticalAspect? determineAspect(String word) {
+    if (!supportsFeature(GrammarFeature.aspect)) return null;
+    return GrammaticalAspect.unknown;
   }
 
-  /// Determine the mood
-  Mood? determineMood(String word) {
-    if (!capabilityProfile.hasMood) return null;
-    return Mood.unknown;
+  GrammaticalMood? determineMood(String word) {
+    if (!supportsFeature(GrammarFeature.mood)) return null;
+    return GrammaticalMood.unknown;
   }
 
-  /// Extract root for Semitic languages
   String? extractRoot(String word) {
-    if (!capabilityProfile.hasRootPatternMorphology) return null;
+    if (!supportsFeature(GrammarFeature.rootPattern) && profile.morphologyType != MorphologyType.rootPattern) return null;
     return null;
   }
 
-  /// Extract pattern for Semitic languages
   String? extractPattern(String word) {
-    if (!capabilityProfile.hasRootPatternMorphology) return null;
+    if (!supportsFeature(GrammarFeature.rootPattern) && profile.morphologyType != MorphologyType.rootPattern) return null;
     return null;
   }
 
-  /// Extract affixes for agglutinative languages
   List<String>? extractAffixes(String word) {
-    if (!capabilityProfile.isAgglutinative) return null;
-    return [];
+    if (!supportsFeature(GrammarFeature.agglutinative) && profile.morphologyType != MorphologyType.agglutinative) return null;
+    return null;
   }
 
-  /// Determine noun class
   String? determineNounClass(String word) {
-    if (!capabilityProfile.hasNounClasses) return null;
+    if (!supportsFeature(GrammarFeature.nounClasses)) return null;
     return null;
+  }
+
+  VerifiedGrammarEvidence getVerifiedEvidence(String word) {
+    return VerifiedGrammarEvidence.unsupported();
   }
 }
