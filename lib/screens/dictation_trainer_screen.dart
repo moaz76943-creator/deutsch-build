@@ -7,7 +7,14 @@ import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
 import 'package:flutter/services.dart';
 
 class DictationTrainerScreen extends StatefulWidget {
-  const DictationTrainerScreen({super.key});
+  final String? sourceLocale;
+  final String? targetLocale;
+
+  const DictationTrainerScreen({
+    super.key,
+    this.sourceLocale,
+    this.targetLocale,
+  });
 
   @override
   State<DictationTrainerScreen> createState() => _DictationTrainerScreenState();
@@ -27,15 +34,25 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
       const MethodChannel('com.deutschbilarabi.app/offline_voice_capability');
 
   @override
+  void didUpdateWidget(covariant DictationTrainerScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.sourceLocale != widget.sourceLocale || oldWidget.targetLocale != widget.targetLocale) {
+      _isVoiceLoading = true;
+      _loadEntry();
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     _loadEntry();
   }
 
   Future<void> _loadEntry() async {
-    // Attempt to load an entry for Arabic to German or some default pair. We will just load ar-SA to de-DE for now as it doesn't receive language inputs.
+    final sourceLoc = widget.sourceLocale ?? 'ar-SA';
+    final targetLoc = widget.targetLocale ?? 'de-DE';
     List<LexicalEntry> entries = LexicalRepository.getEntriesForPair(
-        sourceLocale: 'ar-SA', targetLocale: 'de-DE');
+        sourceLocale: sourceLoc, targetLocale: targetLoc);
     if (entries.isEmpty) {
       // Fallback if empty
       if (mounted) {
@@ -54,7 +71,11 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
       });
     }
 
-    await _checkVoiceAvailability(entry.targetLocale);
+    if (mounted) {
+      // await since pumpAndSettle in tests depends on it, but we can't await if unmounted
+      // well, checking is always async
+      await _checkVoiceAvailability(entry.targetLocale);
+    }
   }
 
   Future<void> _checkVoiceAvailability(String locale) async {
@@ -97,7 +118,8 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
   // Basic unicode normalization for answer comparison
   String _normalizeString(String input) {
     // Basic normalization: trim and lowercase and remove extra spaces
-    return input.toLowerCase().trim().replaceAll(RegExp(r'\s+'), ' ');
+    // Adding stripping of arabic diacritics for normalization
+    return input.toLowerCase().trim().replaceAll(RegExp(r'[\u064B-\u065F\u0670]'), '').replaceAll(RegExp(r'\s+'), ' ');
   }
 
   void _checkAnswer() {
@@ -130,7 +152,7 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
       return Scaffold(
         appBar: AppBar(title: const Text('مدرب الاستماع والتهجئة')),
         body: const Center(
-            child: Text('No content available for training.',
+            child: Text('لا توجد مفردات متاحة للتدريب حالياً.',
                 style: TextStyle(color: Colors.white))),
       );
     }
