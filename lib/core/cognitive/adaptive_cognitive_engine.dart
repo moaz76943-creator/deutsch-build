@@ -30,8 +30,9 @@ class StableFlow extends AdaptationReason {
   const StableFlow();
 }
 
-class UnverifiedCefrBlock extends AdaptationReason {
-  const UnverifiedCefrBlock();
+class UnverifiedCEFR extends AdaptationReason {
+  final String reason = 'blocked: unverified';
+  const UnverifiedCEFR();
 }
 
 class AdaptationDecision {
@@ -124,12 +125,12 @@ class AdaptiveCognitiveEngine {
         final latency = m.responseLatency.inMilliseconds;
         return latency >= 0 && latency < 2000;
       });
-      final allVerified = recentWindow.every((m) => m.isCefrVerified);
+      final isCefrVerified = recentWindow.every((m) => m.isCefrVerified);
 
       if (allCorrect && isFast && recentWindow.length >= 3) {
-        if (!allVerified) {
+        if (!isCefrVerified) {
           decision = const AdaptationDecision(
-              AdaptationAction.maintainFlow, UnverifiedCefrBlock());
+              AdaptationAction.maintainFlow, UnverifiedCEFR());
         } else {
           decision = const AdaptationDecision(
               AdaptationAction.deepenLinguisticChallenge, ConsistentMastery());
@@ -147,6 +148,11 @@ class AdaptiveCognitiveEngine {
     }
 
     return decision;
+  }
+
+  // Expose detailed state method for tests matching old code style
+  AdaptationDecision evaluateStateDetailed({String? targetLanguageCode, DateTime? currentTime}) {
+    return evaluateDetailedState(targetLanguageCode: targetLanguageCode, currentTime: currentTime);
   }
 
   /// تقييم الحالة الذهنية واتخاذ قرار التكيف التلقائي
