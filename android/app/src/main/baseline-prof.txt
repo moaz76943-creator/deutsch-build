@@ -1,14 +1,15 @@
 # Baseline Profile for Deutsch بالعربي Flutter app
-# Targets cold-start critical methods (Flutter embedding + MainActivity).
-# Full profile should be regenerated on device with Macrobenchmark or Flutter tools for max impact.
-# Expected measurable improvement: 15-35% faster TTID/TTFD on Android 7+ devices.
+# Targets critical startup paths: Flutter engine, MainActivity, and bootstrap.
+# Generated as a starting point; refine with Macrobenchmark for production.
+# Security note: No changes to keep rules or permissions; R8 remains fully enabled.
 
-HSPLandroidxio/flutter/embedding/android/FlutterActivity;-><init>()V
-HSPLandroidxio/flutter/embedding/android/FlutterActivity;->onCreate(Landroid/os/Bundle;)V
-HSPLandroidxio/flutter/embedding/android/FlutterActivity;->onStart()V
-HSPLandroidxio/flutter/embedding/android/FlutterActivity;->onResume()V
-HSPLandroidxio/flutter/embedding/engine/FlutterJNI;->init(Landroid/content/Context;[Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;J[Ljava/lang/String;)V
-HSPLcom/deutschbilarabi/app/MainActivity;-><init>()V
 HSPLcom/deutschbilarabi/app/MainActivity;->onCreate(Landroid/os/Bundle;)V
-HSPLandroidxandroidx/profileinstaller/ProfileInstallerInitializer;->create(Landroid/content/Context;)Ljava/lang/Object;
-HSPLandroidxandroidx/profileinstaller/ProfileInstaller;->writeProfile(Landroid/content/Context;)V
+HSPLcom/deutschbilarabi/app/MainActivity;-><init>()V
+HSPLio/flutter/embedding/android/FlutterActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLio/flutter/embedding/engine/FlutterEngine;-><init>(Landroid/content/Context;)V
+HSPLio/flutter/embedding/engine/FlutterJNI;->init()V
+HSPLio/flutter/plugins/GeneratedPluginRegistrant;->registerWith(Lio/flutter/embedding/engine/FlutterEngine;)V
+HSPLcom/deutschbilarabi/app/AndroidPackDatabaseKeyStore;-><init>()V
+HSPLcom/deutschbilarabi/app/AndroidSecureSessionStorage;-><init>()V
+# Additional critical methods from startup boundary and database service
+HSPLcom/deutschbilarabi/app/AndroidGamificationClockIntegritySource;-><init>()V
