@@ -38,21 +38,10 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
-// Play Integrity Cloud Project Number (from local.properties or env). Required for release.
-def cloudProjectNumber = localProperties.getProperty('CLOUD_PROJECT_NUMBER')
-        ?: System.getenv('CLOUD_PROJECT_NUMBER')
-        ?: project.findProperty('CLOUD_PROJECT_NUMBER')
-        ?: '0'
-if (releaseTaskRequested && (cloudProjectNumber == null || cloudProjectNumber == '0' || cloudProjectNumber.trim().isEmpty())) {
-    throw new GradleException(
-        'Play Integrity Cloud Project Number is mandatory for release builds. Set CLOUD_PROJECT_NUMBER in local.properties or as environment variable (get it from Play Console > App integrity > Play Integrity API).'
-    )
-}
-def cloudProjectNumberLong = cloudProjectNumber.toLong()
-
 android {
     namespace "com.deutschbilarabi.app"
-    compileSdk 34 // stable version
+    compileSdk 36
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -84,7 +73,7 @@ android {
     signingConfigs {
         secureRelease {
             def releaseSigning = project.ext.resolveReleaseSigning()
-            if (releaseSigning.releaseStoreFile) {
+            if (releaseSigning != null && releaseSigning.releaseStoreFile) {
                 storeFile file(releaseSigning.releaseStoreFile)
                 storePassword releaseSigning.releaseStorePassword
                 keyAlias releaseSigning.releaseKeyAlias
@@ -95,13 +84,14 @@ android {
 
     buildTypes {
         release {
-            // Enable R8 full mode: code shrinking, obfuscation, and optimization
-            // Improves cold-start time, reduces memory usage and APK size.
-            // Security is strengthened by class/method renaming (obfuscation).
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.secureRelease
+        }
+        debug {
+            minifyEnabled false
+            shrinkResources false
         }
     }
 

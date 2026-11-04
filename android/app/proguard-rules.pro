@@ -9,25 +9,28 @@
 -keep class io.flutter.embedding.engine.loader.FlutterLoader { *; }
 -keep class io.flutter.FlutterInjector { *; }
 
-# Keep annotations and avoid warnings
+# Annotations and attributes
 -keepattributes *Annotation*
--dontwarn io.flutter.embedding.**
--dontwarn io.flutter.**
--dontwarn com.google.android.play.core.**
+-keepattributes Signature
+-keepattributes InnerClasses
+-keepattributes EnclosingMethod
 
-# Native sqflite plugin
+# SQLite / sqflite
 -keep class com.tekartik.sqflite.** { *; }
 -dontwarn com.tekartik.sqflite.**
 
-# App-specific security and native bridges (Keystore, session storage, audio)
+# App-specific native wrappers (Keystore, secure storage, audio)
 -keep class com.deutschbilarabi.app.** { *; }
--keep class com.deutschbilarabi.app.AndroidRecordedAudioPlayer { *; }
--keep class com.deutschbilarabi.app.AndroidPackDatabaseKeyStore { *; }
--keep class com.deutschbilarabi.app.AndroidSecureSessionStorage { *; }
 
-# Optimization flags (safe with R8)
+# Play Core (optional, not required)
+-dontwarn com.google.android.play.core.**
+
+# Optimization / obfuscation friendly
 -repackageclasses
 -allowaccessmodification
+-optimizationpasses 5
+-dontusemixedcaseclassnames
 
-# Optional: enable aggressive optimization if tests pass
-# -optimizationpasses 5
+# Preserve line numbers for stack traces (useful for crash reporting)
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
