@@ -221,6 +221,248 @@ def _enum_string(value: Any, allowed: set[str], path: str, *, default: str) -> s
     return clean
 
 
+def _normalize_canonical_noun(
+    noun_raw: Any,
+    path: str,
+    part_of_speech: str,
+) -> dict[str, Any]:
+    if part_of_speech.lower() != "noun":
+        raise PackFactoryValidationError(
+            f"{path}.canonical.noun requires partOfSpeech noun"
+        )
+    noun = _require_mapping(noun_raw, f"{path}.canonical.noun")
+    _reject_unknown_keys(
+        noun,
+        {"gender", "plural", "declensionClass", "caseForms"},
+        f"{path}.canonical.noun",
+    )
+    forms = _require_mapping(
+        noun.get("caseForms"),
+        f"{path}.canonical.noun.caseForms",
+    )
+    allowed_forms = {
+        "nominativeSingular",
+        "accusativeSingular",
+        "dativeSingular",
+        "genitiveSingular",
+        "nominativePlural",
+        "accusativePlural",
+        "dativePlural",
+        "genitivePlural",
+    }
+    _reject_unknown_keys(
+        forms,
+        allowed_forms,
+        f"{path}.canonical.noun.caseForms",
+    )
+    required_forms = (
+        "nominativeSingular",
+        "accusativeSingular",
+        "dativeSingular",
+        "genitiveSingular",
+    )
+    normalized_forms = {
+        key: _require_string(
+            forms.get(key),
+            f"{path}.canonical.noun.caseForms.{key}",
+        )
+        for key in required_forms
+    }
+    for key in sorted(allowed_forms - set(required_forms)):
+        value = _optional_string(
+            forms.get(key),
+            f"{path}.canonical.noun.caseForms.{key}",
+        )
+        if value is not None:
+            normalized_forms[key] = value
+
+    return {
+        "gender": _enum_string(
+            noun.get("gender"),
+            _GERMAN_GENDERS,
+            f"{path}.canonical.noun.gender",
+            default="unknown",
+        ),
+        "plural": _optional_string(
+            noun.get("plural"),
+            f"{path}.canonical.noun.plural",
+        ),
+        "declensionClass": _enum_string(
+            noun.get("declensionClass"),
+            _NOUN_DECLENSIONS,
+            f"{path}.canonical.noun.declensionClass",
+            default="unknown",
+        ),
+        "caseForms": normalized_forms,
+    }
+
+
+def _normalize_canonical_verb(
+    verb_raw: Any,
+    path: str,
+    part_of_speech: str,
+) -> dict[str, Any]:
+    if part_of_speech.lower() != "verb":
+        raise PackFactoryValidationError(
+            f"{path}.canonical.verb requires partOfSpeech verb"
+        )
+    verb = _require_mapping(verb_raw, f"{path}.canonical.verb")
+    _reject_unknown_keys(
+        verb,
+        {
+            "infinitive",
+            "separablePrefix",
+            "inseparablePrefix",
+            "reflexivity",
+            "auxiliary",
+            "participleII",
+            "preterite",
+            "imperative",
+            "valencyFrames",
+            "forms",
+        },
+        f"{path}.canonical.verb",
+    )
+    frames_raw = _require_list(
+        verb.get("valencyFrames", []),
+        f"{path}.canonical.verb.valencyFrames",
+    )
+    frames: list[dict[str, Any]] = []
+    frame_ids: set[str] = set()
+    for index, frame_raw in enumerate(frames_raw):
+        frame_path = f"{path}.canonical.verb.valencyFrames[{index}]"
+        frame = _require_mapping(frame_raw, frame_path)
+        _reject_unknown_keys(
+            frame,
+            {
+                "id",
+                "governedCase",
+                "preposition",
+                "prepositionCase",
+                "semanticRole",
+                "objectRequired",
+            },
+            frame_path,
+        )
+        frame_id = _require_string(frame.get("id"), f"{frame_path}.id", max_length=80)
+        if frame_id in frame_ids:
+            raise PackFactoryValidationError(f"{frame_path}.id is duplicated")
+        frame_ids.add(frame_id)
+        governed_case = frame.get("governedCase")
+        preposition_case = frame.get("prepositionCase")
+        preposition = _optional_string(
+            frame.get("preposition"),
+            f"{frame_path}.preposition",
+            max_length=80,
+        )
+        governed = None if governed_case is None else _enum_string(
+            governed_case,
+            _GERMAN_CASES,
+            f"{frame_path}.governedCase",
+            default="nominative",
+        )
+        prep_case = None if preposition_case is None else _enum_string(
+            preposition_case,
+            _GERMAN_CASES,
+            f"{frame_path}.prepositionCase",
+            default="nominative",
+        )
+        if governed is None and not (preposition and prep_case):
+            raise PackFactoryValidationError(
+                f"{frame_path} requires governedCase or preposition+prepositionCase"
+            )
+        object_required = frame.get("objectRequired", True)
+        if not isinstance(object_required, bool):
+            raise PackFactoryValidationError(
+                f"{frame_path}.objectRequired must be boolean"
+            )
+        frames.append(
+            {
+                "id": frame_id,
+                "governedCase": governed,
+                "preposition": preposition,
+                "prepositionCase": prep_case,
+                "semanticRole": _require_string(
+                    frame.get("semanticRole"),
+                    f"{frame_path}.semanticRole",
+                    max_length=80,
+                ),
+                "objectRequired": object_required,
+            }
+        )
+
+    forms_raw = _require_list(
+        verb.get("forms", []),
+        f"{path}.canonical.verb.forms",
+    )
+    forms: list[dict[str, str]] = []
+    form_keys: set[tuple[str, str]] = set()
+    for index, form_raw in enumerate(forms_raw):
+        form_path = f"{path}.canonical.verb.forms[{index}]"
+        form = _require_mapping(form_raw, form_path)
+        _reject_unknown_keys(form, {"tense", "personKey", "form"}, form_path)
+        tense = _require_string(form.get("tense"), f"{form_path}.tense", max_length=40)
+        person_key = _require_string(
+            form.get("personKey"),
+            f"{form_path}.personKey",
+            max_length=40,
+        )
+        key = (tense, person_key)
+        if key in form_keys:
+            raise PackFactoryValidationError(f"{form_path} duplicates tense/personKey")
+        form_keys.add(key)
+        forms.append(
+            {
+                "tense": tense,
+                "personKey": person_key,
+                "form": _require_string(form.get("form"), f"{form_path}.form"),
+            }
+        )
+
+    return {
+        "infinitive": _require_string(
+            verb.get("infinitive"),
+            f"{path}.canonical.verb.infinitive",
+        ),
+        "separablePrefix": _optional_string(
+            verb.get("separablePrefix"),
+            f"{path}.canonical.verb.separablePrefix",
+            max_length=80,
+        ),
+        "inseparablePrefix": _optional_string(
+            verb.get("inseparablePrefix"),
+            f"{path}.canonical.verb.inseparablePrefix",
+            max_length=80,
+        ),
+        "reflexivity": _enum_string(
+            verb.get("reflexivity"),
+            _GERMAN_REFLEXIVITY,
+            f"{path}.canonical.verb.reflexivity",
+            default="none",
+        ),
+        "auxiliary": _enum_string(
+            verb.get("auxiliary"),
+            _GERMAN_AUXILIARIES,
+            f"{path}.canonical.verb.auxiliary",
+            default="unknown",
+        ),
+        "participleII": _optional_string(
+            verb.get("participleII"),
+            f"{path}.canonical.verb.participleII",
+        ),
+        "preterite": _optional_string(
+            verb.get("preterite"),
+            f"{path}.canonical.verb.preterite",
+        ),
+        "imperative": _optional_string(
+            verb.get("imperative"),
+            f"{path}.canonical.verb.imperative",
+        ),
+        "valencyFrames": frames,
+        "forms": forms,
+    }
+
+
 def _normalize_canonical_fields(
     fields: Mapping[str, Any],
     path: str,
@@ -275,237 +517,11 @@ def _normalize_canonical_fields(
 
     noun_raw = canonical.get("noun")
     if noun_raw is not None:
-        if part_of_speech.lower() != "noun":
-            raise PackFactoryValidationError(
-                f"{path}.canonical.noun requires partOfSpeech noun"
-            )
-        noun = _require_mapping(noun_raw, f"{path}.canonical.noun")
-        _reject_unknown_keys(
-            noun,
-            {"gender", "plural", "declensionClass", "caseForms"},
-            f"{path}.canonical.noun",
-        )
-        forms = _require_mapping(
-            noun.get("caseForms"),
-            f"{path}.canonical.noun.caseForms",
-        )
-        allowed_forms = {
-            "nominativeSingular",
-            "accusativeSingular",
-            "dativeSingular",
-            "genitiveSingular",
-            "nominativePlural",
-            "accusativePlural",
-            "dativePlural",
-            "genitivePlural",
-        }
-        _reject_unknown_keys(
-            forms,
-            allowed_forms,
-            f"{path}.canonical.noun.caseForms",
-        )
-        required_forms = (
-            "nominativeSingular",
-            "accusativeSingular",
-            "dativeSingular",
-            "genitiveSingular",
-        )
-        normalized_forms = {
-            key: _require_string(
-                forms.get(key),
-                f"{path}.canonical.noun.caseForms.{key}",
-            )
-            for key in required_forms
-        }
-        for key in sorted(allowed_forms - set(required_forms)):
-            value = _optional_string(
-                forms.get(key),
-                f"{path}.canonical.noun.caseForms.{key}",
-            )
-            if value is not None:
-                normalized_forms[key] = value
-
-        canonical_out["noun"] = {
-            "gender": _enum_string(
-                noun.get("gender"),
-                _GERMAN_GENDERS,
-                f"{path}.canonical.noun.gender",
-                default="unknown",
-            ),
-            "plural": _optional_string(
-                noun.get("plural"),
-                f"{path}.canonical.noun.plural",
-            ),
-            "declensionClass": _enum_string(
-                noun.get("declensionClass"),
-                _NOUN_DECLENSIONS,
-                f"{path}.canonical.noun.declensionClass",
-                default="unknown",
-            ),
-            "caseForms": normalized_forms,
-        }
+        canonical_out["noun"] = _normalize_canonical_noun(noun_raw, path, part_of_speech)
 
     verb_raw = canonical.get("verb")
     if verb_raw is not None:
-        if part_of_speech.lower() != "verb":
-            raise PackFactoryValidationError(
-                f"{path}.canonical.verb requires partOfSpeech verb"
-            )
-        verb = _require_mapping(verb_raw, f"{path}.canonical.verb")
-        _reject_unknown_keys(
-            verb,
-            {
-                "infinitive",
-                "separablePrefix",
-                "inseparablePrefix",
-                "reflexivity",
-                "auxiliary",
-                "participleII",
-                "preterite",
-                "imperative",
-                "valencyFrames",
-                "forms",
-            },
-            f"{path}.canonical.verb",
-        )
-        frames_raw = _require_list(
-            verb.get("valencyFrames", []),
-            f"{path}.canonical.verb.valencyFrames",
-        )
-        frames: list[dict[str, Any]] = []
-        frame_ids: set[str] = set()
-        for index, frame_raw in enumerate(frames_raw):
-            frame_path = f"{path}.canonical.verb.valencyFrames[{index}]"
-            frame = _require_mapping(frame_raw, frame_path)
-            _reject_unknown_keys(
-                frame,
-                {
-                    "id",
-                    "governedCase",
-                    "preposition",
-                    "prepositionCase",
-                    "semanticRole",
-                    "objectRequired",
-                },
-                frame_path,
-            )
-            frame_id = _require_string(frame.get("id"), f"{frame_path}.id", max_length=80)
-            if frame_id in frame_ids:
-                raise PackFactoryValidationError(f"{frame_path}.id is duplicated")
-            frame_ids.add(frame_id)
-            governed_case = frame.get("governedCase")
-            preposition_case = frame.get("prepositionCase")
-            preposition = _optional_string(
-                frame.get("preposition"),
-                f"{frame_path}.preposition",
-                max_length=80,
-            )
-            governed = None if governed_case is None else _enum_string(
-                governed_case,
-                _GERMAN_CASES,
-                f"{frame_path}.governedCase",
-                default="nominative",
-            )
-            prep_case = None if preposition_case is None else _enum_string(
-                preposition_case,
-                _GERMAN_CASES,
-                f"{frame_path}.prepositionCase",
-                default="nominative",
-            )
-            if governed is None and not (preposition and prep_case):
-                raise PackFactoryValidationError(
-                    f"{frame_path} requires governedCase or preposition+prepositionCase"
-                )
-            object_required = frame.get("objectRequired", True)
-            if not isinstance(object_required, bool):
-                raise PackFactoryValidationError(
-                    f"{frame_path}.objectRequired must be boolean"
-                )
-            frames.append(
-                {
-                    "id": frame_id,
-                    "governedCase": governed,
-                    "preposition": preposition,
-                    "prepositionCase": prep_case,
-                    "semanticRole": _require_string(
-                        frame.get("semanticRole"),
-                        f"{frame_path}.semanticRole",
-                        max_length=80,
-                    ),
-                    "objectRequired": object_required,
-                }
-            )
-
-        forms_raw = _require_list(
-            verb.get("forms", []),
-            f"{path}.canonical.verb.forms",
-        )
-        forms: list[dict[str, str]] = []
-        form_keys: set[tuple[str, str]] = set()
-        for index, form_raw in enumerate(forms_raw):
-            form_path = f"{path}.canonical.verb.forms[{index}]"
-            form = _require_mapping(form_raw, form_path)
-            _reject_unknown_keys(form, {"tense", "personKey", "form"}, form_path)
-            tense = _require_string(form.get("tense"), f"{form_path}.tense", max_length=40)
-            person_key = _require_string(
-                form.get("personKey"),
-                f"{form_path}.personKey",
-                max_length=40,
-            )
-            key = (tense, person_key)
-            if key in form_keys:
-                raise PackFactoryValidationError(f"{form_path} duplicates tense/personKey")
-            form_keys.add(key)
-            forms.append(
-                {
-                    "tense": tense,
-                    "personKey": person_key,
-                    "form": _require_string(form.get("form"), f"{form_path}.form"),
-                }
-            )
-
-        canonical_out["verb"] = {
-            "infinitive": _require_string(
-                verb.get("infinitive"),
-                f"{path}.canonical.verb.infinitive",
-            ),
-            "separablePrefix": _optional_string(
-                verb.get("separablePrefix"),
-                f"{path}.canonical.verb.separablePrefix",
-                max_length=80,
-            ),
-            "inseparablePrefix": _optional_string(
-                verb.get("inseparablePrefix"),
-                f"{path}.canonical.verb.inseparablePrefix",
-                max_length=80,
-            ),
-            "reflexivity": _enum_string(
-                verb.get("reflexivity"),
-                _GERMAN_REFLEXIVITY,
-                f"{path}.canonical.verb.reflexivity",
-                default="none",
-            ),
-            "auxiliary": _enum_string(
-                verb.get("auxiliary"),
-                _GERMAN_AUXILIARIES,
-                f"{path}.canonical.verb.auxiliary",
-                default="unknown",
-            ),
-            "participleII": _optional_string(
-                verb.get("participleII"),
-                f"{path}.canonical.verb.participleII",
-            ),
-            "preterite": _optional_string(
-                verb.get("preterite"),
-                f"{path}.canonical.verb.preterite",
-            ),
-            "imperative": _optional_string(
-                verb.get("imperative"),
-                f"{path}.canonical.verb.imperative",
-            ),
-            "valencyFrames": frames,
-            "forms": forms,
-        }
+        canonical_out["verb"] = _normalize_canonical_verb(verb_raw, path, part_of_speech)
 
     word_family = canonical.get("wordFamily")
     if word_family is not None:
