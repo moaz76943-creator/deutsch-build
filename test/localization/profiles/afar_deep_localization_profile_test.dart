@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/afar_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/afar_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('AfarDeepLocalizationProfile Tests', () {
@@ -28,14 +28,14 @@ void main() {
 
     test('Phonetic bridge identifies native pharyngeals and SOV mirror', () {
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('Sh')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('Pharyngeal Advantage'), isNotEmpty));
-      expect(profile.germanPhoneticBridges, containsPair(contains('SOV Subordinate'), isNotEmpty));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Pharyngeal Advantage')).having((entry) => entry.value, 'value', isNotEmpty)));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('SOV Subordinate')).having((entry) => entry.value, 'value', isNotEmpty)));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('mahaba / salaam alaykum'));
-      expect(profile.culturalIslamicLexicon, containsKey('xalaal'));
-      expect(profile.culturalIslamicLexicon, containsKey('masiigida'));
+      expect(profile.culturalIslamicLexicon.keys, contains('mahaba / salaam alaykum'));
+      expect(profile.culturalIslamicLexicon.keys, contains('xalaal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('masiigida'));
       expect(profile.coreA1Vocabulary['Gaddali'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

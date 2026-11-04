@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/kinyarwanda_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/kinyarwanda_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('KinyarwandaDeepLocalizationProfile Tests', () {
@@ -18,15 +18,15 @@ void main() {
     });
 
     test('16-noun-class augment definiteness bridge is established', () {
-      expect(profile.augmentNounClassBridge, containsKey(contains('16-Noun-Class')));
+      expect(profile.augmentNounClassBridge.keys, contains(contains('16-Noun-Class')));
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('Sh')));
       expect(profile.germanPhoneticBridges, containsPair('tsch /tʃ/', contains('C / c')));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('muraho / salamu alaykum'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('umusigiti'));
+      expect(profile.culturalIslamicLexicon.keys, contains('muraho / salamu alaykum'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('umusigiti'));
       expect(profile.coreA1Vocabulary['Murakoze cyane'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

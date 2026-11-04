@@ -3,7 +3,7 @@ import 'package:deutsch_bilarabi/core/language_intelligence/language_grammar_rul
 /// Arabic Grammar Rule Provider conforming to LanguageGrammarRuleProvider interface.
 /// Implements Arabic-specific root-pattern morphology, tripartite case system (رفع، نصب، جر),
 /// and tripartite grammatical number (مفرد، مثنى، جمع).
-class ArabicGrammarProvider implements LanguageGrammarRuleProvider {
+class ArabicGrammarProvider extends LanguageGrammarRuleProvider {
   static final ArabicGrammarProvider instance = ArabicGrammarProvider._internal();
   ArabicGrammarProvider._internal();
 
@@ -12,6 +12,7 @@ class ArabicGrammarProvider implements LanguageGrammarRuleProvider {
 
   @override
   GrammarCapabilityProfile get profile => const GrammarCapabilityProfile(
+    languageCode: 'ar',
     supportedGenders: {
       GrammaticalGender.masculine,
       GrammaticalGender.feminine,
@@ -32,10 +33,7 @@ class ArabicGrammarProvider implements LanguageGrammarRuleProvider {
 
   @override
   VerifiedGrammarEvidence getVerifiedEvidence(String word) =>
-      const VerifiedGrammarEvidence(
-        isSupported: true,
-        packRevision: '1.0.0',
-      );
+      const VerifiedGrammarEvidence.unsupported();
 
   @override
   GrammaticalGender determineGender(String word, {String? article}) {

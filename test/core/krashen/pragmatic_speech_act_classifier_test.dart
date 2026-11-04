@@ -1,9 +1,19 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/core/krashen/pragmatic_speech_act_classifier.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/core/krashen/pragmatic_speech_act_classifier.dart';
 
 void main() {
   group('PragmaticSpeechActClassifier Suite', () {
     const classifier = PragmaticSpeechActClassifier();
+
+    test(
+        'unsupported language never borrows Arabic markers or certifies advice',
+        () {
+      final result =
+          classifier.classifyUtterance(text: 'شكراً', languageCode: 'de');
+      expect(result.detectedIllocutionaryMarkers, isEmpty);
+      expect(result.confidenceScore, 0);
+      expect(result.isPragmaticallyAppropriate, isFalse);
+    });
 
     test('Identifies polite request in Arabic with respectful register', () {
       final res = classifier.classifyUtterance(

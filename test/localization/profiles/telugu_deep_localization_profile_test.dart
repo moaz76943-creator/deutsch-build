@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/telugu_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/telugu_deep_localization_profile.dart';
 
 void main() {
   group('TeluguDeepLocalizationProfile Tests', () {
@@ -27,13 +27,13 @@ void main() {
     test('Phonetic bridge accurately assists German sound acquisition', () {
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('శ')));
       expect(profile.germanPhoneticBridges, containsPair('z /ts/', contains('త్+స్')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('Vowel Coda'), isNotEmpty));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Vowel Coda')).having((entry) => entry.value, 'value', isNotEmpty)));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('నమస్కారం / సలాం'));
-      expect(profile.culturalIslamicLexicon, containsKey('హలాల్'));
-      expect(profile.culturalIslamicLexicon, containsKey('నమాజ్ / ప్రార్థన'));
+      expect(profile.culturalIslamicLexicon.keys, contains('నమస్కారం / సలాం'));
+      expect(profile.culturalIslamicLexicon.keys, contains('హలాల్'));
+      expect(profile.culturalIslamicLexicon.keys, contains('నమాజ్ / ప్రార్థన'));
       expect(profile.coreA1Vocabulary['చాలా ధన్యవాదాలు'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

@@ -88,7 +88,8 @@ class SrsCompatBridge {
     // ReviewRating is 0..3 (easy == 3). Never persist an invalid grade.
     final canonicalRating = rating == 4 ? 3 : rating;
     if (canonicalRating < 0 || canonicalRating > 3) {
-      throw ArgumentError.value(rating, 'rating', 'Expected a grade from 0 to 4');
+      throw ArgumentError.value(
+          rating, 'rating', 'Expected a grade from 0 to 4');
     }
 
     // The legacy scheduler below is only an in-process projection. Without

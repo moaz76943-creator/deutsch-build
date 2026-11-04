@@ -23,8 +23,7 @@ final class PlacementAgentNotifier extends ChangeNotifier {
   final int maxQuestions;
 
   List<PlacementQuestionItem> _questions = const <PlacementQuestionItem>[];
-  final List<_PlacementAnswerEvidence> _answers =
-      <_PlacementAnswerEvidence>[];
+  final List<_PlacementAnswerEvidence> _answers = <_PlacementAnswerEvidence>[];
   PlacementQuestionItem? _currentQuestion;
   PlacementAssessmentResult? _result;
   int _targetDifficulty = 3;
@@ -40,9 +39,8 @@ final class PlacementAgentNotifier extends ChangeNotifier {
 
   double get progress {
     if (isCompleted) return 1;
-    final denominator = maxQuestions < _questions.length
-        ? maxQuestions
-        : _questions.length;
+    final denominator =
+        maxQuestions < _questions.length ? maxQuestions : _questions.length;
     if (denominator <= 0) return 0;
     return (_answers.length / denominator).clamp(0.0, 1.0).toDouble();
   }
@@ -106,7 +104,7 @@ final class PlacementAgentNotifier extends ChangeNotifier {
     };
     final repository = _repository;
     if (repository is AdaptivePlacementQuestionSource) {
-      return (repository as dynamic).selectNextQuestion(
+      return (repository as AdaptivePlacementQuestionSource).selectNextQuestion(
         answeredIds: answeredIds,
         targetDifficulty: _targetDifficulty,
       );
@@ -136,8 +134,7 @@ final class PlacementAgentNotifier extends ChangeNotifier {
       );
     }
 
-    final correctCount =
-        _answers.where((answer) => answer.correct).length;
+    final correctCount = _answers.where((answer) => answer.correct).length;
     final accuracy = correctCount / _answers.length;
     var weightedCorrect = 0;
     var weightedTotal = 0;

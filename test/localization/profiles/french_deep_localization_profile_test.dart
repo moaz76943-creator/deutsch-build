@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/french_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/french_deep_localization_profile.dart';
 
 void main() {
   group('FrenchDeepLocalizationProfile Tests', () {
@@ -29,17 +29,17 @@ void main() {
     });
 
     test('Phonetic bridge identifies 100% native matches for uvular R, U, and EU', () {
-      expect(profile.germanPhoneticBridges, containsPair(contains('Uvular R'), contains('100% Native Identity')));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Uvular R')).having((entry) => entry.value, 'value', contains('100% Native Identity'))));
       expect(profile.germanPhoneticBridges, containsPair('ü /y/', contains('100% Native Identity')));
       expect(profile.germanPhoneticBridges, containsPair('ö /ø/', contains('100% Native Identity')));
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('Ch')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('Aspirated H'), isNotEmpty));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Aspirated H')).having((entry) => entry.value, 'value', isNotEmpty)));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('bonjour / salam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('mosquée'));
+      expect(profile.culturalIslamicLexicon.keys, contains('bonjour / salam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('mosquée'));
       expect(profile.coreA1Vocabulary['Merci beaucoup'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/portuguese_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/portuguese_deep_localization_profile.dart';
 
 void main() {
   group('PortugueseDeepLocalizationProfile Tests', () {
@@ -30,14 +30,14 @@ void main() {
     test('Phonetic bridge identifies native match for coda sibilants to German sch', () {
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('100% Native Identity')));
       expect(profile.germanPhoneticBridges, containsPair('z /ts/', contains('t+s')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('Personal Infinitive'), isNotEmpty));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Personal Infinitive')).having((entry) => entry.value, 'value', isNotEmpty)));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('olá / salam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('oxalá'));
-      expect(profile.culturalIslamicLexicon, containsKey('mesquita'));
+      expect(profile.culturalIslamicLexicon.keys, contains('olá / salam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('oxalá'));
+      expect(profile.culturalIslamicLexicon.keys, contains('mesquita'));
       expect(profile.coreA1Vocabulary['Muito obrigado'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 
 /// Client-side Play Integrity API wrapper.
 ///
@@ -16,7 +17,8 @@ import 'package:flutter/services.dart';
 ///
 /// Also enable Automatic Integrity Protection in Play Console when creating a release.
 class PlayIntegrityService {
-  static const _channel = MethodChannel('com.deutschbilarabi.app/play_integrity');
+  static const _channel =
+      MethodChannel('com.deutschbilarabi.app/play_integrity');
 
   /// Requests an integrity token. Provide a nonce from your backend when possible
   /// to bind the token to a specific request.

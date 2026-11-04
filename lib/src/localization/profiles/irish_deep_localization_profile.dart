@@ -32,7 +32,6 @@ class IrishDeepLocalizationProfile extends OmnidirectionalLanguageProfile {
   final String primaryScript = 'Latin (Irish alphabet with síneadh fada)';
   final List<String> fadaVowels = const ['á', 'é', 'í', 'ó', 'ú'];
 
-  @override
   final Map<String, String> ipaPhoneticInventory = const {
     'Séimhiú (Lenition)': 'Fricativization of consonants (b->bh /v/, p->ph /f/, c->ch /x/, t->th /h/).',
     'Urú (Eclipsis)': 'Voicing or nasalization of consonants (b->mb /m/, c->gc /ɡ/, p->bp /b/, t->dt /d/).',
@@ -40,7 +39,6 @@ class IrishDeepLocalizationProfile extends OmnidirectionalLanguageProfile {
     'Slender / Palatalized': 'Consonants adjacent to front vowels e, i (/ʲ/).',
   };
 
-  @override
   final Map<UniversalGrammaticalRole, String> universalRoleMapping = const {
     UniversalGrammaticalRole.subjectOrAgent: 'Ainmneach (Direct subject in VSO: Léann an fear = The man reads).',
     UniversalGrammaticalRole.directObjectOrPatient: 'Cuspóireach (Direct object: Léann an fear an leabhar).',
@@ -53,7 +51,6 @@ class IrishDeepLocalizationProfile extends OmnidirectionalLanguageProfile {
     UniversalGrammaticalRole.vocativeAddress: 'Gairmeach with particle "a" + lenition (A chara!).',
   };
 
-  @override
   final Map<String, String> universalLexicon = const {
     'greeting': 'Dia dhuit / Haló',
     'thanks': 'Go raibh maith agat / Míle buíochas',
@@ -75,7 +72,7 @@ class IrishDeepLocalizationProfile extends OmnidirectionalLanguageProfile {
     'placeOfWorship': 'Mosc / Teampall',
   };
 
-  final List> practicalDialoguePhrases = const [
+  final List<Map<String, String>> practicalDialoguePhrases = const [
     {
       'irish': 'Dia dhuit! Conas atá tú?',
       'arabic': 'مرحباً! كيف حالك؟',

@@ -51,9 +51,9 @@ class BoneConductionAdapter {
       // Non-linear cranial rattle limiter (soft clipping curve)
       if (enableRattleLimiter) {
         if (sample > 0.85) {
-          sample = 0.85 + (0.15 * math.tanh((sample - 0.85) / 0.15));
+          sample = 0.85 + (0.15 * _tanh((sample - 0.85) / 0.15));
         } else if (sample < -0.85) {
-          sample = -0.85 + (0.15 * math.tanh((sample + 0.85) / 0.15));
+          sample = -0.85 + (0.15 * _tanh((sample + 0.85) / 0.15));
         }
       }
 
@@ -74,4 +74,11 @@ class BoneConductionAdapter {
     final avg = energy / adaptedSamples.length;
     return (avg * 100).clamp(0.0, 100.0);
   }
+}
+
+// Use a decaying exponential so even extreme finite inputs cannot overflow.
+double _tanh(double value) {
+  final decay = math.exp(-2 * value.abs());
+  final magnitude = (1 - decay) / (1 + decay);
+  return value.isNegative ? -magnitude : magnitude;
 }

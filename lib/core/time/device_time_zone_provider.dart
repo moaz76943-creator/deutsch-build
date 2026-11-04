@@ -211,7 +211,7 @@ final class SystemDeviceTimeZoneProvider implements DeviceTimeZoneProvider {
       final nativeOffset = instant.toLocal().timeZoneOffset;
       final candidateOffset =
           location.timeZone(instant.millisecondsSinceEpoch).offset;
-      if (nativeOffset != candidateOffset) return false;
+      if (nativeOffset != Duration(milliseconds: candidateOffset)) return false;
     }
     return true;
   }

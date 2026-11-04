@@ -34,8 +34,12 @@ dependencies:
   cached_network_image: ^3.4.1
   url_launcher: ^6.3.1
 
-  synchronized: ^3.3.0+3
-  characters: ^1.4.0
+  synchronized: any
+  characters: any
+  cryptography: ^2.9.0
+  encrypt: ^5.0.3
+  timezone: ^0.10.1
+  percent_indicator: ^4.2.5
 dev_dependencies:
   custom_lint: ^0.6.4
   custom_lint_builder: ^0.6.4

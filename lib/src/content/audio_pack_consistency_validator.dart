@@ -22,7 +22,7 @@ class AudioPackConsistencyValidator {
   const AudioPackConsistencyValidator({this.targetLoudnessLufs = -16.0});
 
   /// Audits a collection of audio clip metadata entries.
-  AudioValidationReport auditClips(List> clips) {
+  AudioValidationReport auditClips(List<Map<String, Object?>> clips) {
     if (clips.isEmpty) {
       return const AudioValidationReport(
         totalClipsChecked: 0,

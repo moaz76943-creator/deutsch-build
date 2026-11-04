@@ -256,9 +256,11 @@ final class AdaptivePlacementEngine {
   static DiagnosticDimension? _dimensionForFacet(ReviewFacetType facet) {
     switch (facet) {
       case ReviewFacetType.meaningRecall:
+      case ReviewFacetType.recognition:
       case ReviewFacetType.spelling:
         return DiagnosticDimension.meaning;
       case ReviewFacetType.gender:
+      case ReviewFacetType.grammar:
       case ReviewFacetType.plural:
       case ReviewFacetType.caseForm:
       case ReviewFacetType.verbValency:

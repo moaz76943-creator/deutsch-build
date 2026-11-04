@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:meta/meta.dart';
 
 /// CEFR proficency level speed profiles (syllables per second).
@@ -48,7 +50,8 @@ class DynamicSpeechRatePacer {
   }
 
   /// Breaks text into paced token units with syntactic pause boundaries.
-  List<PacedTokenUnit> paceText(String text, {CefrPacingLevel level = CefrPacingLevel.a1Beginner}) {
+  List<PacedTokenUnit> paceText(String text,
+      {CefrPacingLevel level = CefrPacingLevel.a1Beginner}) {
     if (text.trim().isEmpty) return const [];
 
     final double sps = getTargetSps(level);
@@ -60,10 +63,17 @@ class DynamicSpeechRatePacer {
       final double tokenDuration = (syllables / sps).clamp(0.12, 1.8);
 
       double pauseAfter = 0.05; // Default short intra-phrase gap
-      if (raw.endsWith('.') || raw.endsWith('!') || raw.endsWith('?') || raw.endsWith('။')) {
-        pauseAfter = (level == CefrPacingLevel.a1Beginner) ? 0.65 : 0.40; // Sentence terminal
+      if (raw.endsWith('.') ||
+          raw.endsWith('!') ||
+          raw.endsWith('?') ||
+          raw.endsWith('။')) {
+        pauseAfter = (level == CefrPacingLevel.a1Beginner)
+            ? 0.65
+            : 0.40; // Sentence terminal
       } else if (raw.endsWith(',') || raw.endsWith('،') || raw.endsWith(';')) {
-        pauseAfter = (level == CefrPacingLevel.a1Beginner) ? 0.35 : 0.20; // Clause boundary
+        pauseAfter = (level == CefrPacingLevel.a1Beginner)
+            ? 0.35
+            : 0.20; // Clause boundary
       }
 
       pacedList.add(PacedTokenUnit(
@@ -77,10 +87,13 @@ class DynamicSpeechRatePacer {
   }
 
   int _estimateSyllables(String word) {
-    final clean = word.toLowerCase().replaceAll(RegExp(r'[^a-zA-Z\u0600-\u06FF\u0400-\u04FF\u4E00-\u9FFF]'), '');
+    final clean = word.toLowerCase().replaceAll(
+        RegExp(r'[^a-zA-Z\u0600-\u06FF\u0400-\u04FF\u4E00-\u9FFF]'), '');
     if (clean.isEmpty) return 1;
     // Basic multi-script vowel estimation
-    final int vowels = RegExp(r'[aeiouyáéíóúäöüɛɔаеёиоуыэюя\u064E\u064F\u0650]').allMatches(clean).length;
+    final int vowels = RegExp(r'[aeiouyáéíóúäöüɛɔаеёиоуыэюя\u064E\u064F\u0650]')
+        .allMatches(clean)
+        .length;
     return math.max(1, vowels);
   }
 }

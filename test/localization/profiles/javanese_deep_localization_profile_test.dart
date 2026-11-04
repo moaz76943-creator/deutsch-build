@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/javanese_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/javanese_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('JavaneseDeepLocalizationProfile Tests', () {
@@ -17,17 +17,17 @@ void main() {
     });
 
     test('Speech level honorific bridges (Ngoko/Krama) map to German address', () {
-      expect(profile.speechLevelHonorificBridge, containsKey(contains('Ngoko')));
-      expect(profile.speechLevelHonorificBridge, containsKey(contains('Krama')));
-      expect(profile.speechLevelHonorificBridge, containsKey(contains('Krama Inggil')));
+      expect(profile.speechLevelHonorificBridge.keys, contains(contains('Ngoko')));
+      expect(profile.speechLevelHonorificBridge.keys, contains(contains('Krama')));
+      expect(profile.speechLevelHonorificBridge.keys, contains(contains('Krama Inggil')));
       expect(profile.germanPhoneticBridges, containsPair('tsch /tʃ/', contains('C / c')));
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('Sy / sy')));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('sugeng / salam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('masjid'));
+      expect(profile.culturalIslamicLexicon.keys, contains('sugeng / salam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('masjid'));
       expect(profile.coreA1Vocabulary['Matur nuwun sanget'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

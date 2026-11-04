@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/fulani_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/fulani_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('FulaniDeepLocalizationProfile Tests', () {
@@ -17,15 +17,15 @@ void main() {
     });
 
     test('Noun class advantage bridges seamlessly to German gender system', () {
-      expect(profile.nounClassAdvantageBridge, containsKey(contains('25-Noun-Class')));
-      expect(profile.nounClassAdvantageBridge, containsKey(contains('Consonant Mutation')));
+      expect(profile.nounClassAdvantageBridge.keys, contains(contains('25-Noun-Class')));
+      expect(profile.nounClassAdvantageBridge.keys, contains(contains('Consonant Mutation')));
       expect(profile.germanPhoneticBridges, containsPair('tsch /tʃ/', contains('C / c')));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('jam / no wa\'i / salam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('deftere'));
+      expect(profile.culturalIslamicLexicon.keys, contains('jam / no wa\'i / salam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('deftere'));
       expect(profile.coreA1Vocabulary['A jaaraama no feewi'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

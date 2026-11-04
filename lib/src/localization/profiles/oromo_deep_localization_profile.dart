@@ -35,7 +35,7 @@ class OromoDeepLocalizationProfile extends OmnidirectionalLanguageProfile {
   final Map<String, String> culturalIslamicLexicon;
   final Map<String, String> germanPhoneticBridges;
   final Map<String, String> coreA1Vocabulary;
-  final List> practicalDialoguePhrases;
+  final List<Map<String, String>> practicalDialoguePhrases;
 
   const OromoDeepLocalizationProfile({
     this.languageName = 'Oromo',

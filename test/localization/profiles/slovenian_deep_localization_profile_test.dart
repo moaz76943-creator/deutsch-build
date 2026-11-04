@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/slovenian_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/slovenian_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('SlovenianDeepLocalizationProfile Tests', () {
@@ -17,11 +17,11 @@ void main() {
     });
 
     test('Dual number bridge and 6-case alignment are established', () {
-      expect(profile.dualNumberBridge, containsKey(contains('Dvojina')));
+      expect(profile.dualNumberBridge.keys, contains(contains('Dvojina')));
       expect(profile.sixCaseSystemAlignment.length, equals(6));
-      expect(profile.sixCaseSystemAlignment, containsPair(contains('Imenovalnik'), contains('Nominativ')));
-      expect(profile.sixCaseSystemAlignment, containsPair(contains('Rodilnik'), contains('Genitiv')));
-      expect(profile.sixCaseSystemAlignment, containsPair(contains('Dajalnik'), contains('Dativ')));
+      expect(profile.sixCaseSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Imenovalnik')).having((entry) => entry.value, 'value', contains('Nominativ'))));
+      expect(profile.sixCaseSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Rodilnik')).having((entry) => entry.value, 'value', contains('Genitiv'))));
+      expect(profile.sixCaseSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Dajalnik')).having((entry) => entry.value, 'value', contains('Dativ'))));
     });
 
     test('Phonetic bridge identifies 100% native matches for C and Š', () {
@@ -30,9 +30,9 @@ void main() {
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('dober dan / živjo / salam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('mošeja / džamija'));
+      expect(profile.culturalIslamicLexicon.keys, contains('dober dan / živjo / salam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('mošeja / džamija'));
       expect(profile.coreA1Vocabulary['Hvala lepa'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

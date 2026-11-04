@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/punjabi_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/punjabi_deep_localization_profile.dart';
 
 void main() {
   group('PunjabiDeepLocalizationProfile Tests', () {
@@ -21,7 +21,7 @@ void main() {
 
     test('Phonetic bridge accurately assists German sound acquisition', () {
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('ਸ਼ / ش')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('ach-Laut'), contains('ਖ਼ / خ')));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('ach-Laut')).having((entry) => entry.value, 'value', contains('ਖ਼ / خ'))));
       expect(profile.germanPhoneticBridges, containsPair('z /ts/', contains('ਤ+ਸ')));
     });
 
@@ -33,9 +33,9 @@ void main() {
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('ਸਲਾਮ / سلام'));
-      expect(profile.culturalIslamicLexicon, containsKey('ਹਲਾਲ / حلال'));
-      expect(profile.culturalIslamicLexicon, containsKey('ਨਮਾਜ਼ / نماز'));
+      expect(profile.culturalIslamicLexicon.keys, contains('ਸਲਾਮ / سلام'));
+      expect(profile.culturalIslamicLexicon.keys, contains('ਹਲਾਲ / حلال'));
+      expect(profile.culturalIslamicLexicon.keys, contains('ਨਮਾਜ਼ / نماز'));
       expect(profile.coreA1Vocabulary['ਬਹੁਤ ਸ਼ੁਕਰੀਆ / بہت شکریہ'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

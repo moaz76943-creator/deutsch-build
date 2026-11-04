@@ -1,8 +1,7 @@
 import 'language_grammar_rule_provider.dart';
-import 'grammar_capabilities.dart';
-import 'grammar_profile.dart';
 
-abstract class UniversalGrammarProvider implements LanguageGrammarRuleProvider {
+abstract class UniversalGrammarProvider extends LanguageGrammarRuleProvider {
+  @override
   GrammarProfile get profile;
 
   @override
@@ -52,9 +51,11 @@ abstract class UniversalGrammarProvider implements LanguageGrammarRuleProvider {
   GrammaticalNumber extractNumber(String word) => GrammaticalNumber.none;
 
   @override
-  GrammaticalCase? determineCase(String word, {String? context}) {
-    if (!profile.supports(GrammarCapability.caseSystem)) return null;
-    return extractCase(word, context: context);
+  GrammaticalCase determineCase(String word, {String? context}) {
+    if (!profile.supports(GrammarCapability.caseSystem)) {
+      return GrammaticalCase.none;
+    }
+    return extractCase(word);
   }
 
   GrammaticalCase extractCase(String word, {String? context}) =>

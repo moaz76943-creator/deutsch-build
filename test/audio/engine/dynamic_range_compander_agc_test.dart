@@ -1,9 +1,31 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/audio/engine/dynamic_range_compander_agc.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/audio/engine/dynamic_range_compander_agc.dart';
 
 void main() {
   group('DynamicRangeCompanderAgc Tests', () {
+    test('Limiter preserves its knee and saturates extreme finite amplitudes',
+        () {
+      const limiter = DynamicRangeCompanderAgc(
+        attackCoeff: 0,
+        releaseCoeff: 0,
+      );
+      final output = limiter.processBuffer(
+        Float32List.fromList(
+            [0.5, -0.5, 0.95, -0.95, 0.975, -0.975, 1e30, -1e30]),
+      );
+
+      expect(
+          output.take(4),
+          orderedEquals(
+              [0.5, -0.5, closeTo(0.95, 1e-7), closeTo(-0.95, 1e-7)]));
+      expect(output[4], closeTo(0.9731058579, 1e-7));
+      expect(output[5], closeTo(-0.9731058579, 1e-7));
+      expect(output[6], 1.0);
+      expect(output[7], -1.0);
+      expect(output.every((value) => value.isFinite), isTrue);
+    });
+
     const agc = DynamicRangeCompanderAgc();
 
     test('Initializes with authentic acoustic parameters', () {
@@ -12,7 +34,8 @@ void main() {
       expect(agc.maxGain, equals(4.0));
     });
 
-    test('Boosts quiet whispered signals and silences background noise floor', () {
+    test('Boosts quiet whispered signals and silences background noise floor',
+        () {
       // 1. Whispered input (0.04 amplitude)
       final whispered = Float32List(320);
       for (int i = 0; i < 320; i++) {

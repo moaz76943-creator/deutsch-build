@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/kurdish_kurmanji_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/kurdish_kurmanji_deep_localization_profile.dart';
 
 void main() {
   group('KurdishKurmanjiDeepLocalizationProfile Tests', () {
@@ -23,19 +23,19 @@ void main() {
     test('Phonetic bridge establishes 1:1 acoustic mappings', () {
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('Ş / ş')));
       expect(profile.germanPhoneticBridges, containsPair('tsch /tʃ/', contains('Ç / ç')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('ach-Laut'), contains('X / x')));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('ach-Laut')).having((entry) => entry.value, 'value', contains('X / x'))));
     });
 
     test('Gender and case alignment ease German article learning', () {
       expect(profile.getCaseBridge('xwerû'), contains('Nominativ'));
       expect(profile.getCaseBridge('tewandî'), contains('Akkusativ'));
-      expect(profile.caseSystemAlignment, containsPair(contains('Izafe'), contains('Genitiv')));
+      expect(profile.caseSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Izafe')).having((entry) => entry.value, 'value', contains('Genitiv'))));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('silav'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('nimêj'));
+      expect(profile.culturalIslamicLexicon.keys, contains('silav'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('nimêj'));
       expect(profile.coreA1Vocabulary['Gelek spas'], equals('Vielen Dank'));
       expect(profile.coreA1Vocabulary['Erê'], equals('Ja'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));

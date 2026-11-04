@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/hausa_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/hausa_deep_localization_profile.dart';
 
 void main() {
   group('HausaDeepLocalizationProfile Tests', () {

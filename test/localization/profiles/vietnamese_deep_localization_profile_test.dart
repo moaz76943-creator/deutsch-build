@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/vietnamese_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/vietnamese_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('VietnameseDeepLocalizationProfile Tests', () {
@@ -18,15 +18,15 @@ void main() {
     });
 
     test('Omnidirectional cross-lingual transfer matrix is established', () {
-      expect(profile.omnidirectionalBridges, containsKey(contains('Sino-Vietnamese')));
-      expect(profile.omnidirectionalBridges, containsKey(contains('Southeast Asian')));
-      expect(profile.omnidirectionalBridges, containsKey(contains('Western Fusional')));
+      expect(profile.omnidirectionalBridges.keys, contains(contains('Sino-Vietnamese')));
+      expect(profile.omnidirectionalBridges.keys, contains(contains('Southeast Asian')));
+      expect(profile.omnidirectionalBridges.keys, contains(contains('Western Fusional')));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('xin chào / salam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal / hợp giáo quy'));
-      expect(profile.culturalIslamicLexicon, containsKey('cầu nguyện / salat'));
+      expect(profile.culturalIslamicLexicon.keys, contains('xin chào / salam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal / hợp giáo quy'));
+      expect(profile.culturalIslamicLexicon.keys, contains('cầu nguyện / salat'));
       expect(profile.coreA1Vocabulary['Cảm ơn rất nhiều'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

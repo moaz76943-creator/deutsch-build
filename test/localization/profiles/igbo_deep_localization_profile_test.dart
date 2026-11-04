@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/igbo_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/igbo_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('IgboDeepLocalizationProfile Tests', () {
@@ -20,15 +20,15 @@ void main() {
     });
 
     test('Verbal compounding and phonetic bridges are established', () {
-      expect(profile.verbalCompoundingBridge, containsKey(contains('Verbal Extensional')));
+      expect(profile.verbalCompoundingBridge.keys, contains(contains('Verbal Extensional')));
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('Sh')));
       expect(profile.germanPhoneticBridges, containsPair('tsch /tʃ/', contains('Ch')));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('ndewo / kedu / salam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('ụlọ alakụba'));
+      expect(profile.culturalIslamicLexicon.keys, contains('ndewo / kedu / salam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('ụlọ alakụba'));
       expect(profile.coreA1Vocabulary['Daalụ nke ukwuu'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

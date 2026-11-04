@@ -2,15 +2,16 @@ import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('SRS compatibility persistence contract', () {
-    test('unbound compatibility bridge cannot acknowledge a review', () async {
-      final bridge = SrsCompatBridge();
+  group('SRS Authority Unification Tests', () {
+    test('legacy review cannot acknowledge success without durable storage',
+        () async {
+      final service = SpacedRepetitionService.instance;
+
       await expectLater(
-        bridge.recordReviewCompat(
-          contentKey: 'VOCAB-DE-001',
-          rating: 2,
-          sourceIso: 'de',
-          targetIso: 'ar',
+        service.submitResult(
+          cardId: 'VOCAB-DE-001',
+          isCorrect: true,
+          difficulty: 2,
         ),
         throwsStateError,
       );

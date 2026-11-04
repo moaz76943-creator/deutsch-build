@@ -1,10 +1,12 @@
+import 'dart:math' as math;
+
 /// Categorical pitch tone in Mandarin and Southeast Asian tonal languages.
 enum MandarinTone {
-  firstFlatHigh,  // 55 (mā)
-  secondRising,   // 35 (má)
-  thirdDipping,   // 214 (mǎ - fall then rise)
-  fourthFalling,  // 51 (mà)
-  neutralLight,   // (ma)
+  firstFlatHigh, // 55 (mā)
+  secondRising, // 35 (má)
+  thirdDipping, // 214 (mǎ - fall then rise)
+  fourthFalling, // 51 (mà)
+  neutralLight, // (ma)
 }
 
 /// Evaluation result comparing spoken tone contour against target lexical tone.
@@ -48,7 +50,7 @@ class TonalContourRecognitionEngine {
     final endPitch = pitchTrackHz.last;
 
     final overallSlope = endPitch - startPitch;
-    final midDip = midPitch < min(startPitch, endPitch) - 15.0;
+    final midDip = midPitch < math.min(startPitch, endPitch) - 15.0;
 
     MandarinTone detected;
     double confidence = 0.90;
@@ -71,16 +73,20 @@ class TonalContourRecognitionEngine {
     } else {
       switch (expectedTone) {
         case MandarinTone.firstFlatHigh:
-          advice = 'المطلوب نغمة أولى: حافظ على استقرار الصوت ونبرة حادة مسطحة وثابتة (High Flat).';
+          advice =
+              'المطلوب نغمة أولى: حافظ على استقرار الصوت ونبرة حادة مسطحة وثابتة (High Flat).';
           break;
         case MandarinTone.secondRising:
-          advice = 'المطلوب نغمة ثانية: ارفع نبرة الصوت لأعلى مثل طرح سؤال تعجبي (Rising).';
+          advice =
+              'المطلوب نغمة ثانية: ارفع نبرة الصوت لأعلى مثل طرح سؤال تعجبي (Rising).';
           break;
         case MandarinTone.thirdDipping:
-          advice = 'المطلوب نغمة ثالثة: اخفض الصوت في الوسط ثم ارفعه مجدداً (Fall-Rise).';
+          advice =
+              'المطلوب نغمة ثالثة: اخفض الصوت في الوسط ثم ارفعه مجدداً (Fall-Rise).';
           break;
         case MandarinTone.fourthFalling:
-          advice = 'المطلوب نغمة رابعة: اهبط بالصوت بقوة وسرعة كأنك تصدر أمراً حازماً (Sharp Drop).';
+          advice =
+              'المطلوب نغمة رابعة: اهبط بالصوت بقوة وسرعة كأنك تصدر أمراً حازماً (Sharp Drop).';
           break;
         case MandarinTone.neutralLight:
           advice = 'المطلوب نغمة محايدة خفيفة وسريعة دون مد.';

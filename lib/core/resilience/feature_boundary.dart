@@ -82,9 +82,18 @@ class _FeatureBoundaryState extends State<FeatureBoundary> {
     final policy = widget.retryPolicy ?? BoundedRetryPolicy();
     final currentSession = _activeSessionId;
 
-    final outcome = await policy.execute<void>(() async {
-      await widget.initializationAction!();
-    }, sessionId: currentSession, isDisposed: () => _isDisposed);
+    FeatureRecoveryOutcome outcome;
+    Object? criticalError;
+    try {
+      outcome = await policy.execute<void>(() async {
+        await widget.initializationAction!();
+      }, sessionId: currentSession, isDisposed: () => _isDisposed);
+    } on StorageFailure catch (error) {
+      // Keep critical failures blocked and visible instead of leaking an
+      // unhandled future and leaving initialization on its spinner.
+      criticalError = error;
+      outcome = RecoveryOutcomeHelper.classifyFailure(error);
+    }
 
     if (!mounted || _activeSessionId != currentSession) {
       // Reject stale callback if session changed or unmounted
@@ -95,7 +104,7 @@ class _FeatureBoundaryState extends State<FeatureBoundary> {
       _outcome = outcome;
       _isInitializing = false;
       if (outcome is RecoveryBlocked) {
-        _caughtError = outcome.message;
+        _caughtError = criticalError ?? outcome.message;
       }
     });
   }

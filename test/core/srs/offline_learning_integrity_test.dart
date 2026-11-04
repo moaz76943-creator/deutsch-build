@@ -14,7 +14,7 @@ class FakeAtomicStore implements TransactionPersistencePort {
   bool failAfter = false;
 
   @override
-  Future<TransactionCommitOutcome> commitReviewAtomically({
+  Future<ReviewCommitResult> commitOnce({
     required ReviewCommand command,
     required ReviewTransactionEnvelope envelope,
   }) async {
@@ -24,74 +24,91 @@ class FakeAtomicStore implements TransactionPersistencePort {
       if (prior.cardId != command.cardId ||
           prior.sourceLanguageId != command.sourceLanguageId ||
           prior.targetLanguageId != command.targetLanguageId ||
+          prior.semanticVersion != command.semanticVersion ||
           prior.facetKey != command.facetKey ||
           prior.pairEpoch != command.pairEpoch ||
           prior.rating != command.rating ||
           prior.hinted != command.hinted) {
         throw StateError('conflicting duplicate');
       }
-      return TransactionCommitOutcome.alreadyCommitted;
+      return ReviewCommitResult.alreadyCommitted;
     }
     expect(envelope.languagePairKey,
-        command.sourceLanguageId + '_' + command.targetLanguageId);
+        '${command.sourceLanguageId}_${command.targetLanguageId}_${command.semanticVersion}');
     applied[command.reviewId] = command;
     advances++;
     if (failAfter) throw StateError('acknowledgment lost after commit');
-    return TransactionCommitOutcome.applied;
+    return ReviewCommitResult.committed;
   }
 }
 
-ReviewCommand command({String id = 'r1', String src = 'de',
-    String dst = 'ar', String card = 'c1'}) => ReviewCommand(
-  reviewId: id, sourceLanguageId: src, targetLanguageId: dst,
-  cardId: card, facetKey: 'word', pairEpoch: 7,
-  rating: ReviewRating.good, hinted: false,
-);
+ReviewCommand command(
+        {String id = 'r1',
+        String src = 'de',
+        String dst = 'ar',
+        String card = 'c1'}) =>
+    ReviewCommand(
+      reviewId: id,
+      sourceLanguageId: src,
+      targetLanguageId: dst,
+      cardId: card,
+      facetKey: 'word',
+      pairEpoch: 7,
+      rating: ReviewRating.good,
+      hinted: false,
+    );
 
 void main() {
   group('offline atomic review contract', () {
     test('manager recreation + replay do not advance twice', () async {
       final store = FakeAtomicStore();
-      expect(await ReviewTransactionManager(store).processTransaction(command()),
-          TransactionCommitOutcome.applied);
-      expect(await ReviewTransactionManager(store).processTransaction(command()),
-          TransactionCommitOutcome.alreadyCommitted);
+      expect(
+          await ReviewTransactionManager(store).processTransaction(command()),
+          ReviewCommitResult.committed);
+      expect(
+          await ReviewTransactionManager(store).processTransaction(command()),
+          ReviewCommitResult.alreadyCommitted);
       expect(store.advances, 1);
     });
     test('interrupted before commit can retry', () async {
       final store = FakeAtomicStore()..failBefore = true;
       final manager = ReviewTransactionManager(store);
-      await expectLater(manager.processTransaction(command()), throwsStateError);
+      await expectLater(
+          manager.processTransaction(command()), throwsStateError);
       expect(store.advances, 0);
       store.failBefore = false;
-      expect(await manager.processTransaction(command()), TransactionCommitOutcome.applied);
+      expect(await manager.processTransaction(command()),
+          ReviewCommitResult.committed);
       expect(store.advances, 1);
     });
     test('lost commit acknowledgment must not double advance', () async {
       final store = FakeAtomicStore()..failAfter = true;
       final manager = ReviewTransactionManager(store);
-      await expectLater(manager.processTransaction(command()), throwsStateError);
+      await expectLater(
+          manager.processTransaction(command()), throwsStateError);
       expect(store.advances, 1);
       store.failAfter = false;
       expect(await manager.processTransaction(command()),
-          TransactionCommitOutcome.alreadyCommitted);
+          ReviewCommitResult.alreadyCommitted);
       expect(store.advances, 1);
     });
     test('pair collision cannot reuse an event ID', () async {
       final store = FakeAtomicStore();
       final manager = ReviewTransactionManager(store);
       await manager.processTransaction(command());
-      await expectLater(manager.processTransaction(command(src: 'ar', dst: 'de')),
+      await expectLater(
+          manager.processTransaction(command(src: 'ar', dst: 'de')),
           throwsStateError);
       expect(store.advances, 1);
     });
     test('invalid pair and malformed card are rejected', () async {
       final store = FakeAtomicStore();
       final manager = ReviewTransactionManager(store);
-      await expectLater(manager.processTransaction(command(src: 'de', dst: 'de')),
+      await expectLater(
+          manager.processTransaction(command(src: 'de', dst: 'de')),
           throwsArgumentError);
-      await expectLater(manager.processTransaction(command(card: '  ')),
-          throwsArgumentError);
+      await expectLater(
+          manager.processTransaction(command(card: '  ')), throwsArgumentError);
       expect(store.advances, 0);
     });
   });
@@ -100,45 +117,103 @@ void main() {
     test('injected clock gives deterministic due date', () {
       final now = DateTime.utc(2026, 10, 13);
       final result = ProductionSrsEngine.processReview(
-        currentIntervalDays: 6, currentEaseFactor: 2.5,
-        currentRepetitions: 2, rating: SrsRating.good, currentTime: now,
+        currentIntervalDays: 6,
+        currentEaseFactor: 2.5,
+        currentRepetitions: 2,
+        rating: SrsRating.good,
+        currentTime: now,
       );
       expect(result.nextIntervalDays, 15);
       expect(result.repetitionCount, 3);
       expect(result.nextReviewDate, now.add(const Duration(days: 15)));
     });
     test('nonfinite numbers are rejected', () {
-      for (final bad in [double.nan, double.infinity, double.negativeInfinity]) {
-        expect(() => ProductionSrsEngine.processReview(
-          currentIntervalDays: 5, currentEaseFactor: bad,
-          currentRepetitions: 2, rating: SrsRating.good,
-        ), throwsArgumentError);
-        expect(() => ProductionSrsEngine.processReview(
-          currentIntervalDays: 5, currentEaseFactor: 2.5,
-          currentRepetitions: 2, rating: SrsRating.good,
-          morphologicalMultiplier: bad,
-        ), throwsArgumentError);
+      for (final bad in [
+        double.nan,
+        double.infinity,
+        double.negativeInfinity
+      ]) {
+        expect(
+            () => ProductionSrsEngine.processReview(
+                  currentIntervalDays: 5,
+                  currentEaseFactor: bad,
+                  currentRepetitions: 2,
+                  rating: SrsRating.good,
+                ),
+            throwsArgumentError);
+        expect(
+            () => ProductionSrsEngine.processReview(
+                  currentIntervalDays: 5,
+                  currentEaseFactor: 2.5,
+                  currentRepetitions: 2,
+                  rating: SrsRating.good,
+                  morphologicalMultiplier: bad,
+                ),
+            throwsArgumentError);
       }
     });
     test('corrupt counters and invalid ratings are rejected', () {
-      final state = LeitnerCardState(cardId: 'c1', currentBox: LeitnerBox.box1,
-          lastReviewedEpoch: 0, nextReviewEpoch: 0);
-      expect(() => ProductionSrsEngine.processReview(
-        currentIntervalDays: 1, currentEaseFactor: 2.0,
-        currentRepetitions: -1, rating: SrsRating.good,
-      ), throwsArgumentError);
-      expect(() => SpacedRepetitionEngine.calculateNextInterval(
-        previousState: state, rating: 5,
-      ), throwsArgumentError);
+      final state = LeitnerCardState(
+          cardId: 'c1',
+          currentBox: LeitnerBox.box1,
+          lastReviewedEpoch: 0,
+          nextReviewEpoch: 0);
+      expect(
+          () => ProductionSrsEngine.processReview(
+                currentIntervalDays: 1,
+                currentEaseFactor: 2.0,
+                currentRepetitions: -1,
+                rating: SrsRating.good,
+              ),
+          throwsArgumentError);
+      expect(
+          () => SpacedRepetitionEngine.calculateNextInterval(
+                previousState: state,
+                rating: 5,
+              ),
+          throwsArgumentError);
+    });
+    test('nonpositive morphology multipliers are rejected', () {
+      for (final multiplier in [0.0, -1.0]) {
+        expect(
+            () => ProductionSrsEngine.processReview(
+                  currentIntervalDays: 5,
+                  currentEaseFactor: 2.5,
+                  currentRepetitions: 2,
+                  rating: SrsRating.good,
+                  morphologicalMultiplier: multiplier,
+                ),
+            throwsArgumentError);
+      }
+    });
+    test('huge finite inputs keep interval and due date bounded', () {
+      final now = DateTime.utc(2026, 10, 13);
+      for (final rating in [SrsRating.good, SrsRating.easy]) {
+        final result = ProductionSrsEngine.processReview(
+          currentIntervalDays: 36500,
+          currentEaseFactor: 1e308,
+          currentRepetitions: 2,
+          rating: rating,
+          morphologicalMultiplier: 1e308,
+          currentTime: now,
+        );
+        expect(result.nextIntervalDays, 36500);
+        expect(result.nextReviewDate, now.add(const Duration(days: 36500)));
+      }
     });
     test('Leitner clock and ease are bounded', () {
       const now = 1704067200000;
-      final state = LeitnerCardState(cardId: 'c1', currentBox: LeitnerBox.box4,
-        lastReviewedEpoch: now - 86400000, nextReviewEpoch: now,
-        easeFactor: 2.9);
+      final state = LeitnerCardState(
+          cardId: 'c1',
+          currentBox: LeitnerBox.box4,
+          lastReviewedEpoch: now - 86400000,
+          nextReviewEpoch: now,
+          easeFactor: 2.9);
       expect(state.isDueAt(now), isTrue);
       final next = SpacedRepetitionEngine.calculateNextInterval(
-        previousState: state, rating: 3, currentTimeEpoch: now,
+        previousState: state,
+        rating: 3,
+        currentTimeEpoch: now,
       );
       expect(next.currentBox, LeitnerBox.box5);
       expect(next.easeFactor, 3.0);

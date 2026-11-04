@@ -25,10 +25,24 @@ enum GrammaticalAlignment {
   analyticalPrepositional,
 }
 
+/// Semantic roles used by the existing Celtic and Basque profile maps.
+enum UniversalGrammaticalRole {
+  subjectOrAgent,
+  directObjectOrPatient,
+  indirectObjectOrRecipient,
+  genitivePossessor,
+  instrumentalMeans,
+  locativePosition,
+  ablativeSource,
+  allativeDirection,
+  vocativeAddress,
+}
+
 /// Universal cross-lingual bridge contract enabling N x N bidirectional translation
 /// and syntactic transfer between ANY pair of the 100 sovereign languages.
 @immutable
 abstract class OmnidirectionalLanguageProfile {
+  const OmnidirectionalLanguageProfile();
   String get languageName;
   String get autonym;
   String get iso6391;

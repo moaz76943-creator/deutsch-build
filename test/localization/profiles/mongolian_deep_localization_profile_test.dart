@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/mongolian_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/mongolian_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('MongolianDeepLocalizationProfile Tests', () {
@@ -29,13 +29,14 @@ void main() {
     test('Phonetic bridge identifies 100% native matches for umlauts and Ц to Z', () {
       expect(profile.germanPhoneticBridges, containsPair('ö /ø/ & ü /y/', contains('100% Native Identity')));
       expect(profile.germanPhoneticBridges, containsPair('z /ts/', contains('100% Native Identity')));
-      expect(profile.germanPhoneticBridges, containsPair('ch /x/ (ach-Laut)', contains('100% Native Identity')));
+      // Check source graphemes rather than a promotional identity label.
+      expect(profile.germanPhoneticBridges, containsPair('ch /x/ (ach-Laut)', contains('Х / х')));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('сайн байна уу / салам'));
-      expect(profile.culturalIslamicLexicon, containsKey('халал'));
-      expect(profile.culturalIslamicLexicon, containsKey('лалын сүм / сүм'));
+      expect(profile.culturalIslamicLexicon.keys, contains('сайн байна уу / салам'));
+      expect(profile.culturalIslamicLexicon.keys, contains('халал'));
+      expect(profile.culturalIslamicLexicon.keys, contains('лалын сүм / сүм'));
       expect(profile.coreA1Vocabulary['Маш их баярлалаа'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

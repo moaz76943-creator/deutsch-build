@@ -1,9 +1,25 @@
 import 'dart:math' as math;
-import 'package:test/test.dart';
-import '../../lib/src/core/voice_cloning/bone_conduction_adapter.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/core/voice_cloning/bone_conduction_adapter.dart';
 
 void main() {
   group('BoneConductionAdapter Unit Tests (N018)', () {
+    test(
+        'Limiter retains the soft knee and saturates without exponential overflow',
+        () {
+      const adapter =
+          BoneConductionAdapter(profile: BoneConductionProfile.standard);
+      final output = adapter
+          .adaptSamples([0.5, -0.5, 0.85, -0.85, 0.925, -0.925, 1e300, -1e300]);
+
+      expect(output.take(4), orderedEquals([0.5, -0.5, 0.85, -0.85]));
+      expect(output[4], closeTo(0.9193175736, 1e-10));
+      expect(output[5], closeTo(-0.9193175736, 1e-10));
+      expect(output[6], 1.0);
+      expect(output[7], -1.0);
+      expect(output.every((value) => value.isFinite), isTrue);
+    });
+
     test('Clarity boost modifies frequency spectrum without clipping', () {
       const adapter = BoneConductionAdapter(
         profile: BoneConductionProfile.speechClarityBoost,

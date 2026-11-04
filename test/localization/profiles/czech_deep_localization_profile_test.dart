@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/czech_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/czech_deep_localization_profile.dart';
 
 void main() {
   group('CzechDeepLocalizationProfile Tests', () {
@@ -32,13 +32,13 @@ void main() {
     test('Phonetic bridge identifies native match for letter C to German Z and vowel length', () {
       expect(profile.germanPhoneticBridges, containsPair('z /ts/', contains('100% Native Identity')));
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('Š')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('Vowel Quantity'), isNotEmpty));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Vowel Quantity')).having((entry) => entry.value, 'value', isNotEmpty)));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('dobrý den / selam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halál'));
-      expect(profile.culturalIslamicLexicon, containsKey('modlitba / namáz'));
+      expect(profile.culturalIslamicLexicon.keys, contains('dobrý den / selam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halál'));
+      expect(profile.culturalIslamicLexicon.keys, contains('modlitba / namáz'));
       expect(profile.coreA1Vocabulary['Děkuji mnohokrát'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

@@ -67,10 +67,17 @@ class DynamicRangeCompanderAgc {
 
   double _softLimit(double x) {
     if (x > 0.95) {
-      return 0.95 + 0.05 * math.tanh((x - 0.95) / 0.05);
+      return 0.95 + 0.05 * _tanh((x - 0.95) / 0.05);
     } else if (x < -0.95) {
-      return -0.95 + 0.05 * math.tanh((x + 0.95) / 0.05);
+      return -0.95 + 0.05 * _tanh((x + 0.95) / 0.05);
     }
     return x;
   }
+}
+
+// Use a decaying exponential so even extreme finite inputs cannot overflow.
+double _tanh(double value) {
+  final decay = math.exp(-2 * value.abs());
+  final magnitude = (1 - decay) / (1 + decay);
+  return value.isNegative ? -magnitude : magnitude;
 }

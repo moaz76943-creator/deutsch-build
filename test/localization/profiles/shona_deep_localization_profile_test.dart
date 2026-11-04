@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/shona_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/shona_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('ShonaDeepLocalizationProfile Tests', () {
@@ -18,16 +18,16 @@ void main() {
     });
 
     test('20+ noun class concord and whistling sibilants are verified', () {
-      expect(profile.nounClassConcordBridge, containsKey(contains('20+ Noun-Class')));
+      expect(profile.nounClassConcordBridge.keys, contains(contains('20+ Noun-Class')));
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('Sh')));
       expect(profile.germanPhoneticBridges, containsPair('tsch /tʃ/', contains('Ch')));
       expect(profile.germanPhoneticBridges, containsPair('z /ts/', contains('Ts')));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('mhoro / kwaziwai / salam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('masikiti'));
+      expect(profile.culturalIslamicLexicon.keys, contains('mhoro / kwaziwai / salam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('masikiti'));
       expect(profile.coreA1Vocabulary['Maita basa zvikuru'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

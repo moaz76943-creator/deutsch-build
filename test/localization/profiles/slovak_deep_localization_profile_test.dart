@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/slovak_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/slovak_deep_localization_profile.dart';
 
 void main() {
   group('SlovakDeepLocalizationProfile Tests', () {
@@ -37,9 +37,9 @@ void main() {
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('dobrý deň / selam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halál'));
-      expect(profile.culturalIslamicLexicon, containsKey('modlitba / namáz'));
+      expect(profile.culturalIslamicLexicon.keys, contains('dobrý deň / selam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halál'));
+      expect(profile.culturalIslamicLexicon.keys, contains('modlitba / namáz'));
       expect(profile.coreA1Vocabulary['Ďakujem pekne'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

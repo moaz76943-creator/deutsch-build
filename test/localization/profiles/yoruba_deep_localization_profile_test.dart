@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/yoruba_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/yoruba_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('YorubaDeepLocalizationProfile Tests', () {
@@ -18,15 +18,15 @@ void main() {
     });
 
     test('Serial verb bridges and phonetic mapping are established', () {
-      expect(profile.serialVerbBridge, containsKey(contains('Serial Verb')));
-      expect(profile.serialVerbBridge, containsKey(contains('Prepositional Case')));
+      expect(profile.serialVerbBridge.keys, contains(contains('Serial Verb')));
+      expect(profile.serialVerbBridge.keys, contains(contains('Prepositional Case')));
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('Ṣ / ṣ')));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('báwo / àlàáfíà / salama'));
-      expect(profile.culturalIslamicLexicon, containsKey('hàláàlì'));
-      expect(profile.culturalIslamicLexicon, containsKey('mọ́ṣálásí'));
+      expect(profile.culturalIslamicLexicon.keys, contains('báwo / àlàáfíà / salama'));
+      expect(profile.culturalIslamicLexicon.keys, contains('hàláàlì'));
+      expect(profile.culturalIslamicLexicon.keys, contains('mọ́ṣálásí'));
       expect(profile.coreA1Vocabulary['Ẹ ṣe púpọ̀'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

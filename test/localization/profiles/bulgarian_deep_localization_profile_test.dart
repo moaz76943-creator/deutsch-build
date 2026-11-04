@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/bulgarian_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/bulgarian_deep_localization_profile.dart';
 
 void main() {
   group('BulgarianDeepLocalizationProfile Tests', () {
@@ -31,13 +31,13 @@ void main() {
       expect(profile.germanPhoneticBridges, containsPair('z /ts/', contains('100% Native Identity')));
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('Ш')));
       expect(profile.germanPhoneticBridges, containsPair('tsch /tʃ/', contains('Ч')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('Article Inversion'), isNotEmpty));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Article Inversion')).having((entry) => entry.value, 'value', isNotEmpty)));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('добър ден / селям'));
-      expect(profile.culturalIslamicLexicon, containsKey('халал'));
-      expect(profile.culturalIslamicLexicon, containsKey('джамия'));
+      expect(profile.culturalIslamicLexicon.keys, contains('добър ден / селям'));
+      expect(profile.culturalIslamicLexicon.keys, contains('халал'));
+      expect(profile.culturalIslamicLexicon.keys, contains('джамия'));
       expect(profile.coreA1Vocabulary['Благодаря много'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

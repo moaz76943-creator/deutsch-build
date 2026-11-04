@@ -34,7 +34,7 @@ class TagalogDeepLocalizationProfile extends OmnidirectionalLanguageProfile {
   final Map<String, String> omnidirectionalBridges;
   final Map<String, String> culturalIslamicLexicon;
   final Map<String, String> coreA1Vocabulary;
-  final List> practicalDialoguePhrases;
+  final List<Map<String, String>> practicalDialoguePhrases;
 
   const TagalogDeepLocalizationProfile({
     this.languageName = 'Tagalog',

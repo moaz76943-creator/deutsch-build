@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/chechen_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/chechen_deep_localization_profile.dart';
 
 void main() {
   group('ChechenDeepLocalizationProfile Tests', () {
@@ -31,14 +31,14 @@ void main() {
     test('Phonetic bridge identifies native match for letter Ц to German Z and umlauts', () {
       expect(profile.germanPhoneticBridges, containsPair('z /ts/', contains('100% Native Identity')));
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('Ш')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('Umlaut Fronting'), isNotEmpty));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Umlaut Fronting')).having((entry) => entry.value, 'value', isNotEmpty)));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('марша догӏийла / салам'));
-      expect(profile.culturalIslamicLexicon, containsKey('хьанал'));
-      expect(profile.culturalIslamicLexicon, containsKey('ламаз'));
-      expect(profile.culturalIslamicLexicon, containsKey('маьждиг'));
+      expect(profile.culturalIslamicLexicon.keys, contains('марша догӏийла / салам'));
+      expect(profile.culturalIslamicLexicon.keys, contains('хьанал'));
+      expect(profile.culturalIslamicLexicon.keys, contains('ламаз'));
+      expect(profile.culturalIslamicLexicon.keys, contains('маьждиг'));
       expect(profile.coreA1Vocabulary['Дела реза хуьлда / Баркалла'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

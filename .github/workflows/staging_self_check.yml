@@ -30,7 +30,6 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-        with:
           persist-credentials: false
 
       - name: Detect Flutter-impacting changes
@@ -120,8 +119,14 @@ jobs:
           test/services/delta_patch_service_test.dart
           test/services/srs_scheduler_persisted_counter_integrity_test.dart
           test/services/lemmatization_service_test.dart
+          test/services/crash_loop_guard_test.dart
+          test/services/pooled_database_manager_test.dart
+          test/services/database_pool_compatibility_test.dart
+          test/jules/J008/pooled_database_manager_test.dart
           test/jules/J049/trie_search_engine_test.dart
           test/jules/WS16/
+          test/localization/
+          test/design_system/app_directional_text_test.dart
           test/offline_gate_test.dart
 
       # Classification only; do not grant this workflow merge credentials.

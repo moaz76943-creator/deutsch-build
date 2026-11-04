@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/marathi_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/marathi_deep_localization_profile.dart';
 
 void main() {
   group('MarathiDeepLocalizationProfile Tests', () {
@@ -24,16 +24,16 @@ void main() {
     });
 
     test('Case system alignment links Marathi traditional vibhakti to German cases', () {
-      expect(profile.caseSystemAlignment, containsPair(contains('Prathama'), contains('Nominativ')));
-      expect(profile.caseSystemAlignment, containsPair(contains('Shashthi'), contains('Genitiv')));
-      expect(profile.caseSystemAlignment, containsPair(contains('Saptami'), contains('in')));
-      expect(profile.caseSystemAlignment, containsPair(contains('Tritiya'), contains('mit')));
+      expect(profile.caseSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Prathama')).having((entry) => entry.value, 'value', contains('Nominativ'))));
+      expect(profile.caseSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Shashthi')).having((entry) => entry.value, 'value', contains('Genitiv'))));
+      expect(profile.caseSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Saptami')).having((entry) => entry.value, 'value', contains('in'))));
+      expect(profile.caseSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Tritiya')).having((entry) => entry.value, 'value', contains('mit'))));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('सलाम'));
-      expect(profile.culturalIslamicLexicon, containsKey('हलाल'));
-      expect(profile.culturalIslamicLexicon, containsKey('नमाज'));
+      expect(profile.culturalIslamicLexicon.keys, contains('सलाम'));
+      expect(profile.culturalIslamicLexicon.keys, contains('हलाल'));
+      expect(profile.culturalIslamicLexicon.keys, contains('नमाज'));
       expect(profile.coreA1Vocabulary['खूप खूप धन्यवाद'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });
