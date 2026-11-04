@@ -18,7 +18,7 @@ void main() {
         sessionId: 'sess_123',
         currentRoute: '/quiz/trainer',
         lastItemIndex: 5,
-        timestamp: nowSec,
+        timestamp: 1728468000,
       );
 
       await recoveryManager.persistSession(session);
@@ -48,7 +48,7 @@ void main() {
         sessionId: 'sess_456',
         currentRoute: '/home',
         lastItemIndex: 0,
-        timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        timestamp: 1728468100,
       );
       await recoveryManager.persistSession(session);
       await recoveryManager.clearSession();
