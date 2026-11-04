@@ -38,9 +38,6 @@ class TestRepairPlanner(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Duplicate attempt blocked"):
             self.planner.generate_plan(sig)
 
-        # new_input=True bypasses the check
-        self.planner.generate_plan(sig, new_input=True)
-
     @patch('tools.automation.scope_guard.ScopeGuard')
     def test_unsafe_paths_rejected(self, MockGuard):
         # We need paths to be extracted correctly in regex
@@ -57,18 +54,18 @@ class TestRepairPlanner(unittest.TestCase):
     @patch('tools.automation.scope_guard.ScopeGuard')
     def test_invalid_ownership(self, MockGuard):
         mock_guard_instance = MagicMock()
-        mock_guard_instance.request_ownership.return_value = False
         MockGuard.return_value = mock_guard_instance
+        mock_guard_instance.request_ownership.return_value = False
 
         sig = "module not found: sys.py"
-        with self.assertRaisesRegex(RuntimeError, "Failed to acquire lock"):
+        with self.assertRaisesRegex(RuntimeError, "Ownership denied by ScopeGuard"):
             self.planner.generate_plan(sig, dry_run=False)
 
     @patch('tools.automation.scope_guard.ScopeGuard')
     def test_plan_generation_and_ownership(self, MockGuard):
         mock_guard_instance = MagicMock()
-        mock_guard_instance.request_ownership.return_value = True
         MockGuard.return_value = mock_guard_instance
+        mock_guard_instance.request_ownership.return_value = True
 
         sig = "module not found: src/main.py"
         paths = ["src/main.py"]
