@@ -21,8 +21,9 @@ class AutoHealExecutor:
         self.agent_id = "AutoHeal_J093"
         self.guard = ScopeGuard(owner=self.agent_id)
         self.backup_dir = tempfile.mkdtemp(prefix="auto_heal_backup_")
-        self.attempts_file = attempts_file
-        self.failures_file = failures_file
+        self.MAX_ATTEMPTS = 3
+        self.attempts_file = os.environ.get("AUTO_HEAL_ATTEMPTS_FILE", ".auto_heal_attempts.json")
+        self.failures_file = os.environ.get("AUTO_HEAL_FAILURES_FILE", ".auto_heal_failures.json")
 
     def __del__(self):
         if hasattr(self, 'backup_dir') and os.path.exists(self.backup_dir):
@@ -142,46 +143,22 @@ class AutoHealExecutor:
         except (json.JSONDecodeError, UnicodeError) as exc:
             raise ValueError("Attempt history corrupted; manual reconciliation required") from exc
 
-        if not isinstance(data, dict):
-            raise ValueError("Attempt history corrupted; expected a JSON object")
-        attempts = data.get(plan_id, 0)
-        if type(attempts) is not int or attempts < 0:
-            raise ValueError("Attempt history corrupted; invalid counter")
-        if attempts >= 2:
-            raise ValueError(f"Execution blocked: maximum attempts (2) exceeded for plan {plan_id}.")
+        attempts = attempts_data.get(plan_id, 0)
+        if attempts >= self.MAX_ATTEMPTS:
+            print(f"Failed: Max attempts ({self.MAX_ATTEMPTS}) reached for plan {plan_id}.")
 
-        data[plan_id] = attempts + 1
-        self._atomic_json_write(self.attempts_file, data)
+            # Record failure
+            failures_data = {}
+            if os.path.exists(self.failures_file):
+                try:
+                    with open(self.failures_file, 'r') as f:
+                        failures_data = json.load(f)
+                except Exception:
+                    pass
+            failures_data[plan_id] = {"reason": f"Max attempts ({self.MAX_ATTEMPTS}) reached"}
+            with open(self.failures_file, 'w') as f:
+                json.dump(failures_data, f)
 
-    def _record_failure(self, error_message):
-        plan_id = self.plan.get('plan_id', 'unknown')
-        if os.path.exists(self.failures_file):
-            with open(self.failures_file, 'r') as stream:
-                data = json.load(stream)
-        else:
-            data = {}
-        if not isinstance(data, dict):
-            raise ValueError("Failure history corrupted; expected a JSON object")
-        failures = data.setdefault(plan_id, [])
-        if not isinstance(failures, list):
-            raise ValueError("Failure history corrupted; expected a failure list")
-        failures.append(str(error_message))
-        self._atomic_json_write(self.failures_file, data)
-
-    def _record_failure_safely(self, error):
-        try:
-            self._record_failure(error)
-        except Exception as logging_error:
-            print(f"Warning: failure evidence unavailable: {type(logging_error).__name__}", file=sys.stderr)
-
-    def execute(self):
-        print(f"Executing plan: {self.plan.get('plan_id', 'unknown')}")
-
-        try:
-            self._check_and_increment_attempt()
-        except (ValueError, OSError) as e:
-            print(e)
-            self._record_failure_safely(e)
             sys.exit(1)
 
         self._verify_base_sha()
