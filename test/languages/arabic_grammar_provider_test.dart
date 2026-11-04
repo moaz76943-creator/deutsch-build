@@ -30,6 +30,25 @@ void main() {
       expect(profile.supportsAgreement, isTrue);
     });
 
+    test('metadata and legacy capabilities describe the same Arabic profile', () {
+      expect(provider.profile.languageCode, provider.languageCode);
+      expect(provider.capabilityProfile.hasGender, isTrue);
+      expect(provider.capabilityProfile.hasCases, isTrue);
+      expect(provider.capabilityProfile.hasNumber, isTrue);
+      expect(provider.capabilityProfile.hasRootPatternMorphology, isTrue);
+      expect(provider.supportsFeature(GrammarFeature.grammaticalCase), isTrue);
+    });
+
+    test('heuristics never claim a verified corpus record or pack revision', () {
+      for (final word in ['كتاب', 'مدرسة', '', 'unseen']) {
+        final evidence = provider.getVerifiedEvidence(word);
+        expect(evidence.isSupported, isFalse);
+        expect(evidence.packRevision, isNull);
+        expect(evidence.root, isNull);
+        expect(evidence.pattern, isNull);
+      }
+    });
+
     test('determines feminine gender via taa marbuta, alif maqsura, and semantic femininity', () {
       expect(provider.determineGender('مدرسة'), equals(GrammaticalGender.feminine));
       expect(provider.determineGender('سيارة'), equals(GrammaticalGender.feminine));

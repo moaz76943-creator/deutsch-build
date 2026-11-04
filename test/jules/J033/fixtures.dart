@@ -1,6 +1,6 @@
 import 'package:deutsch_bilarabi/core/language_intelligence/language_grammar_rule_provider.dart';
 
-class ArabicGrammarProvider implements LanguageGrammarRuleProvider {
+class ArabicGrammarProvider extends LanguageGrammarRuleProvider {
   @override
   String get languageCode => 'ar';
 
@@ -92,7 +92,7 @@ class ArabicGrammarProvider implements LanguageGrammarRuleProvider {
   }
 }
 
-class TurkishGrammarProvider implements LanguageGrammarRuleProvider {
+class TurkishGrammarProvider extends LanguageGrammarRuleProvider {
   @override
   String get languageCode => 'tr';
 
@@ -176,7 +176,7 @@ class TurkishGrammarProvider implements LanguageGrammarRuleProvider {
   }
 }
 
-class ChineseGrammarProvider implements LanguageGrammarRuleProvider {
+class ChineseGrammarProvider extends LanguageGrammarRuleProvider {
   @override
   String get languageCode => 'zh';
 
@@ -231,7 +231,7 @@ class ChineseGrammarProvider implements LanguageGrammarRuleProvider {
   String? determineNounClass(String word) => null;
 }
 
-class GermanGrammarProviderMock implements LanguageGrammarRuleProvider {
+class GermanGrammarProviderMock extends LanguageGrammarRuleProvider {
   @override
   String get languageCode => 'de';
 
