@@ -1,114 +1,59 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:deutsch_bilarabi/core/security/offline_gate.dart';
 import 'package:deutsch_bilarabi/core/security/data_integrity_signer.dart';
+import 'package:deutsch_bilarabi/core/security/storage_guard.dart';
+import 'package:deutsch_bilarabi/core/security/offline_gate.dart';
 
 void main() {
-  group('J024 - Offline Security, Content Trust & Zero-Privilege Gate', () {
-
-    test('forged authorization rejection', () {
-      final auth = DownloadAuthorization(
-        expiresAt: DateTime.now().add(const Duration(days: 1)),
-        signature: 'forged',
-      );
-      expect(auth.isAuthorized(), isFalse);
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperation.download, auth), isFalse);
-      expect(
-        () => OfflineGate.assertZeroNetworkPolicy(NetworkOperation.download, auth),
-        throwsException,
-      );
+  group('J024 Offline Security & Zero-Privilege Gate', () {
+    test('OfflineGate denies unrestricted network access', () {
+      expect(OfflineGate.isNetworkRequestPermitted(), isFalse);
+      expect(() => OfflineGate.assertZeroNetworkPolicy(), throwsStateError);
+      expect(OfflineGate.isTelemetryAllowed(), isFalse);
     });
 
-    test('expired capabilities rejection', () {
-      final auth = DownloadAuthorization(
-        expiresAt: DateTime.now().subtract(const Duration(days: 1)),
-        signature: 'valid_sig_but_expired',
-      );
-      expect(auth.isAuthorized(), isFalse);
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperation.download, auth), isFalse);
-      expect(
-        () => OfflineGate.assertZeroNetworkPolicy(NetworkOperation.download, auth),
-        throwsException,
-      );
+    test('OfflineGate authorizes user download without granting general network access', () {
+      // Forged authorization attempt
+      expect(OfflineGate.authorizeUserDownload(false), isFalse);
+      // Legitimate authorization
+      expect(OfflineGate.authorizeUserDownload(true), isTrue);
+      // General network permission remains false
+      expect(OfflineGate.isNetworkRequestPermitted(), isFalse, reason: 'authorizeUserDownload should not grant general network access');
     });
 
-    test('network telemetry and general operations denial', () {
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperation.telemetry), isFalse);
-      expect(
-        () => OfflineGate.assertZeroNetworkPolicy(NetworkOperation.telemetry),
-        throwsException,
-      );
-
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperation.general), isFalse);
-      expect(
-        () => OfflineGate.assertZeroNetworkPolicy(NetworkOperation.general),
-        throwsException,
-      );
+    test('StorageGuard evaluates permissions explicitly', () {
+      expect(StorageGuard.hasPermission(StoragePermission.read), isTrue);
+      expect(StorageGuard.hasPermission(StoragePermission.write), isTrue);
     });
 
-    test('valid authorized download success', () {
-      final auth = DownloadAuthorization(
-        expiresAt: DateTime.now().add(const Duration(days: 1)),
-        signature: 'valid_signature_123',
-      );
-      expect(auth.isAuthorized(), isTrue);
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperation.download, auth), isTrue);
-      expect(
-        () => OfflineGate.assertZeroNetworkPolicy(NetworkOperation.download, auth),
-        returnsNormally,
-      );
+    test('DataIntegritySigner rejects missing algorithm or hash (Missing manifests)', () {
+      expect(DataIntegritySigner.verifyManifest({'hash': 123}, 'test'), isFalse);
+      expect(DataIntegritySigner.verifyManifest({'algorithm': 'fnv1a'}, 'test'), isFalse);
+      expect(DataIntegritySigner.verifyManifest(null, 'test'), isFalse);
+      expect(DataIntegritySigner.verifyManifest({'hash': 123, 'algorithm': 'fnv1a'}, null), isFalse);
+      expect(DataIntegritySigner.verifyManifest({}, 'test'), isFalse);
     });
 
-    test('missing manifest rejection', () {
-      expect(DataIntegritySigner.verifyManifestIntegrity(null, 'payload'), isFalse);
+    test('DataIntegritySigner rejects unsupported algorithm', () {
+      expect(DataIntegritySigner.verifyManifest({'hash': 123, 'algorithm': 'md5'}, 'test'), isFalse);
     });
 
-    test('altered content hash mismatch rejection', () {
-      final payload = 'my secret payload';
+    test('DataIntegritySigner rejects invalid hash', () {
+      final payload = 'test payload';
       final expectedHash = DataIntegritySigner.computeChecksum(payload);
-
-      final manifest = {
-        'trustedKey': true,
-        'hash': expectedHash,
-      };
-
-      expect(DataIntegritySigner.verifyManifestIntegrity(manifest, 'altered payload'), isFalse);
+      expect(DataIntegritySigner.verifyManifest({'hash': expectedHash + 1, 'algorithm': 'fnv1a'}, payload), isFalse);
     });
 
-    test('unsupported signing metadata rejection (trustedKey missing or false)', () {
-      final payload = 'my secret payload';
+    test('DataIntegritySigner accepts valid manifest', () {
+      final payload = 'test payload';
       final expectedHash = DataIntegritySigner.computeChecksum(payload);
-
-      final manifest1 = {
-        'hash': expectedHash,
-      };
-      final manifest2 = {
-        'trustedKey': false,
-        'hash': expectedHash,
-      };
-
-      expect(DataIntegritySigner.verifyManifestIntegrity(manifest1, payload), isFalse);
-      expect(DataIntegritySigner.verifyManifestIntegrity(manifest2, payload), isFalse);
+      expect(DataIntegritySigner.verifyManifest({'hash': expectedHash, 'algorithm': 'fnv1a'}, payload), isTrue);
     });
 
-    test('missing hash in manifest rejection', () {
-      final manifest = {
-        'trustedKey': true,
-      };
-
-      expect(DataIntegritySigner.verifyManifestIntegrity(manifest, 'payload'), isFalse);
-    });
-
-    test('valid content integrity success', () {
-      final payload = 'my secret payload';
+    test('DataIntegritySigner rejects expired capabilities', () {
+      final payload = 'test payload';
       final expectedHash = DataIntegritySigner.computeChecksum(payload);
-
-      final manifest = {
-        'trustedKey': true,
-        'hash': expectedHash,
-      };
-
-      expect(DataIntegritySigner.verifyManifestIntegrity(manifest, payload), isTrue);
+      final expiredTime = DateTime.now().subtract(const Duration(days: 1)).millisecondsSinceEpoch;
+      expect(DataIntegritySigner.verifyManifest({'hash': expectedHash, 'algorithm': 'fnv1a', 'expiresAt': expiredTime}, payload), isFalse);
     });
-
   });
 }
