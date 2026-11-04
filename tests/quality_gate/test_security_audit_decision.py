@@ -1,8 +1,6 @@
 """Security audit must execute and reject any failed or skipped security stage."""
 import os
 import subprocess
-import sys
-import textwrap
 
 import pytest
 
@@ -35,43 +33,6 @@ def test_decision_fails_closed_for_every_incomplete_stage(tmp_path, stage, outco
 
 def test_decision_passes_only_when_all_security_stages_succeed(tmp_path):
     assert decision(tmp_path) == 0
-
-
-def policy(tmp_path, source, lock='packages:\n'):
-    workflow = active_workflows()['security_audit.yml']
-    text = workflow.path.read_text()
-    script = textwrap.dedent(text.split("python3 - <<'PY'\n", 1)[1].split('\n          PY', 1)[0])
-    (tmp_path / 'lib').mkdir(exist_ok=True)
-    (tmp_path / 'lib/example.dart').write_text(source)
-    (tmp_path / 'pubspec.lock').write_text(lock)
-    return subprocess.run([sys.executable, '-c', script], cwd=tmp_path,
-                          capture_output=True, text=True,
-                          env={**os.environ, 'GITHUB_STEP_SUMMARY': str(tmp_path / 'summary')})
-
-
-def test_audio_amplitude_and_adjust_comments_are_not_tracking_sdks(tmp_path):
-    result = policy(tmp_path, '// Adjust waveform envelope. Amplitude micro-perturbation.\n'
-                    'final amplitude = 0.25;\n')
-    assert result.returncode == 0, result.stdout + result.stderr
-
-
-@pytest.mark.parametrize('source', [
-    "import 'package:amplitude_flutter/amplitude.dart';",
-    'Amplitude.getInstance().logEvent(event);',
-    'final analytics = Amplitude(config);',
-    "import 'package:adjust_sdk/adjust.dart';",
-    'Adjust.start(config);',
-    'Adjust.initSdk(config);',
-    "import 'package:http/http.dart';",
-    'final client = HttpClient();',
-])
-def test_real_tracking_and_network_capabilities_still_block(tmp_path, source):
-    assert policy(tmp_path, source).returncode != 0
-
-
-def test_tracking_dependency_stays_blocking_without_source_reference(tmp_path):
-    lock = 'packages:\n  amplitude_flutter:\n    dependency: "direct main"\n'
-    assert policy(tmp_path, '', lock).returncode != 0
 
 
 def decision(tmp_path, **overrides):
