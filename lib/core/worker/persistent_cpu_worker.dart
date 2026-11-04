@@ -24,6 +24,24 @@ class PersistentCpuWorker {
     final completer = Completer<T?>();
     _pendingCompleter = completer;
 
+class PersistentCpuWorker with WidgetsBindingObserver {
+  static PersistentCpuWorker instance = PersistentCpuWorker._init();
+
+  final int maxConcurrentTasks;
+  final int maxQueueSize;
+
+  int _activeJobs = 0;
+  int _generation = 0;
+  bool _isDisposed = false;
+  final Queue<_QueuedTask<dynamic, dynamic>> _queue = Queue<_QueuedTask<dynamic, dynamic>>();
+
+  PersistentCpuWorker._init()
+      : maxConcurrentTasks = 4,
+        maxQueueSize = 50 {
+    _registerObserver();
+  }
+
+  void _registerObserver() {
     try {
       final result = await computation().timeout(timeout, onTimeout: () {
         throw TimeoutException('CPU task timed out after ${timeout.inSeconds}s (Gen $generation)');
@@ -56,46 +74,16 @@ class PersistentCpuWorker {
   /// Safe disposal freeing all worker references and cancelling subscriptions
   void dispose() {
     _isDisposed = true;
-    cancelActiveOperations();
-  }
-}
-
-class _WorkerRequest {
-  _WorkerRequest(this.key, this.job, this.named);
-  final int key;
-  final WorkerJob<Object?> job;
-  final bool named;
-  final completer = Completer<WorkerResult<Object?>>();
-  bool active = true;
-}
-
-final class _TypedCpuWorker {
-  static const int maxPendingJobs = 256;
-
-  _TypedCpuWorker._({
-    required Isolate isolate,
-    required SendPort commandPort,
-    required ReceivePort responsePort,
-    required ReceivePort exitPort,
-    required int initialEpoch,
-  })  : _isolate = isolate,
-        _commandPort = commandPort,
-        _responsePort = responsePort,
-        _exitPort = exitPort,
-        _currentEpoch = initialEpoch {
-    _responseSubscription = _responsePort.listen(_handleResponse);
-    _exitSubscription = _exitPort.listen(_handleExit);
+    try {
+      WidgetsBinding.instance.removeObserver(this);
+    } catch (_) {}
+    cancelAll();
   }
 
-  static Future<_TypedCpuWorker> start({
-    required int initialEpoch,
-  }) async {
-    if (initialEpoch < 0) {
-      throw ArgumentError.value(
-        initialEpoch,
-        'initialEpoch',
-        'must not be negative',
-      );
+  Future<R> executeTask<Q, R>(ComputeCallback<Q, R> task, Q message) {
+    if (_isDisposed) return Future.error(StateError('Worker disposed'));
+    if (_queue.length >= maxQueueSize) {
+      return Future.error(WorkerQueueExhaustedException());
     }
 
     final bootstrap = ReceivePort('phase13b.cpu.bootstrap');
@@ -395,42 +383,11 @@ final class _TypedCpuWorker {
     }
   }
 
-  void _handleResponse(Object? raw) {
-    if (_closed || raw is! Map) return;
-    final kind = raw['kind'];
-
-    if (kind == 'shutdownAck') {
-      final completer = _shutdownCompleter;
-      if (completer != null && !completer.isCompleted) {
-        completer.complete();
-      }
-      return;
-    }
-
-    if (kind != 'result') return;
-    final queued = _inFlight;
-    if (queued == null) return;
-
-    var result = _resultFromWire(raw['result'], fallback: queued.job);
-    if (result.epoch != _currentEpoch && result.status == WorkerStatuses.ok) {
-      result = WorkerResult<Object?>(
-        id: result.id,
-        epoch: result.epoch,
-        status: WorkerStatuses.stale,
-        payload: null,
-        errorCode: 'stale_epoch',
-      );
-    }
-
-    _inFlight = null;
-    _complete(queued, result);
-    _dispatchNext();
-  }
-
-  void _handleExit(Object? _) {
-    if (_closed) return;
-    _unexpectedExit = true;
-    _accepting = false;
+  // دالة رياضية معزولة تماماً (SM-2 Logic)
+  static double _heavySrsMath(dynamic rawData) {
+    final data = rawData as Map<String, dynamic>;
+    double ease = data['ease'] as double;
+    int rating = data['rating'] as int;
 
     final queued = _inFlight;
     _inFlight = null;
