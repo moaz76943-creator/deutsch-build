@@ -32,7 +32,6 @@ class PersistentCpuWorker with WidgetsBindingObserver {
 
   int _activeJobs = 0;
   int _generation = 0;
-  bool _isDisposed = false;
   final Queue<_QueuedTask<dynamic, dynamic>> _queue = Queue<_QueuedTask<dynamic, dynamic>>();
 
   PersistentCpuWorker._init()
