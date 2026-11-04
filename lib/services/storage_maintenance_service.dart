@@ -249,7 +249,8 @@ class StorageMaintenanceService {
     final lower = path.toLowerCase();
     return lower.endsWith('.tmp') ||
         lower.endsWith('.part') ||
-        lower.endsWith('.downloading');
+        lower.endsWith('.downloading') ||
+        lower.endsWith('.index-rebuild'); // Added for disposable index rebuild files
   }
 
   static Future<bool> _isRegularFile(String path) async {
