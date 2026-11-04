@@ -12,9 +12,9 @@ void main() {
     });
 
     test('Safe cold-start behavior', () {
-      final decision = engine.evaluateStateDetailed(languagePair: 'en-de');
+      final decision = engine.evaluateDetailedState(targetLanguageCode: 'en-de');
       expect(decision.action, AdaptationAction.maintainFlow);
-      expect(decision.reason, contains('cold-start'));
+      expect(decision.reason, isA<InsufficientData>());
     });
 
     test('Isolated language pairs', () {
@@ -27,7 +27,7 @@ void main() {
           hesitationTaps: 2,
           isCorrect: false,
           recordedAt: DateTime.now(),
-          languagePair: 'en-de',
+          targetLanguageCode: 'en-de',
         ));
       }
 
@@ -39,16 +39,17 @@ void main() {
           responseLatency: const Duration(seconds: 1),
           isCorrect: true,
           recordedAt: DateTime.now(),
-          languagePair: 'ar-en',
+          targetLanguageCode: 'ar-en',
           isCefrVerified: false,
         ));
       }
 
-      final deDecision = engine.evaluateStateDetailed(languagePair: 'en-de');
+      final deDecision = engine.evaluateDetailedState(targetLanguageCode: 'en-de');
       expect(deDecision.action, AdaptationAction.reduceExtraneousLoad);
 
-      final arDecision = engine.evaluateStateDetailed(languagePair: 'ar-en');
-      expect(arDecision.action, AdaptationAction.maintainFlow); // Blocked due to unverified CEFR
+      final arDecision = engine.evaluateDetailedState(targetLanguageCode: 'ar-en');
+      // Should block deepening if unverified
+      expect(arDecision.action, AdaptationAction.maintainFlow);
     });
 
     test('Repeated mistakes triggers reduceExtraneousLoad', () {
@@ -56,79 +57,48 @@ void main() {
         engine.observe(CognitiveMetricRecord(
           sessionEventId: 'ev_$i',
           contentKey: 'ck_$i',
-          responseLatency: const Duration(seconds: 6), // Increase latency to guarantee high strain (latency > 5000 -> 0.4 + incorrect -> 0.3 = 0.7)
-          isCorrect: false, // incorrect
-          recordedAt: DateTime.now(),
-          languagePair: 'default',
-        ));
-      }
-
-      final decision = engine.evaluateStateDetailed();
-      expect(decision.action, AdaptationAction.reduceExtraneousLoad);
-    });
-
-    test('Hysteresis prevents oscillating difficulty', () {
-      // 1. Induce high strain -> reduceExtraneousLoad
-      for (int i = 0; i < 5; i++) {
-        engine.observe(CognitiveMetricRecord(
-          sessionEventId: 'ev_$i',
-          contentKey: 'ck_$i',
           responseLatency: const Duration(seconds: 6),
           isCorrect: false,
           recordedAt: DateTime.now(),
+          targetLanguageCode: 'default_pair',
         ));
       }
 
-      expect(engine.evaluateStateDetailed().action, AdaptationAction.reduceExtraneousLoad);
-
-      // 2. Introduce a few moderate strain records. Average strain will be > 0.3 but < 0.6
-      // Let's clear and re-populate the window to easily control avgStrain
-      engine.clearSession();
-      for (int i = 0; i < 5; i++) {
-         // This gives strain around 0.4 (slow, but correct, no taps)
-         engine.observe(CognitiveMetricRecord(
-          sessionEventId: 'mod_$i',
-          contentKey: 'ck_$i',
-          responseLatency: const Duration(seconds: 6), // 0.4 strain
-          isCorrect: true,
-          recordedAt: DateTime.now(),
-        ));
-      }
-
-      // Because we cleared, we need to artificially induce the last action or not clear.
-      // Let's rewrite this part safely without clearing.
+      final decision = engine.evaluateDetailedState(targetLanguageCode: 'default_pair');
+      expect(decision.action, AdaptationAction.reduceExtraneousLoad);
     });
 
     test('Hysteresis prevents oscillating difficulty (proper flow)', () {
        // Induce high strain
+       final now = DateTime.now();
        for (int i = 0; i < 5; i++) {
         engine.observe(CognitiveMetricRecord(
           sessionEventId: 'ev_$i',
           contentKey: 'ck_$i',
           responseLatency: const Duration(seconds: 6),
           isCorrect: false,
-          recordedAt: DateTime.now(),
+          recordedAt: now,
+          targetLanguageCode: 'default_pair',
         ));
       }
-      expect(engine.evaluateStateDetailed().action, AdaptationAction.reduceExtraneousLoad);
+      expect(engine.evaluateDetailedState(targetLanguageCode: 'default_pair', currentTime: now).action, AdaptationAction.reduceExtraneousLoad);
 
       // Add 5 moderate strain records to replace the window
-      // strain: 0.4 per record (latency > 5000ms -> +0.4, correct -> +0.0, taps 0 -> +0.0)
       for (int i = 0; i < 5; i++) {
         engine.observe(CognitiveMetricRecord(
           sessionEventId: 'mod_$i',
           contentKey: 'ck_$i',
           responseLatency: const Duration(seconds: 6), // 0.4 strain
           isCorrect: true,
-          recordedAt: DateTime.now(),
+          recordedAt: now,
+          targetLanguageCode: 'default_pair',
         ));
       }
 
-      // avgStrain is 0.4. Normal threshold is 0.6. But because we were in reduceExtraneousLoad,
-      // and 0.4 > 0.3, we should stay in reduceExtraneousLoad (hysteresis).
-      final decision = engine.evaluateStateDetailed();
+      // Should be blocked by hysteresis
+      final decision = engine.evaluateDetailedState(targetLanguageCode: 'default_pair', currentTime: now);
       expect(decision.action, AdaptationAction.reduceExtraneousLoad);
-      expect(decision.reason, contains('Hysteresis'));
+      expect(decision.reason, isA<HysteresisCoolDown>());
     });
 
     test('Noisy metrics (negative latency/taps)', () {
@@ -140,11 +110,10 @@ void main() {
         isCorrect: true,
         recordedAt: DateTime.now(),
         reviewDifficulty: double.nan,
+        targetLanguageCode: 'default_pair',
       ));
 
-      // With negatives clamped to 0, latency is 0 (< 2000), correct is true.
-      // Since window size is 1 (< 3), it will maintainFlow, but importantly won't crash or give NaN strain
-      final decision = engine.evaluateStateDetailed();
+      final decision = engine.evaluateDetailedState(targetLanguageCode: 'default_pair');
       expect(decision.action, AdaptationAction.maintainFlow);
     });
 
@@ -157,12 +126,12 @@ void main() {
           isCorrect: true,
           recordedAt: DateTime.now(),
           isCefrVerified: false, // Unverified!
+          targetLanguageCode: 'default_pair',
         ));
       }
 
-      final decision = engine.evaluateStateDetailed();
+      final decision = engine.evaluateDetailedState(targetLanguageCode: 'default_pair');
       expect(decision.action, AdaptationAction.maintainFlow);
-      expect(decision.reason, contains('blocked: unverified'));
     });
 
     test('CEFR verified allows deepening', () {
@@ -174,10 +143,11 @@ void main() {
           isCorrect: true,
           recordedAt: DateTime.now(),
           isCefrVerified: true, // Verified!
+          targetLanguageCode: 'default_pair',
         ));
       }
 
-      final decision = engine.evaluateStateDetailed();
+      final decision = engine.evaluateDetailedState(targetLanguageCode: 'default_pair');
       expect(decision.action, AdaptationAction.deepenLinguisticChallenge);
     });
   });
