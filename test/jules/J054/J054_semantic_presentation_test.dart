@@ -97,9 +97,11 @@ void main() {
     ));
 
     final semantics = tester.getSemantics(find.byType(SemanticWordText));
-    expect(semantics.label, contains('Masculine'));
+    expect(semantics.label, contains('Masculine (der)'));
     expect(semantics.label, contains('noun'));
     expect(semantics.label, contains('nominative'));
+    // The exact expected label based on our engine code is: 'Masculine (der) noun nominative'
+    expect(semantics.label, 'Masculine (der) noun nominative\nHund');
 
     final text = tester.widget<Text>(find.text('Hund'));
     expect(text.style?.color, AppColors.articleDer);
@@ -122,9 +124,11 @@ void main() {
 
     final semantics = tester.getSemantics(find.byType(SemanticWordText));
     expect(semantics.label, contains('Class M-WA'));
+    // The exact expected label: 'Class M-WA noun'
+    expect(semantics.label, 'Class M-WA noun\nmtu');
 
     final text = tester.widget<Text>(find.text('mtu'));
-    expect(text.style?.color, isNotNull);
+    expect(text.style?.color, AppColors.articleOther); // Because noun class adds properties but no gender, it sets AppColors.articleOther
   });
 
   testWidgets('Missing metadata falls back gracefully', (tester) async {
@@ -143,7 +147,7 @@ void main() {
     ));
 
     final semantics = tester.getSemantics(find.byType(SemanticWordText));
-    expect(semantics.label, contains('book'));
+    expect(semantics.label, 'book\nbook');
 
     final text = tester.widget<Text>(find.text('book'));
     expect(text.style?.color, isNull); // Falls back to uncolored text, null
