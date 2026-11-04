@@ -33,33 +33,35 @@ class BidiLexiconView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ResilientTextContainer(
       padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AccessibleMultilingualText(
-            text: sourceText,
-            languageCode: sourceLanguageCode,
-            style: AppTypography.title,
-          ),
-          const SizedBox(height: 8.0),
-          LexiconRichDetails(
-            partOfSpeech: partOfSpeech,
-            gender: gender,
-            pluralForm: pluralForm,
-            ipa: ipa,
-            explanation: explanation,
-            explanationLanguageCode: targetLanguageCode,
-          ),
-          const SizedBox(height: 12.0),
-          const Divider(),
-          const SizedBox(height: 12.0),
-          AccessibleMultilingualText(
-            text: targetText,
-            languageCode: targetLanguageCode,
-            style: AppTypography.h2,
-          ),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AccessibleMultilingualText(
+              text: sourceText,
+              languageCode: sourceLanguageCode,
+              style: AppTypography.title,
+            ),
+            const SizedBox(height: 8.0),
+            LexiconRichDetails(
+              partOfSpeech: partOfSpeech,
+              gender: gender,
+              pluralForm: pluralForm,
+              ipa: ipa,
+              explanation: explanation,
+              explanationLanguageCode: targetLanguageCode,
+            ),
+            const SizedBox(height: 12.0),
+            const Divider(),
+            const SizedBox(height: 12.0),
+            AccessibleMultilingualText(
+              text: targetText,
+              languageCode: targetLanguageCode,
+              style: AppTypography.h2,
+            ),
+          ],
+        ),
       ),
     );
   }

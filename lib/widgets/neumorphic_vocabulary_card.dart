@@ -15,7 +15,7 @@ class NeumorphicVocabularyCard extends StatelessWidget {
   });
 
   void _showZoomedImage(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       barrierColor: Colors.transparent,
       builder: (context) {
