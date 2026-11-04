@@ -1,8 +1,8 @@
 import 'package:characters/characters.dart';
 
 class TrieNode {
-  final Map<String, TrieNode> children = <String, TrieNode>{};
-  final Set<String> wordIds = LinkedHashSet<String>();
+  final Map<String, TrieNode> children = {};
+  final Set<String> wordIds = {};
 }
 
 /// A bounded, language-specific *search-key* index. It does not mutate or
@@ -10,14 +10,15 @@ class TrieNode {
 class TrieSearchEngine {
   TrieNode _root = TrieNode();
   int _nodeCount = 1;
+
   final String languageCode;
   final String? directedPairKey;
   final int maxNodes;
   final int maxResultsPerNode;
   final int maxSearchResults;
   final int maxWordGraphemes;
-  static const int maxInputCodeUnits = 1024;
-  static const int maxIdCodeUnits = 128;
+  final int maxInputCodeUnits = 1000;
+  final int maxIdCodeUnits = 100;
 
   TrieSearchEngine({
     this.languageCode = 'und',
@@ -37,12 +38,48 @@ class TrieSearchEngine {
     }
   }
 
-  static String normalizeForLanguage(String text, String language) {
+  static String normalizeUniversal(String text) {
+    if (text.isEmpty) return text;
+    String res = text.toLowerCase().trim();
+    res = res.replaceAll(RegExp(r'[\u064B-\u065F\u0670]'), '');
+
+    final diacritics = {
+      'ä': 'ae',
+      'ö': 'oe',
+      'ü': 'ue',
+      'ß': 'ss',
+      'é': 'e',
+      'è': 'e',
+      'ê': 'e',
+      'ë': 'e',
+      'á': 'a',
+      'à': 'a',
+      'â': 'a',
+      'ã': 'a',
+      'ó': 'o',
+      'ò': 'o',
+      'ô': 'o',
+      'õ': 'o',
+      'ú': 'u',
+      'ù': 'u',
+      'û': 'u',
+      'ñ': 'n',
+      'ç': 'c',
+      'ı': 'i',
+      'ğ': 'g',
+      'ş': 's',
+    };
+
+    diacritics.forEach((k, v) {
+      res = res.replaceAll(k, v);
+    });
+
+    return res;
+  }
+
+  String normalizeForLanguage(String text, String language) {
     if (text.isEmpty) return '';
     final lang = language.split('-').first.toLowerCase();
-
-    // Turkish/Azeri dotted/dotless I must not be collapsed by non-locale-aware
-    // Unicode lowercasing. Prefer exact keys to false cross-lexeme matches.
     String result = (lang == 'tr' || lang == 'az')
         ? text.trim()
         : text.trim().toLowerCase();
@@ -63,37 +100,52 @@ class TrieSearchEngine {
         RegExp(r'[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]'),
         '',
       );
-    } else {
-      // Default Latin Diacritics and Umlauts
+    } else if (lang == 'und') {
       final diacritics = {
-        'ä': 'ae', 'ö': 'oe', 'ü': 'ue', 'ß': 'ss',
-        'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
-        'á': 'a', 'à': 'a', 'â': 'a', 'ã': 'a',
-        'ó': 'o', 'ò': 'o', 'ô': 'o', 'õ': 'o',
-        'ú': 'u', 'ù': 'u', 'û': 'u',
-        'ñ': 'n', 'ç': 'c', 'ı': 'i', 'ğ': 'g', 'ş': 's',
+        'ä': 'ae',
+        'ö': 'oe',
+        'ü': 'ue',
+        'ß': 'ss',
+        'é': 'e',
+        'è': 'e',
+        'ê': 'e',
+        'ë': 'e',
+        'á': 'a',
+        'à': 'a',
+        'â': 'a',
+        'ã': 'a',
+        'ó': 'o',
+        'ò': 'o',
+        'ô': 'o',
+        'õ': 'o',
+        'ú': 'u',
+        'ù': 'u',
+        'û': 'u',
+        'ñ': 'n',
+        'ç': 'c',
+        'ı': 'i',
+        'ğ': 'g',
+        'ş': 's',
       };
 
       diacritics.forEach((k, v) {
         result = result.replaceAll(k, v);
       });
-    }
 
+      result = result.replaceAll(RegExp(r'[\u064B-\u065F\u0670]'), '');
+      result = result.replaceAll(
+        RegExp(r'[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]'),
+        '',
+      );
+    }
     return result;
   }
 
-  // Legacy static entrypoints retained; universal no longer means Latin fold.
-  static String normalizeUniversal(String text) =>
-      TrieSearchEngine().normalizeForLanguage(text, 'und');
-
-  String normalizeGerman(String text) =>
-      normalizeForLanguage(text, 'de');
+  String normalizeGerman(String text) => normalizeForLanguage(text, 'de');
 
   bool _matchesScope(String? pairKey) =>
       directedPairKey == null || directedPairKey == pairKey;
 
-  /// Returns false when the word cannot be indexed at all.
-  /// A word that exceeds [maxNodes] is indexed only for the prefix that fits.
   bool tryInsert(String word, String id, {String? pairKey}) {
     if (!_matchesScope(pairKey) ||
         id.isEmpty ||
@@ -105,6 +157,28 @@ class TrieSearchEngine {
     if (normalized.isEmpty) return false;
     final units = normalized.characters.toList(growable: false);
     if (units.length > maxWordGraphemes) return false;
+
+    // Preflight atomic check to make sure we don't exceed maxNodes.
+    TrieNode? cursor = _root;
+    var missingNodes = 0;
+    for (final unit in units) {
+      if (cursor == null) {
+        missingNodes++;
+      } else {
+        final child = cursor.children[unit];
+        if (child == null) {
+          missingNodes++;
+          cursor = null;
+        } else {
+          cursor = child;
+          if (!cursor.wordIds.contains(id) &&
+              cursor.wordIds.length >= maxResultsPerNode) {
+            return false;
+          }
+        }
+      }
+    }
+    if (_nodeCount + missingNodes > maxNodes) return false;
 
     var current = _root;
     var indexed = false;
@@ -131,7 +205,6 @@ class TrieSearchEngine {
     return indexed;
   }
 
-  // Retains original void API for current callers.
   void insert(String word, String id, {String? pairKey}) {
     tryInsert(word, id, pairKey: pairKey);
   }
