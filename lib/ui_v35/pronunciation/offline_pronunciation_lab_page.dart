@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/privacy/microphone_disclosure.dart';
 import '../../features/audio/domain/entities/audio_playback_result.dart';
 import '../../features/pronunciation/domain/pronunciation_models.dart';
 import '../../features/pronunciation/pronunciation_lab_service.dart';
@@ -107,6 +108,12 @@ class _OfflinePronunciationLabPageState
   Future<void> _captureProduction() async {
     final trial = _trial;
     if (trial == null || _productionBusy) return;
+
+    // Google Play User Data policy: prominent in-app disclosure must
+    // immediately precede the runtime RECORD_AUDIO permission request.
+    final accepted = await showMicrophoneDisclosure(context);
+    if (!accepted || !mounted) return;
+
     setState(() => _productionBusy = true);
     final feedback = await _service.captureProduction(trial);
     if (!mounted) return;
