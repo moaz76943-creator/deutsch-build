@@ -1,0 +1,102 @@
+[
+  {
+    "verb": "lernen",
+    "past": "lernte",
+    "perfekt": "hat gelernt",
+    "ar": "يتعلّم",
+    "ipa": "/ˈlɛʁnən/",
+    "level": "A1",
+    "example_de": "Ich lerne jeden Tag neue Wörter.",
+    "example_ar": "أنا أتعلم كل يوم كلمات جديدة."
+  },
+  {
+    "verb": "helfen",
+    "past": "half",
+    "perfekt": "hat geholfen",
+    "ar": "يساعد",
+    "ipa": "/ˈhɛlfn̩/",
+    "level": "A1",
+    "example_de": "Er hilft seinem Nachbarn gerne.",
+    "example_ar": "هو يساعد جاره بكل سرور."
+  },
+  {
+    "verb": "sprechen",
+    "past": "sprach",
+    "perfekt": "hat gesprochen",
+    "ar": "يتكلم / يتحدث",
+    "ipa": "/ˈʃpʁɛçn̩/",
+    "level": "A1",
+    "example_de": "Wir sprechen Deutsch und Arabisch.",
+    "example_ar": "نحن نتحدث الألمانية والعربية."
+  },
+  {
+    "verb": "verstehen",
+    "past": "verstand",
+    "perfekt": "hat verstanden",
+    "ar": "يفهم / يستوعب",
+    "ipa": "/fɛɐ̯ˈʃteːən/",
+    "level": "A1",
+    "example_de": "Ich verstehe die Erklärung gut.",
+    "example_ar": "أنا أفهم الشرح جيداً."
+  },
+  {
+    "verb": "lesen",
+    "past": "las",
+    "perfekt": "hat gelesen",
+    "ar": "يقرأ",
+    "ipa": "/ˈleːzn̩/",
+    "level": "A1",
+    "example_de": "Das Kind liest ein nützliches Buch.",
+    "example_ar": "الطفل يقرأ كتاباً نافعاً."
+  },
+  {
+    "verb": "schreiben",
+    "past": "schrieb",
+    "perfekt": "hat geschrieben",
+    "ar": "يكتب",
+    "ipa": "/ˈʃʁaɪ̯bn̩/",
+    "level": "A1",
+    "example_de": "Sie schreibt einen Brief an ihre Familie.",
+    "example_ar": "هي تكتب رسالة إلى عائلتها."
+  },
+  {
+    "verb": "arbeiten",
+    "past": "arbeitete",
+    "perfekt": "hat gearbeitet",
+    "ar": "يعمل / يجتهد",
+    "ipa": "/ˈʔaʁbaɪ̯tn̩/",
+    "level": "A1",
+    "example_de": "Mein Vater arbeitet fleißig.",
+    "example_ar": "والدي يعمل باجتهاد."
+  },
+  {
+    "verb": "fragen",
+    "past": "fragte",
+    "perfekt": "hat gefragt",
+    "ar": "يسأل / يستفسر",
+    "ipa": "/ˈfʁaːɡn̩/",
+    "level": "A1",
+    "example_de": "Der Schüler fragt den Lehrer höflich.",
+    "example_ar": "التلميذ يسأل المعلم بأدب."
+  },
+  {
+    "verb": "antworten",
+    "past": "antwortete",
+    "perfekt": "hat geantwortet",
+    "ar": "يجيب / يرد",
+    "ipa": "/ˈʔantvɔʁtn̩/",
+    "level": "A1",
+    "example_de": "Er antwortet immer freundlich.",
+    "example_ar": "هو يجيب دائماً بلطف."
+  },
+  {
+    "verb": "danken",
+    "past": "dankte",
+    "perfekt": "hat gedankt",
+    "ar": "يشكر",
+    "ipa": "/ˈdaŋkn̩/",
+    "level": "A1",
+    "example_de": "Ich danke Ihnen für Ihre Unterstützung.",
+    "example_ar": "أنا أشكركم على دعمكم ومساندتكم."
+  }
+]
