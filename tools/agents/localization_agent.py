@@ -350,6 +350,131 @@ def synchronize_arb(
     return result
 
 
+def _audit_message_key(
+    key: str,
+    base_arb: Mapping[str, Any],
+    target_arb: Mapping[str, Any],
+    locale: str,
+    base_locale: str,
+    errors: list[AuditIssue],
+    warnings: list[AuditIssue],
+) -> None:
+    if key not in target_arb:
+        errors.append(
+            AuditIssue(
+                "arb.missing_key",
+                key,
+                "required ARB message is missing",
+            )
+        )
+        return
+    base_text = base_arb[key]
+    target_text = target_arb[key]
+    if not isinstance(base_text, str) or not isinstance(target_text, str):
+        errors.append(
+            AuditIssue(
+                "arb.non_string_message",
+                key,
+                "ARB messages must be strings",
+            )
+        )
+        return
+    if not target_text.strip():
+        errors.append(
+            AuditIssue(
+                "arb.empty_translation",
+                key,
+                "translation must not be empty",
+            )
+        )
+        return
+
+    base_meta = _metadata(base_arb, key)
+    target_meta = _metadata(target_arb, key)
+    try:
+        base_args = icu_argument_names(base_text)
+        target_args = icu_argument_names(target_text)
+    except LocalizationAgentError as exc:
+        errors.append(AuditIssue("icu.invalid", key, str(exc)))
+        return
+    if base_args != target_args:
+        errors.append(
+            AuditIssue(
+                "placeholder.mismatch",
+                key,
+                f"ICU argument set changed: {sorted(base_args)} -> "
+                f"{sorted(target_args)}",
+            )
+        )
+
+    for field in ("placeholders", "layout"):
+        if (
+            field in target_meta
+            and target_meta.get(field) != base_meta.get(field)
+        ):
+            errors.append(
+                AuditIssue(
+                    "metadata.canonical_mismatch",
+                    key,
+                    f"target metadata cannot replace canonical {field}",
+                )
+            )
+
+    if locale != base_locale:
+        strategy = target_meta.get("translationStrategy")
+        if strategy == "literal":
+            errors.append(
+                AuditIssue(
+                    "translation.literal_forbidden",
+                    key,
+                    "literal translation strategy is forbidden; "
+                    "use contextual equivalence",
+                )
+            )
+        elif strategy not in ALLOWED_TRANSLATION_STRATEGIES:
+            errors.append(
+                AuditIssue(
+                    "translation.strategy_required",
+                    key,
+                    "translationStrategy must document "
+                    "contextual/idiomatic equivalence",
+                )
+            )
+        if target_meta.get("reviewStatus") != "reviewed":
+            errors.append(
+                AuditIssue(
+                    "translation.review_required",
+                    key,
+                    "localized message must be semantically reviewed "
+                    "before production use",
+                )
+            )
+
+    budget = _layout_budget(base_meta, target_meta)
+    width = estimate_width_units(target_text)
+    if width > budget:
+        errors.append(
+            AuditIssue(
+                "layout.overflow_risk",
+                key,
+                f"estimated width {width:.2f}em exceeds "
+                f"{budget:.2f}em budget",
+            )
+        )
+    base_width = max(estimate_width_units(base_text), 1.0)
+    expansion = width / base_width
+    if base_width >= 7.0 and expansion > 2.35:
+        warnings.append(
+            AuditIssue(
+                "layout.high_expansion",
+                key,
+                f"localized text expands to "
+                f"{expansion:.2f}x source width",
+                severity="warning",
+            )
+        )
+
+
 def audit_arb(
     base_arb: Mapping[str, Any],
     target_arb: Mapping[str, Any],
@@ -393,120 +518,15 @@ def audit_arb(
     target_keys = set(_message_keys(target_arb))
 
     for key in base_keys:
-        if key not in target_keys:
-            errors.append(
-                AuditIssue(
-                    "arb.missing_key",
-                    key,
-                    "required ARB message is missing",
-                )
-            )
-            continue
-        base_text = base_arb[key]
-        target_text = target_arb[key]
-        if not isinstance(base_text, str) or not isinstance(target_text, str):
-            errors.append(
-                AuditIssue(
-                    "arb.non_string_message",
-                    key,
-                    "ARB messages must be strings",
-                )
-            )
-            continue
-        if not target_text.strip():
-            errors.append(
-                AuditIssue(
-                    "arb.empty_translation",
-                    key,
-                    "translation must not be empty",
-                )
-            )
-            continue
-
-        base_meta = _metadata(base_arb, key)
-        target_meta = _metadata(target_arb, key)
-        try:
-            base_args = icu_argument_names(base_text)
-            target_args = icu_argument_names(target_text)
-        except LocalizationAgentError as exc:
-            errors.append(AuditIssue("icu.invalid", key, str(exc)))
-            continue
-        if base_args != target_args:
-            errors.append(
-                AuditIssue(
-                    "placeholder.mismatch",
-                    key,
-                    f"ICU argument set changed: {sorted(base_args)} -> "
-                    f"{sorted(target_args)}",
-                )
-            )
-
-        for field in ("placeholders", "layout"):
-            if (
-                field in target_meta
-                and target_meta.get(field) != base_meta.get(field)
-            ):
-                errors.append(
-                    AuditIssue(
-                        "metadata.canonical_mismatch",
-                        key,
-                        f"target metadata cannot replace canonical {field}",
-                    )
-                )
-
-        if locale != base_locale:
-            strategy = target_meta.get("translationStrategy")
-            if strategy == "literal":
-                errors.append(
-                    AuditIssue(
-                        "translation.literal_forbidden",
-                        key,
-                        "literal translation strategy is forbidden; "
-                        "use contextual equivalence",
-                    )
-                )
-            elif strategy not in ALLOWED_TRANSLATION_STRATEGIES:
-                errors.append(
-                    AuditIssue(
-                        "translation.strategy_required",
-                        key,
-                        "translationStrategy must document "
-                        "contextual/idiomatic equivalence",
-                    )
-                )
-            if target_meta.get("reviewStatus") != "reviewed":
-                errors.append(
-                    AuditIssue(
-                        "translation.review_required",
-                        key,
-                        "localized message must be semantically reviewed "
-                        "before production use",
-                    )
-                )
-
-        budget = _layout_budget(base_meta, target_meta)
-        width = estimate_width_units(target_text)
-        if width > budget:
-            errors.append(
-                AuditIssue(
-                    "layout.overflow_risk",
-                    key,
-                    f"estimated width {width:.2f}em exceeds "
-                    f"{budget:.2f}em budget",
-                )
-            )
-        base_width = max(estimate_width_units(base_text), 1.0)
-        expansion = width / base_width
-        if base_width >= 7.0 and expansion > 2.35:
-            warnings.append(
-                AuditIssue(
-                    "layout.high_expansion",
-                    key,
-                    f"localized text expands to "
-                    f"{expansion:.2f}x source width",
-                    severity="warning",
-                )
-            )
+        _audit_message_key(
+            key=key,
+            base_arb=base_arb,
+            target_arb=target_arb,
+            locale=locale,
+            base_locale=base_locale,
+            errors=errors,
+            warnings=warnings,
+        )
 
     extra = sorted(target_keys.difference(base_keys))
     for key in extra:
