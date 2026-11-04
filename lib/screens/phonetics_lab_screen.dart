@@ -115,8 +115,6 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
               ),
               onPressed: _toggleSpeed,
             ),
-            tooltip: 'تغيير سرعة النطق',
-            onPressed: _toggleSpeed,
           )
         ],
       ),
@@ -217,7 +215,7 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
                     ),
                   ),
                 );
-              }
+              },
             ),
           ),
         ),

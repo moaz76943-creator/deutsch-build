@@ -33,36 +33,6 @@ def default_state_dir():
     return (Path(base) if base else Path.home() / ".local" / "state") / "deutsch-agent-contract"
 
 
-class TaskLedger:
-    def __init__(self, ledger_path_str):
-        self.ledger_path = Path(ledger_path_str)
-        self.lock_path = str(self.ledger_path) + ".lock"
-        self.lock_fd = None
-        self.ledger_content = None
-
-    def __enter__(self):
-        self.ledger_path.parent.mkdir(parents=True, exist_ok=True)
-        self.lock_fd = open(self.lock_path, "a+", encoding="utf-8")
-        os.chmod(self.lock_path, 0o600)
-        fcntl.flock(self.lock_fd, fcntl.LOCK_EX)
-
-        if self.ledger_path.exists():
-            with self.ledger_path.open("r", encoding="utf-8") as current:
-                self.ledger_content = current.read()
-        else:
-            self.ledger_content = ""
-
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.lock_fd:
-            try:
-                fcntl.flock(self.lock_fd, fcntl.LOCK_UN)
-            finally:
-                self.lock_fd.close()
-                self.lock_fd = None
-
-
 def write_json_atomic(path, value):
     """Durably replace JSON under the caller's stable sibling-file lock."""
     target = Path(path)
@@ -139,9 +109,6 @@ def check_overlapping_claims(ledger, task_id, requested_paths, now, recover_from
             for p in requested_paths:
                 for op in other_paths:
                     if paths_overlap(p, op):
-                        if expired and other_task == recover_from and owner_evidence:
-                            continue
-
                         reason = f"Path {p} overlaps with {op} claimed by {other_task}"
                         if expired:
                             reason += "; expired claim requires explicit release after owner reconciliation"
@@ -271,16 +238,24 @@ def main(args=None):
     parser.add_argument("--transition", choices=["CLAIM", "ACTIVE", "COMPLETE", "BLOCKED", "CANCELLED"], required=True)
     parser.add_argument("--paths", nargs="*", help="List of files/dirs to claim")
     parser.add_argument("--depends-on", nargs="*", help="List of task IDs this task depends on")
-    parser.add_argument("--recover-from", help="Task ID of stale claim to recover from")
-    parser.add_argument("--owner-evidence", help="Evidence of abandoned claim")
     parser.add_argument("--ledger", default=str(default_state_dir() / "task_ledger.json"))
     parser.add_argument("--report", default=str(default_state_dir() / "evidence_report.json"))
 
     parsed = parser.parse_args(args)
 
-    with TaskLedger(parsed.ledger) as ledger_mgr:
+    ledger_path = Path(parsed.ledger)
+    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    # A persistent sibling lock remains valid across atomic inode replacements.
+    with open(str(ledger_path) + ".lock", "a+", encoding="utf-8") as lock:
+        os.chmod(str(ledger_path) + ".lock", 0o600)
+        fcntl.flock(lock, fcntl.LOCK_EX)
         try:
-            result_code, report, updated_ledger = process_ledger(parsed, ledger_mgr.ledger_content)
+            if ledger_path.exists():
+                with ledger_path.open("r", encoding="utf-8") as current:
+                    result_code, report, updated_ledger = process_ledger(parsed, current)
+            else:
+                import io
+                result_code, report, updated_ledger = process_ledger(parsed, io.StringIO(""))
         except (json.JSONDecodeError, ValueError, TypeError, AttributeError):
             result_code = 1
             report = {"task_id": parsed.task_id, "base_sha": parsed.base_sha,
@@ -291,7 +266,7 @@ def main(args=None):
 
         write_json_atomic(parsed.report, report)
         if result_code == 0:
-            write_json_atomic(parsed.ledger, updated_ledger)
+            write_json_atomic(ledger_path, updated_ledger)
 
     if report["blockers"]:
         print("Blockers found:", file=sys.stderr)

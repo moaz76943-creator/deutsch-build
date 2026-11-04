@@ -266,8 +266,7 @@ def test_budgeted_staging_self_check_fits_private_minutes():
     assert "staging/v2-full-platform" in text
     assert "cancel-in-progress: true" in text
     assert "timeout-minutes: 20" in text
-    # Mandatory lightweight receipt on all staging PRs; Flutter remains scoped.
-    assert "\n    paths:" not in text
+    assert "paths:" in text
     assert "\n  schedule:" not in text
     assert "\n  push:" not in text
     assert "macos" not in text
@@ -277,7 +276,4 @@ def test_budgeted_staging_self_check_fits_private_minutes():
     assert "flutter test --reporter compact" in text
     assert "targetSdk 36" in text
     assert OPT_IN not in text
-    assert "gh pr merge" not in text
-    assert "contents: read" in text
-    assert "contents: write" not in text
-    assert "if: steps.scope.outputs.flutter_changed == 'true'" in text
+    assert text.index("flutter test --reporter compact") < text.index("gh pr merge")

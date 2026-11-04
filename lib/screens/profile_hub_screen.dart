@@ -86,11 +86,7 @@ class ProfileHubScreen extends StatelessWidget {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-<<<<<<< HEAD
-                        builder: (_) => const OfflineStorageScreen()));
-=======
                         builder: (_) => const LanguageManagerScreen()));
->>>>>>> origin/staging/v2-full-platform
               },
               child: const Row(
                 children: <Widget>[
@@ -117,33 +113,6 @@ class ProfileHubScreen extends StatelessWidget {
                 ],
               ),
             ),
-<<<<<<< HEAD
-            const SizedBox(height: 12),
-            AppBaseGlassCard(
-              onTap: () => _showPrivacyPolicy(context),
-              child: const Row(
-                children: <Widget>[
-                  Icon(Icons.privacy_tip_rounded,
-                      color: Color(0xFF60A5FA), size: 30),
-                  SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text('Privacy Policy',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15)),
-                        Text('View data practices & Google Play compliance',
-                            style:
-                                TextStyle(color: Colors.white60, fontSize: 12)),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.arrow_forward_ios_rounded,
-                      color: Colors.white38, size: 16),
-=======
             const SizedBox(height: 16),
             AppBaseGlassCard(
               child: Column(
@@ -166,7 +135,6 @@ class ProfileHubScreen extends StatelessWidget {
                     },
                     child: const Text(kPrivacyPolicyUrl),
                   ),
->>>>>>> origin/staging/v2-full-platform
                 ],
               ),
             ),

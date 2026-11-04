@@ -1,10 +1,7 @@
 package com.deutschbilarabi.app
 
 import android.content.Context
-<<<<<<< HEAD
-=======
 import com.google.android.gms.tasks.Tasks
->>>>>>> origin/staging/v2-full-platform
 import com.google.android.play.core.integrity.IntegrityManagerFactory
 import com.google.android.play.core.integrity.IntegrityTokenRequest
 import io.flutter.plugin.common.MethodCall
@@ -78,15 +75,6 @@ class AndroidPlayIntegrityManager(private val context: Context) : MethodChannel.
                         .setNonce(nonce)
                         .build()
 
-                    integrityManager.requestIntegrityToken(request).await().token()
-                }
-                result.success(token)
-            } catch (e: Exception) {
-=======
-                        .setCloudProjectNumber(CLOUD_PROJECT_NUMBER)
-                        .setNonce(nonce)
-                        .build()
-
                     Tasks.await(integrityManager.requestIntegrityToken(request)).token()
                 }
                 result.success(token)
@@ -94,7 +82,6 @@ class AndroidPlayIntegrityManager(private val context: Context) : MethodChannel.
                 if (e is InterruptedException) {
                     Thread.currentThread().interrupt()
                 }
->>>>>>> origin/staging/v2-full-platform
                 result.error("integrity_failed", e.message, null)
             }
         }

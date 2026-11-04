@@ -1,0 +1,3 @@
+There's an issue with the build hook or compilation caching the errors from `lib/core/srs/production_srs_engine.dart` and `lib/services/srs_scheduler_service.dart` from the initial state that I reset to (where the merge conflicts were present). Actually, resetting to `origin/staging/v2-full-platform` using `git reset --hard` should have fixed the file content but maybe I did not clean the flutter cache.
+Let me run `git clean -fdx` or just `git reset --hard origin/staging/v2-full-platform`. Wait, `origin/staging/v2-full-platform` had conflicts.
+Let me check the initial commit that the test started on. I'll just check out the branch I was initially on `jules-17859959854454061024-9332670f`.

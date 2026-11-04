@@ -22,19 +22,6 @@ class OptionalMediaWidget extends StatelessWidget {
     this.fallbackIcon,
   });
 
-  Future<UiState<Uint8List>> _loadMedia(ContentCancellationToken token) async {
-    try {
-      final data = await fetcher();
-      if (data == null || data.isEmpty) {
-        return const UiStateEmpty('Media missing');
-      }
-      return UiStateSuccess(data);
-    } catch (e, st) {
-      return UiStateFailed(e,
-          stackTrace: st, userMessage: 'Failed to load media');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return SizedBox(

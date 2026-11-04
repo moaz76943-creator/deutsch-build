@@ -148,6 +148,128 @@ class CefrClassifier {
     return CefrLevel.unknown;
   }
 
+  static ClassificationResult classifyWord(LexicalEvidence evidence) {
+    if (evidence.explicitLevel != null &&
+        evidence.explicitLevel != CefrLevel.unknown) {
+      return ClassificationResult(
+        level: evidence.explicitLevel!,
+        source: EvidenceSource.explicitPolicy,
+        confidence: 1.0,
+      );
+    }
+
+    if (evidence.sourceLevelMap.isNotEmpty) {
+      // Find the highest confidence based on agreement, or fallback deterministically
+      final levels = evidence.sourceLevelMap.values
+          .where((l) => l != CefrLevel.unknown)
+          .toList();
+      if (levels.isEmpty) {
+        return const ClassificationResult(
+          level: CefrLevel.unknown,
+          source: EvidenceSource.unsupported,
+          confidence: 0.0,
+        );
+      }
+
+      // Resolve conflicts by picking the highest level among sources to be safe (or most frequent, etc)
+      // Let's take the maximum level (which is deterministic).
+      CefrLevel highestLevel = levels.first;
+      for (var l in levels) {
+        if (l.index > highestLevel.index) {
+          highestLevel = l;
+        }
+      }
+
+      return ClassificationResult(
+        level: highestLevel,
+        source: EvidenceSource.verifiedSource,
+        confidence: 0.8,
+      );
+    }
+
+    return const ClassificationResult(
+      level: CefrLevel.unknown,
+      source: EvidenceSource.unsupported,
+      confidence: 0.0,
+    );
+  }
+
+  static ClassificationResult classifyExample(ExampleEvidence evidence) {
+    if (evidence.explicitLevel != null &&
+        evidence.explicitLevel != CefrLevel.unknown) {
+      return ClassificationResult(
+        level: evidence.explicitLevel!,
+        source: EvidenceSource.explicitPolicy,
+        confidence: 1.0,
+      );
+    }
+
+    if (evidence.sourceLevelMap.isNotEmpty) {
+      final levels = evidence.sourceLevelMap.values
+          .where((l) => l != CefrLevel.unknown)
+          .toList();
+      if (levels.isNotEmpty) {
+        CefrLevel highestLevel = levels.first;
+        for (var l in levels) {
+          if (l.index > highestLevel.index) {
+            highestLevel = l;
+          }
+        }
+        return ClassificationResult(
+          level: highestLevel,
+          source: EvidenceSource.verifiedSource,
+          confidence: 0.8,
+        );
+      }
+    }
+
+    // Infer difficulty from words levels
+    final validWordLevels =
+        evidence.wordsLevels.where((l) => l != CefrLevel.unknown).toList();
+    if (validWordLevels.isNotEmpty) {
+      CefrLevel maxLevel = validWordLevels.first;
+      for (var l in validWordLevels) {
+        if (l.index > maxLevel.index) {
+          maxLevel = l;
+        }
+      }
+
+      // Bump level for examples if we have complex words, but cap at C2
+      int nextIndex = maxLevel.index + 1;
+      if (nextIndex > CefrLevel.c2.index) {
+        nextIndex = CefrLevel.c2.index;
+      }
+
+      return ClassificationResult(
+        level: CefrLevel.values[nextIndex],
+        source: EvidenceSource.inferredDifficulty,
+        confidence: 0.6,
+      );
+    }
+
+    return const ClassificationResult(
+      level: CefrLevel.unknown,
+      source: EvidenceSource.unsupported,
+      confidence: 0.0,
+    );
+  }
+
+  static CefrGrouping getGrouping(CefrLevel level) {
+    switch (level) {
+      case CefrLevel.a1:
+      case CefrLevel.a2:
+        return CefrGrouping.beginner;
+      case CefrLevel.b1:
+      case CefrLevel.b2:
+        return CefrGrouping.intermediate;
+      case CefrLevel.c1:
+      case CefrLevel.c2:
+        return CefrGrouping.advanced;
+      case CefrLevel.unknown:
+        return CefrGrouping.unknown;
+    }
+  }
+
   static CefrGroup getGroup(CefrLevel level) {
     switch (level) {
       case CefrLevel.a1:

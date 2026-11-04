@@ -30,7 +30,7 @@ class TestRepairPlanner(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Ambiguous fix rejected"):
             self.planner.classify_failure("Security vulnerability in ambiguous dependency upgrade")
 
-    @patch('tools.automation.repair_planner.ScopeGuard')
+    @patch('tools.automation.scope_guard.ScopeGuard')
     def test_duplicate_attempt_prevented(self, MockGuard):
         sig = "Error: stale fts5 index detected"
         self.planner.generate_plan(sig)
@@ -38,7 +38,10 @@ class TestRepairPlanner(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Duplicate attempt blocked"):
             self.planner.generate_plan(sig)
 
-    @patch('tools.automation.repair_planner.ScopeGuard')
+        # new_input=True bypasses the check
+        self.planner.generate_plan(sig, new_input=True)
+
+    @patch('tools.automation.scope_guard.ScopeGuard')
     def test_unsafe_paths_rejected(self, MockGuard):
         # We need paths to be extracted correctly in regex
         # The regex in repair_planner is r"([a-zA-Z0-9_\-\./]+\.[a-zA-Z0-9]+)"
@@ -51,7 +54,7 @@ class TestRepairPlanner(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unsafe path detected"):
             self.planner.generate_plan(sig2)
 
-    @patch('tools.automation.repair_planner.ScopeGuard')
+    @patch('tools.automation.scope_guard.ScopeGuard')
     def test_invalid_ownership(self, MockGuard):
         mock_guard_instance = MagicMock()
         mock_guard_instance.request_ownership.return_value = False
@@ -61,7 +64,7 @@ class TestRepairPlanner(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "Failed to acquire lock"):
             self.planner.generate_plan(sig, dry_run=False)
 
-    @patch('tools.automation.repair_planner.ScopeGuard')
+    @patch('tools.automation.scope_guard.ScopeGuard')
     def test_plan_generation_and_ownership(self, MockGuard):
         mock_guard_instance = MagicMock()
         mock_guard_instance.request_ownership.return_value = True

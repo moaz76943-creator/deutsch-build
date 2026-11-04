@@ -52,13 +52,10 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   # Runtime asset bundle only. A blanket `- assets/` entry packaged the whole
-  # tree (112.4 MiB, 951 files on 2026-10-24). About 72.4 MiB of that is
-  # unregistered font binaries and duplicate launcher PNGs. Nothing in lib/
-  # loads them through rootBundle, and they are not declared under `fonts:`,
-  # so the engine never maps them. The files stay in the repository for
-  # licensing and a future FontManifest registration. Offline content packs,
-  # vocabulary JSON, and audio stay bundled. The budget is locked by
-  # test/perf/asset_bundle_budget_test.dart.
+  # tree, including unregistered font binaries and duplicate launcher PNGs.
+  # Nothing in lib/ loads those through rootBundle, and they are not declared
+  # under `fonts:`. The files stay in the repository. Offline packs, vocabulary
+  # JSON, and audio stay bundled. Locked by test/perf/asset_bundle_budget_test.dart.
   assets:
     - assets/audio/
     - assets/content/

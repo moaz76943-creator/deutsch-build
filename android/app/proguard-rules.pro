@@ -81,8 +81,6 @@
 
 # Optional Play Core
 -dontwarn com.google.android.play.core.**
--dontwarn io.flutter.app.**
--keep class io.flutter.app.** { *; }
 
 # JNI and optional SQLCipher boundaries. The app keep above already covers
 # the Kotlin channel classes; these names stay explicit for the release gate.
@@ -101,4 +99,3 @@
     public static *** d(...);
     public static *** v(...);
 }
->>>>>>> origin/staging/v2-full-platform

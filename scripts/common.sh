@@ -11,17 +11,31 @@ export ERR_COMP=12
 export ERR_SIGN=13
 export ERR_VERIFY=14
 
+# Filters credential-shaped text. Callers pipe command output through this
+# before it reaches a terminal or log. The function itself never prints secrets.
+redact_secrets() {
+  local keystore_name="RELEASE_KEYSTORE_BASE64"
+  sed -E \
+    -e "s/(${keystore_name}=)[^[:space:]]*/\\1[REDACTED]/g" \
+    -e 's/(-----BEGIN (PRIVATE KEY|CERTIFICATE)-----).*(-----END \2-----)/[REDACTED_PEM]/g' \
+    -e 's/([pP]assword=)[^[:space:]]+/\1[REDACTED]/g' \
+    -e 's/(--pass[A-Za-z0-9-]*)(=|[[:space:]]+)[^[:space:]]+/\1\2[REDACTED]/g'
+}
+
 fatal() {
   local code=1
   if [[ "${1:-}" == "--code" ]]; then
     code="$2"
     shift 2
+  elif [[ "${1:-}" =~ ^[0-9]+$ ]]; then
+    code="$1"
+    shift
   fi
-  printf '[ERROR] %s\n' "$*" >&2
+  printf '[ERROR] %s\n' "$*" | redact_secrets >&2
   exit "$code"
 }
 
-log() { printf '[%s] %s\n' "$1" "$2"; }
+log() { printf '[%s] %s\n' "$1" "$2" | redact_secrets; }
 
 # Only retry proven transient transport faults. Capture output privately:
 # command arguments and tool output can contain credentials or tokens.
@@ -32,15 +46,18 @@ with_retry() (
   trap 'rm -f -- "$output_file"' EXIT
   while (( attempt <= max_attempts )); do
     if "$@" > "$output_file" 2>&1; then
+      redact_secrets < "$output_file"
       return 0
     else
       status=$?
     fi
     if ! grep -Eiq '(timed? out|timeout|connection reset|connection refused|temporar(y|ily)|network error|socketexception|network is unreachable)' "$output_file"; then
+      redact_secrets < "$output_file" >&2
       log ERR "Non-transient operation failure; no retry (exit $status)"
       return "$status"
     fi
     if (( attempt >= max_attempts )); then
+      redact_secrets < "$output_file" >&2
       log ERR "Transient operation failed after $max_attempts attempts (exit $status)"
       return "$status"
     fi

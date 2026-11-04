@@ -95,10 +95,6 @@ class SessionState {
         sourceLocale: sourceLoc,
         targetLocale: targetLoc,
       );
-  }
-
-  bool isReviewCommitted(String id) => committedReviewIds.contains(id);
-
 }
 
 class SessionRecoveryManager {

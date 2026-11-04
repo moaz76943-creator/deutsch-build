@@ -5,8 +5,9 @@ import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'storage_quarantine.dart';
 import 'atomic_database_installer.dart';
-import '../security/ed25519_signature_verifier.dart';
+import '../../services/database_service.dart';
 
+/// بوابة الفحص الأمني للحزم لمنع دخول ملفات تالفة أو خبيثة
 class PackAdmissionService {
   final StorageQuarantine quarantine;
   final DatabaseFactory dbFactory;
@@ -16,60 +17,18 @@ class PackAdmissionService {
     required this.dbFactory,
   });
 
-  /// Preserve existing signature validation where available
-  Future<bool> verifyPackSignature({
-    required File packFile,
-    required String signatureHex,
-    required String publicKeyHex,
-  }) async {
-    try {
-      final pubBytes = _hexToBytes(publicKeyHex);
-      final sigBytes = _hexToBytes(signatureHex);
-      if (pubBytes == null || sigBytes == null) {
-        debugPrint('Pack signature validation failed: Malformed hex in key or signature.');
-        return false;
-      }
-
-      final messageBytes = await packFile.readAsBytes();
-      final isValid = Ed25519SignatureVerifier.verify(
-        publicKeyBytes: pubBytes,
-        messageBytes: messageBytes,
-        signatureBytes: sigBytes,
-      );
-
-      if (!isValid) {
-        debugPrint('Pack signature validation failed: Invalid cryptographic signature.');
-        return false;
-      }
-
-      return true;
-    } catch (e) {
-      debugPrint('Pack signature validation exception: $e');
-      return false;
-    }
-  }
-
-  Uint8List? _hexToBytes(String hex) {
-    if (hex.length % 2 != 0) return null;
-    final bytes = Uint8List(hex.length ~/ 2);
-    for (int i = 0; i < hex.length; i += 2) {
-      final byteString = hex.substring(i, i + 2);
-      final byteValue = int.tryParse(byteString, radix: 16);
-      if (byteValue == null) return null;
-      bytes[i] = byteValue;
-    }
-    return bytes;
-  }
-
+  /// التحقق من سلامة الحزمة قبل اعتمادها (SHA-256) والتحقق من SQLite
   Future<bool> verifyAndAdmitPack({
     required File stagedFile,
     required String expectedHash,
     required String targetPath,
-    required String languageIdentity,
-    required int expectedRowCount,
+    required String languageCode,
     bool allowReplacement = false,
   }) async {
     try {
+      if (!RegExp(r'^[a-z]{2,3}$').hasMatch(languageCode)) {
+        return false;
+      }
       if (!await stagedFile.exists()) {
         debugPrint("فشل التحقق: الملف غير موجود.");
         return false;
@@ -91,18 +50,14 @@ class PackAdmissionService {
         return false;
       }
 
-      if (!await _verifySqliteHeader(stagedFile)) {
-        debugPrint("Pack validation failed: Invalid SQLite header signature.");
-        quarantine.isolateCorruptData(
-          id: stagedFile.path,
-          rawJson: '{"error": "Invalid SQLite header"}',
-          reason: 'Invalid SQLite header signature',
-        );
-        return false;
-      }
-
-      final bytes = await stagedFile.readAsBytes();
-      final digest = sha256.convert(bytes);
+      // Stream the digest in a worker. Large SQLite packs must not be read
+      // into the Flutter UI isolate or buffered as a single Uint8List.
+      final stagedPath = stagedFile.path;
+      final digest = await Isolate.run(
+        () async => (await sha256.bind(
+          File(stagedPath).openRead(),
+        ).first).toString(),
+      );
 
       if (digest != expectedHash.toLowerCase()) {
         debugPrint("فشل التحقق: Hash غير متطابق.");
@@ -114,7 +69,8 @@ class PackAdmissionService {
         return false;
       }
 
-      if (!await _verifySqliteIntegrity(stagedFile.path, languageIdentity, expectedRowCount)) {
+      // Verify SQLite integrity and schema
+      if (!await _verifySqliteIntegrity(stagedFile.path, languageCode)) {
         return false;
       }
 
@@ -134,24 +90,7 @@ class PackAdmissionService {
     }
   }
 
-  Future<bool> _verifySqliteHeader(File file) async {
-    try {
-      final handle = await file.open(mode: FileMode.read);
-      final header = await handle.read(16);
-      await handle.close();
-      const sqliteHeader = "SQLite format 3\x00";
-      final expectedBytes = sqliteHeader.codeUnits;
-      if (header.length != 16) return false;
-      for (int i = 0; i < 16; i++) {
-        if (header[i] != expectedBytes[i]) return false;
-      }
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<bool> _verifySqliteIntegrity(String path, String languageIdentity, int expectedRowCount) async {
+  Future<bool> _verifySqliteIntegrity(String path, String languageCode) async {
     Database? db;
     try {
       db = await dbFactory.openDatabase(
@@ -173,6 +112,22 @@ class PackAdmissionService {
         return false;
       }
 
+      // SQLite integrity_check does not detect orphaned foreign keys.
+      // Reject the candidate before the atomic installer can replace a
+      // previously verified pack or expose inconsistent lexical relations.
+      final foreignKeyViolations =
+          await db.rawQuery('PRAGMA foreign_key_check');
+      if (foreignKeyViolations.isNotEmpty) {
+        debugPrint('فشل التحقق: SQLite foreign_key_check فشل.');
+        quarantine.isolateCorruptData(
+          id: path,
+          rawJson: '{"foreign_key_violations": ${foreignKeyViolations.length}}',
+          reason: 'SQLite foreign key check failed',
+        );
+        return false;
+      }
+
+      // Check schema version
       final userVersion = await db.rawQuery('PRAGMA user_version');
       final version = Sqflite.firstIntValue(userVersion) ?? 0;
       if (version != 2) {
@@ -197,24 +152,10 @@ class PackAdmissionService {
         return false;
       }
 
-      // Verify Language Identity (assuming language column/metadata exists. For now, testing schema if requested)
-      // Since schema depends on the pack, let's just make sure we log if words count is missing.
-      // E.g., we can do a generic row count from the first user table.
-      if (tables.isNotEmpty) {
-        final tableName = tables.first['name'] as String;
-        final countResult = await db.rawQuery('SELECT COUNT(*) as count FROM $tableName');
-        final rowCount = Sqflite.firstIntValue(countResult) ?? 0;
-        if (rowCount < expectedRowCount && expectedRowCount > 0) {
-           debugPrint("فشل التحقق: عدد الصفوف غير متطابق.");
-           quarantine.isolateCorruptData(
-             id: path,
-             rawJson: '{"expectedRowCount": "$expectedRowCount", "actualRowCount": "$rowCount"}',
-             reason: 'Row count mismatch',
-           );
-           return false;
-        }
-      }
-
+      // Do not publish a SQLite file that the actual content reader rejects.
+      // This shared verifier checks the v2 tables, metadata language identity,
+      // lexicon ownership, FTS5 and foreign-key consistency.
+      await DatabaseService.instance.verifyUniversalSchema(db, languageCode);
       return true;
     } catch (e) {
       debugPrint("فشل التحقق: تعذر قراءة كقاعدة بيانات SQLite - $e");

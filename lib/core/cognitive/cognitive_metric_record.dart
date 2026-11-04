@@ -6,7 +6,6 @@ class CognitiveMetricRecord {
   final bool isCorrect;
   final DateTime recordedAt;
   final String? targetLanguageCode;
-  final bool isCefrVerified;
 
   const CognitiveMetricRecord({
     required this.sessionEventId,
@@ -16,7 +15,6 @@ class CognitiveMetricRecord {
     required this.isCorrect,
     required this.recordedAt,
     this.targetLanguageCode,
-    this.isCefrVerified = false,
   });
 
   /// حساب مؤشر الجهد الإدراكي (من 0.0 إلى 1.0)

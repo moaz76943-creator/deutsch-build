@@ -70,7 +70,8 @@ class RepairPlanner:
         transformation = TRANSFORMATIONS[category]
         plan_id = str(uuid.uuid4())
 
-        guard = ScopeGuard(owner="repair_planner")
+        from tools.automation.scope_guard import ScopeGuard
+        guard = ScopeGuard(owner="RepairPlanner")
         for path in target_paths:
             guard.add_allowed_path(path)
 
@@ -78,7 +79,7 @@ class RepairPlanner:
         if not dry_run:
             for path in target_paths:
                 if not guard.request_ownership(path):
-                    raise RuntimeError(f"Failed to acquire lock for {path}")
+                    raise RuntimeError("Failed to acquire lock")
                 leases.append(path)
 
         return {

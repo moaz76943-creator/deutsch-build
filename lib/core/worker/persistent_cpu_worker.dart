@@ -28,7 +28,8 @@ class PersistentCpuWorker with WidgetsBindingObserver {
   static PersistentCpuWorker instance = PersistentCpuWorker._init();
 
   final int maxConcurrentTasks;
-  final int maxQueueSize;
+  int maxQueueSize;
+  bool _disposed = false;
 
   int _activeJobs = 0;
   int _generation = 0;
@@ -46,9 +47,40 @@ class PersistentCpuWorker with WidgetsBindingObserver {
         throw TimeoutException('CPU task timed out after ${timeout.inSeconds}s (Gen $generation)');
       });
 
-      // Latest-Wins policy: drop result if generation has advanced
-      if (_isDisposed || generation != _activeGeneration) {
-        return null;
+  @visibleForTesting
+  static void resetForTesting() {
+    instance.dispose();
+    instance = PersistentCpuWorker._init();
+  }
+
+  @visibleForTesting
+  void reset() {
+    cancelAll();
+    _disposed = false;
+  }
+
+  @visibleForTesting
+  void setMaxQueueSize(int size) {
+    maxQueueSize = size;
+  }
+
+  @visibleForTesting
+  void cancelCurrentGeneration() {
+    cancelAll();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      cancelAll();
+    }
+  }
+
+  void cancelAll() {
+    _generation++;
+    for (final task in _queue) {
+      if (!task.completer.isCompleted) {
+        task.completer.completeError(WorkerCancelledException());
       }
 
       completer.complete(result);
@@ -72,7 +104,7 @@ class PersistentCpuWorker with WidgetsBindingObserver {
 
   /// Safe disposal freeing all worker references and cancelling subscriptions
   void dispose() {
-    _isDisposed = true;
+    _disposed = true;
     try {
       WidgetsBinding.instance.removeObserver(this);
     } catch (_) {}
@@ -80,7 +112,9 @@ class PersistentCpuWorker with WidgetsBindingObserver {
   }
 
   Future<R> executeTask<Q, R>(ComputeCallback<Q, R> task, Q message) {
-    if (_isDisposed) return Future.error(StateError('Worker disposed'));
+    if (_disposed) {
+      return Future.error(StateError('Worker is disposed'));
+    }
     if (_queue.length >= maxQueueSize) {
       return Future.error(WorkerQueueExhaustedException());
     }
@@ -129,99 +163,25 @@ class PersistentCpuWorker with WidgetsBindingObserver {
     );
   }
 
-  final Isolate _isolate;
-  final SendPort _commandPort;
-  final ReceivePort _responsePort;
-  final ReceivePort _exitPort;
-  final Queue<_QueuedWorkerJob> _pending = Queue<_QueuedWorkerJob>();
-
-  late final StreamSubscription<Object?> _responseSubscription;
-  late final StreamSubscription<Object?> _exitSubscription;
-
-  _QueuedWorkerJob? _inFlight;
-  int _currentEpoch;
-  bool _accepting = true;
-  bool _closed = false;
-  bool _unexpectedExit = false;
-  int _spawnCount = 1;
-
-  Completer<void>? _shutdownCompleter;
-
-  int get currentEpoch => _currentEpoch;
-  int get pendingCount => _pending.length;
-  int get spawnCount => _spawnCount;
-  bool get isClosed => _closed || _unexpectedExit;
-  bool get hasInFlightJob => _inFlight != null;
-
-  Future<WorkerResult<R>> submit<R>(
-    WorkerJob<Object?> job, {
-    Duration timeout = const Duration(seconds: 8),
-    bool internalCallback = false,
-  }) {
-    if (!_accepting || _closed) {
-      return Future<WorkerResult<R>>.error(
-        StateError('_TypedCpuWorker is closed.'),
-      );
-    }
-
-    _validateJob(job);
-
-    if (_pending.length >= maxPendingJobs) {
-      return Future<WorkerResult<R>>.error(
-        StateError(
-          'CPU worker queue capacity exceeded: $maxPendingJobs.',
-        ),
-      );
-    }
-
-    if (job.epoch != _currentEpoch) {
-      return Future<WorkerResult<R>>.value(
-        WorkerResult<R>(
-          id: job.id,
-          epoch: job.epoch,
-          status: WorkerStatuses.stale,
-          payload: null,
-          errorCode: 'stale_epoch',
-        ),
-      );
-    }
-
-    if (job.type == PersistentCpuWorker._callbackType && !internalCallback) {
-      throw ArgumentError('Callbacks are not typed source jobs');
-    }
-    final pending = _QueuedWorkerJob(job);
-    pending.timer = Timer(timeout, () => _timeout(pending));
-    _pending.addLast(pending);
-    _dispatchNext();
-
-    return pending.completer.future.then<WorkerResult<R>>(
-      (result) => WorkerResult<R>(
-        id: result.id,
-        epoch: result.epoch,
-        status: result.status,
-        payload: result.payload as R?,
-        errorCode: result.errorCode,
-      ),
-    );
-  }
-
-  void advanceEpoch(int nextEpoch) {
-    if (_closed) return;
-    if (nextEpoch < _currentEpoch) {
-      return;
-    }
-    if (nextEpoch == _currentEpoch) {
+  void _pump() {
+    if (_disposed) return;
+    if (_activeJobs >= maxConcurrentTasks || _queue.isEmpty) {
       return;
     }
 
     _currentEpoch = nextEpoch;
     final retained = Queue<_QueuedWorkerJob>();
 
-    while (_pending.isNotEmpty) {
-      final queued = _pending.removeFirst();
-      if (queued.job.epoch == nextEpoch) {
-        retained.addLast(queued);
-        continue;
+  void _unpackAndExecute(dynamic task) {
+    if (task is _QueuedTask) {
+      _executeQueuedTask(task);
+    }
+  }
+
+  void _executeQueuedTask<Q, R>(_QueuedTask<Q, R> queuedTask) {
+    if (queuedTask.generation != _generation || _disposed) {
+      if (!queuedTask.completer.isCompleted) {
+        queuedTask.completer.completeError(WorkerCancelledException());
       }
       _complete(
         queued,
@@ -296,25 +256,24 @@ class PersistentCpuWorker with WidgetsBindingObserver {
     final inFlight = _inFlight;
     if (inFlight != null && !inFlight.completer.isCompleted) {
       try {
-        await inFlight.completer.future.timeout(
-          const Duration(seconds: 3),
-        );
-      } on TimeoutException {
-        _unexpectedExit = true;
-        _inFlight = null;
-        _complete(
-          inFlight,
-          WorkerResult<Object?>(
-            id: inFlight.job.id,
-            epoch: inFlight.job.epoch,
-            status: WorkerStatuses.closed,
-            payload: null,
-            errorCode: 'shutdown_timeout',
-          ),
-        );
-        _isolate.kill(priority: Isolate.immediate);
-      } on Object {
-        // The shutdown path still proceeds if the in-flight job failed.
+        final result = await compute<Q, R>(queuedTask.task, queuedTask.message);
+
+        if (queuedTask.generation == _generation && !_disposed) {
+          if (!queuedTask.completer.isCompleted) {
+            queuedTask.completer.complete(result);
+          }
+        } else {
+          if (!queuedTask.completer.isCompleted) {
+            queuedTask.completer.completeError(WorkerCancelledException());
+          }
+        }
+      } catch (e, st) {
+        if (!queuedTask.completer.isCompleted) {
+          queuedTask.completer.completeError(e, st);
+        }
+      } finally {
+        _activeJobs--;
+        _pump();
       }
     }
 
@@ -388,20 +347,13 @@ class PersistentCpuWorker with WidgetsBindingObserver {
     double ease = data['ease'] as double;
     int rating = data['rating'] as int;
 
-    final queued = _inFlight;
-    _inFlight = null;
-    if (queued != null) {
-      _complete(
-        queued,
-        WorkerResult<Object?>(
-          id: queued.job.id,
-          epoch: queued.job.epoch,
-          status: WorkerStatuses.error,
-          payload: null,
-          errorCode: 'worker_exit',
-        ),
-      );
+    if (ease < 0) {
+      throw ArgumentError('Invalid ease');
     }
+
+    // معادلة الحفظ والمراجعة المتباعدة
+    double newEase = ease + (0.1 - (5 - rating) * (0.08 + (5 - rating) * 0.02));
+    if (newEase < 1.3) newEase = 1.3;
 
     while (_pending.isNotEmpty) {
       final pending = _pending.removeFirst();

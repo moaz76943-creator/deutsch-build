@@ -38,7 +38,6 @@ class IsolatedTaskQueue {
 
   int get length => _queue.length;
   int get activeTasksCount => _activeTasks.length;
-  int get availableCapacity => maxConcurrentTasks - _activeTasks.length;
 
   Future<T?> enqueue<T>({
     required String id,

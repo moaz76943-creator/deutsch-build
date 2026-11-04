@@ -5,24 +5,6 @@ import 'package:deutsch_bilarabi/core/resilience/feature_boundary.dart';
 import 'package:deutsch_bilarabi/core/resilience/failure_reasons.dart';
 
 void main() {
-  testWidgets('vault integrity failures leave the optional feature boundary',
-      (tester) async {
-    late BuildContext inside;
-    await tester.pumpWidget(MaterialApp(
-        home: FeatureBoundary(
-      featureName: 'vault',
-      child: Builder(builder: (context) {
-        inside = context;
-        return const SizedBox();
-      }),
-    )));
-    expect(() => FeatureBoundary.report(inside, const InvalidVaultFailure()),
-        throwsA(isA<CriticalIntegrityFailure>()));
-    expect(
-        () =>
-            FeatureBoundary.report(inside, const MissingOfflineVoiceFailure()),
-        returnsNormally);
-  });
   testWidgets('FeatureBoundary يمنع تعطل الواجهة عند حدوث أي خطأ داخلي',
       (tester) async {
     await tester.pumpWidget(

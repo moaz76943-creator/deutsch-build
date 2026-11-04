@@ -1,3 +1,5 @@
+// مسار الملف: lib/core/gamification/domain_mastery_projection.dart
+
 import '../progress/review_transaction_envelope.dart';
 
 /// نموذج عرض إتقان المجال (Projection) كما حدده تقرير هندسة التحفيز.
@@ -46,6 +48,98 @@ class DomainMasteryProjection {
       return DomainMasteryState.mastered;
     }
     return DomainMasteryState.inProgress;
+  }
+
+  /// Rebuilds mastery projection deterministically from raw SRS events.
+  /// Enforces deduplication, pair isolation, and limits replays.
+  static DomainMasteryProjection computeFromEvents({
+    required String domainId,
+    required String sourceLanguageId,
+    required String targetLanguageId,
+    required int eligibleCardCount,
+    required List<ReviewTransactionEnvelope> events,
+    required DateTime projectionTimeUtc,
+  }) {
+    if (eligibleCardCount < 0) {
+      throw ArgumentError('Eligible card count cannot be negative');
+    }
+
+    final String targetPairKey = '${sourceLanguageId}_$targetLanguageId';
+
+    // Deduplicate by reviewEventId, taking the first valid one we see.
+    // Also ignore events outside the bounded replay window (e.g. in the future).
+    final Map<String, ReviewTransactionEnvelope> uniqueEvents = {};
+    for (final event in events) {
+      if (event.languagePairKey != targetPairKey) continue;
+      if (event.timestamp.isAfter(projectionTimeUtc)) continue;
+
+      if (!uniqueEvents.containsKey(event.reviewEventId)) {
+        uniqueEvents[event.reviewEventId] = event;
+      }
+    }
+
+    // Sort by timestamp
+    final validEvents = uniqueEvents.values.toList()
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+    if (validEvents.isEmpty) {
+      return DomainMasteryProjection(
+        domainId: domainId,
+        sourceLanguageId: sourceLanguageId,
+        targetLanguageId: targetLanguageId,
+        eligibleCardCount: eligibleCardCount,
+        introducedCardCount: 0,
+        recalledCardCount: 0,
+        masteredCardCount: 0,
+        dueCardCount: 0,
+        lastEvidenceUtc: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+        masteryRevision: 1,
+      );
+    }
+
+    // Track state per card (learnerContentKey)
+    final Map<String, int> cardSuccessCount = {};
+    DateTime lastEvidence = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+
+    for (final event in validEvents) {
+      if (event.timestamp.isAfter(lastEvidence)) {
+        lastEvidence = event.timestamp;
+      }
+
+      // If rating >= 3, it's a recall success.
+      if (event.rating >= 3) {
+        cardSuccessCount[event.learnerContentKey] =
+            (cardSuccessCount[event.learnerContentKey] ?? 0) + 1;
+      } else {
+        cardSuccessCount[event.learnerContentKey] = 0;
+      }
+    }
+
+    int introduced = cardSuccessCount.length;
+    int recalled = 0;
+    int mastered = 0;
+
+    for (final count in cardSuccessCount.values) {
+      if (count > 0) recalled++;
+      if (count >= 3) mastered++;
+    }
+
+    introduced = introduced.clamp(0, eligibleCardCount);
+    recalled = recalled.clamp(0, eligibleCardCount);
+    mastered = mastered.clamp(0, eligibleCardCount);
+
+    return DomainMasteryProjection(
+      domainId: domainId,
+      sourceLanguageId: sourceLanguageId,
+      targetLanguageId: targetLanguageId,
+      eligibleCardCount: eligibleCardCount,
+      introducedCardCount: introduced,
+      recalledCardCount: recalled,
+      masteredCardCount: mastered,
+      dueCardCount: 0,
+      lastEvidenceUtc: lastEvidence,
+      masteryRevision: events.length,
+    );
   }
 }
 

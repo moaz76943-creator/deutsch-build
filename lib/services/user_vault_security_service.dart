@@ -40,6 +40,7 @@ class AndroidKeystoreVaultCipher implements VaultCipher {
     if (error.code == 'vault_key_unavailable_or_corrupt' ||
         error.code.toLowerCase().contains('keystore')) {
       UserVaultSecurityService.reportKeyFailure();
+      throw KeyUnavailableException(error.message ?? 'Vault key unavailable');
     }
     Error.throwWithStackTrace(error, trace);
   }
@@ -47,7 +48,7 @@ class AndroidKeystoreVaultCipher implements VaultCipher {
   @override
   Future<Uint8List> encrypt(String recordId, Uint8List plaintext) async {
     if (UserVaultSecurityService._keyUnavailable) {
-      throw StateError('Vault key recovery is required before further writes');
+      throw KeyUnavailableException('Vault key recovery is required before further writes');
     }
     try {
       final data = await _channel.invokeMethod<Uint8List>(
@@ -153,6 +154,13 @@ class UserVaultSecurityService {
   final Future<String> Function() _legacyDatabasePath;
   Future<Database>? _cached;
   Future<LegacyProgressMigrationResult>? _migration;
+  bool _isRecovering = false;
+
+  void _checkRecoveryLock() {
+    if (_isRecovering) {
+      throw StateError('Vault is currently locked for recovery');
+    }
+  }
 
   static Future<String> _defaultLegacyPath() async =>
       path.join(await getDatabasesPath(), 'user_progress_v2.db');
@@ -177,6 +185,7 @@ class UserVaultSecurityService {
   static String _index(String id) => sha256.convert(utf8.encode(id)).toString();
 
   Future<void> putRecord(String id, Uint8List plaintext) async {
+    _checkRecoveryLock();
     _validateId(id);
     if (plaintext.length > maximumRecordBytes) {
       throw ArgumentError.value(
@@ -185,7 +194,7 @@ class UserVaultSecurityService {
     // Encryption completes before any SQLite write.
     final ciphertext = await _cipher.encrypt(id, plaintext);
     if (ciphertext.length < 29 || (ciphertext[0] != 1 && ciphertext[0] != 2)) {
-      throw StateError('Invalid encrypted vault envelope');
+      throw CorruptRecordException('Invalid encrypted vault envelope');
     }
     final database = await _db;
     await database.insert(
@@ -210,12 +219,13 @@ class UserVaultSecurityService {
     if (encrypted is! Uint8List ||
         encrypted.length < 29 ||
         (encrypted[0] != 1 && encrypted[0] != 2)) {
-      throw StateError('Vault record is corrupt');
+      throw CorruptRecordException('Vault record is corrupt');
     }
     return _cipher.decrypt(id, encrypted);
   }
 
   Future<void> deleteRecord(String id) async {
+    _checkRecoveryLock();
     _validateId(id);
     await (await _db).delete('vault_entries',
         where: 'record_hash = ?', whereArgs: <Object>[_index(id)]);
@@ -292,7 +302,7 @@ class UserVaultSecurityService {
         final data = _decodeProgress(raw);
         if (kind == 'srs') {
           if (data['lexeme_id'] != id || data['target_language_code'] != lang) {
-            throw StateError('Vault SRS identity mismatch');
+            throw TamperedRecordException('Vault SRS identity mismatch');
           }
           records['srs']!.add(data);
         } else {
@@ -319,7 +329,7 @@ class UserVaultSecurityService {
             if (id is! String ||
                 lang is! String ||
                 _catalogKey(kind, id, lang) != key) {
-              throw StateError('Vault catalog identity mismatch');
+              throw TamperedRecordException('Vault catalog identity mismatch');
             }
             await collect(kind, id, lang, catalog: true);
           }
@@ -383,6 +393,9 @@ class UserVaultSecurityService {
             Map<String, Object?> local, Map<String, Object?> incoming)
         incomingWins,
   }) async {
+    _checkRecoveryLock();
+    _isRecovering = true;
+    try {
     return (await _db).transaction((txn) async {
       await _ensureFreshReady(txn);
       var inserted = 0, updated = 0, unchanged = 0;
@@ -436,6 +449,9 @@ class UserVaultSecurityService {
         'bookmarksUpdated': bookmarkUpdated,
       };
     });
+    } finally {
+      _isRecovering = false;
+    }
   }
 
   // Archive encryption uses the same hardware/software AES vault key.
@@ -509,6 +525,7 @@ class UserVaultSecurityService {
     required int grade,
     DateTime? reviewedAt,
   }) async {
+    _checkRecoveryLock();
     final key = _progressKey('srs', lexemeId, languageCode);
     return (await _db).transaction((txn) async {
       await _ensureFreshReady(txn);
@@ -556,6 +573,7 @@ class UserVaultSecurityService {
     required String languageCode,
     required String status,
   }) async {
+    _checkRecoveryLock();
     final key = _progressKey('srs', lexemeId, languageCode);
     await (await _db).transaction((txn) async {
       await _ensureFreshReady(txn);
@@ -581,6 +599,7 @@ class UserVaultSecurityService {
     required String languageCode,
     required Map<String, dynamic> data,
   }) async {
+    _checkRecoveryLock();
     final key = _progressKey('bookmark', bookmarkId, languageCode);
     await (await _db).transaction((txn) async {
       await _ensureFreshReady(txn);
@@ -605,6 +624,7 @@ class UserVaultSecurityService {
     required String bookmarkId,
     required String languageCode,
   }) async {
+    _checkRecoveryLock();
     final key = _progressKey('bookmark', bookmarkId, languageCode);
     await (await _db).transaction((txn) async {
       await _ensureFreshReady(txn);
@@ -646,6 +666,9 @@ class UserVaultSecurityService {
   }
 
   Future<void> _activateArchivedSnapshot() async {
+    _checkRecoveryLock();
+    _isRecovering = true;
+    try {
     await (await _db).transaction((txn) async {
       if (await _readEncryptedFrom(txn, _operationalReadyId) != null) return;
       final manifestBytes = await _readEncryptedFrom(txn, _manifestId);
@@ -695,6 +718,9 @@ class UserVaultSecurityService {
               {'format': 'operational-progress-v1', 'origin': 'migrated'}))));
     });
   }
+    } finally {
+      _isRecovering = false;
+    }
 
   /// Transfers every user-owned SQLite table (including SRS, history and
   /// bookmarks) into an encrypted, recoverable snapshot. This is explicitly
@@ -735,7 +761,7 @@ class UserVaultSecurityService {
     }
     final cipher = await _cipher.encrypt(id, plaintext);
     if (cipher.length < 29 || (cipher[0] != 1 && cipher[0] != 2)) {
-      throw StateError('Vault cipher returned an invalid envelope');
+      throw CorruptRecordException('Vault cipher returned an invalid envelope');
     }
     await destination.insert(
         'vault_entries',
@@ -760,7 +786,7 @@ class UserVaultSecurityService {
     if (encrypted is! Uint8List ||
         encrypted.length < 29 ||
         (encrypted[0] != 1 && encrypted[0] != 2)) {
-      throw StateError('Vault record is corrupt');
+      throw CorruptRecordException('Vault record is corrupt');
     }
     return _cipher.decrypt(id, encrypted);
   }
@@ -805,6 +831,9 @@ class UserVaultSecurityService {
   }
 
   Future<LegacyProgressMigrationResult> _migrateLegacyProgressDatabase() async {
+    _checkRecoveryLock();
+    _isRecovering = true;
+    try {
     final oldFile = File(await _legacyDatabasePath());
     if (!await oldFile.exists()) {
       return const LegacyProgressMigrationResult(
@@ -937,4 +966,7 @@ class UserVaultSecurityService {
       tableRowCounts: Map<String, int>.unmodifiable(counts),
     );
   }
+    } finally {
+      _isRecovering = false;
+    }
 }

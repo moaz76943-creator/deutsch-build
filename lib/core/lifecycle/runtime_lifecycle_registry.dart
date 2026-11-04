@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 /// مسجل مركزي لدورة حياة الموارد المؤقتة والاشتراكات لمنع تسريبات الذاكرة
@@ -47,10 +48,11 @@ class RuntimeLifecycleRegistry {
   Future<void> disposeOwner(String owner) async {
     if (isOwnerDisposed(owner)) return;
     _disposedOwners.add(owner);
-    await disposeOwnerResources(owner);
+    await _disposeOwnerResources(owner);
   }
 
   Future<void> disposeAll() async {
+    if (_isDisposed) return;
     _isDisposed = true;
 
     final owners = _cleanups.keys.toList().reversed;
@@ -73,11 +75,11 @@ class RuntimeLifecycleRegistry {
     _cleanups.remove(owner); // clear before execution to handle race conditions
 
     for (final cleanup in callbacks) {
-      await safeCleanup(cleanup);
+      await _safeCleanup(cleanup);
     }
   }
 
-  Future<void> safeCleanup(FutureOr<void> Function() cleanup) async {
+  Future<void> _safeCleanup(FutureOr<void> Function() cleanup) async {
     try {
       final result = cleanup();
       if (result is Future) {

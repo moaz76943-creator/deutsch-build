@@ -4,25 +4,7 @@ All agents, coding assistants, OpenCode sessions, and automation working in this
 
 - `docs/project-record/SESSION_OPERATING_CONTRACT.md`
 - `docs/project-record/PROJECT_INTENT.md`
-- `.github/SYSTEM_RULES.md` (offline-first absolute, no direct SharedPreferences outside ports, quality gate required)
 
-<<<<<<< HEAD
-## Commit and CI policy (effective 2026-10-15)
-
-- Never add CI-skip tokens (including `[skip ci]`, `[ci skip]`, `[no ci]`, `[skip actions]`, `[actions skip]`) or `skip-checks: true` to **new** commit messages, whether created by Jules, Gemini, Antigravity, or an automated workflow.
-- Do not skip mandatory GitHub Actions or treat `SKIPPED` / `NOT_RUN` as a passing test. Optimize costs with focused tests, caching, and bounded concurrency, not commit-level suppression.
-- Keep historical commits unchanged. For older PRs with skip directives, use a reviewed, non-skipping integration tip and validate the exact head before merge; never force-push branches to rewrite their history.
-- Follow the repository's actual branch and task CI contracts; this notice does not activate disabled workflows or authorize paid services.
-- Canonical working repository for this instance: `moaz76943-creator/deutsch-build`. Cross-check against any upstream if needed, but operate here.
-
-## Mutation and Handoff Protocol
-
-Before any mutation:
-1. Inspect live branch/PR/CI state.
-2. Reconcile task ownership and mutable scope.
-3. Reuse the existing TASK_ID when work is already active.
-4. Treat another owner’s branch/PR/path as READ-ONLY until durable handoff.
-=======
 ## Commit and CI policy (updated 2026-10-24)
 
 - Commit messages may include `[skip ci]`, `[ci skip]`, `[no ci]`, `[skip actions]`, `[actions skip]` or `skip-checks: true` when chosen by the author. Their presence alone does not reject a PR or invalidate tested code.
@@ -36,12 +18,11 @@ Before any mutation:
 3. reconcile task ownership and mutable scope;
 4. reuse the existing TASK_ID when work is already active;
 5. treat another owner’s branch/PR/path as READ-ONLY until durable handoff.
->>>>>>> origin/staging/v2-full-platform
 
 After meaningful movement:
-- Leave durable evidence (commits, PR comments, issue updates).
-- Record CLAIM / DELTA / BLOCKER / HANDOFF / COMPLETE / FAILED / SUPERSEDE as applicable.
-- Do not let the chat/session be the only record of work.
+- leave durable evidence;
+- record CLAIM / DELTA / BLOCKER / HANDOFF / COMPLETE / FAILED / SUPERSEDE as applicable;
+- do not let the chat/session be the only record of work.
 
 Never use destructive reset/clean/revert/delete/force-push for recovery.
 Unknown critical state => STOP / RECONCILE.
@@ -70,5 +51,3 @@ DEUTSCH بالعربي is built on a tripartite multilingual model:
 3. ANDROID APPLICATION INTEGRATION (TRACK D):
 - Code changes must preserve clean architecture separation: Data Layer, Domain/Core, and UI/Presentation.
 - Keep Gradle dependency configurations clean and verify that data models match the schema defined in the Shared Core.
-- Use Riverpod for DI and state. Prefer feature-modular structure under lib/features/<feature>/{data,domain,presentation}.
-- Security: offline-first, obfuscation in release, Play Integrity for sensitive unlocks (with backend verify), no data leaks in logs or crash reports.

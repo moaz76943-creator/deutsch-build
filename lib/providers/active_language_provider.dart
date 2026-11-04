@@ -152,7 +152,8 @@ class ActiveLanguageState {
   final Map<String, double> downloadProgress;
   final Set<String> downloadingCodes;
   final Set<String> quarantinedCodes;
-  /// SHA-256 checked downloads only; never proof of installed SQLite content.
+
+  /// SHA-256 checked archives only. This is not proof that SQLite content is mounted.
   final Set<String> verifiedArchiveCodes;
   final bool isLoadingCatalog;
   final String? errorMessage;

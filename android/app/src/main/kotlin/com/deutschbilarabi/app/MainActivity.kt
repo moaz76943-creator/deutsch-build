@@ -11,51 +11,6 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private lateinit var pronunciationSignalProbe: AndroidPronunciationSignalProbe
-<<<<<<< HEAD
-
-    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
-        super.configureFlutterEngine(flutterEngine)
-
-        // Secure session and pack storage channels
-        MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            AndroidSecureSessionStorage.CHANNEL_NAME,
-        ).setMethodCallHandler(AndroidSecureSessionStorage(this))
-
-        MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            AndroidPackDatabaseKeyStore.CHANNEL_NAME,
-        ).setMethodCallHandler(AndroidPackDatabaseKeyStore(this))
-
-        MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            AndroidRecordedAudioPlayer.CHANNEL_NAME,
-        ).setMethodCallHandler(AndroidRecordedAudioPlayer(this))
-
-        MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            AndroidGamificationClockIntegritySource.CHANNEL_NAME,
-        ).setMethodCallHandler(AndroidGamificationClockIntegritySource(this))
-
-        // Pronunciation signal probe
-        pronunciationSignalProbe = AndroidPronunciationSignalProbe(this)
-        MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            AndroidPronunciationSignalProbe.CHANNEL_NAME,
-        ).setMethodCallHandler(pronunciationSignalProbe)
-
-        // Play Integrity API for app and device attestation (required for production integrity protection)
-        MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            AndroidPlayIntegrityManager.CHANNEL_NAME,
-        ).setMethodCallHandler(AndroidPlayIntegrityManager(this))
-
-        // Root and debugger detection
-        MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            AndroidRootDetector.CHANNEL_NAME,
-        ).setMethodCallHandler(AndroidRootDetector(this))
-=======
     private lateinit var offlineVoiceProbe: AndroidOfflineVoiceCapabilityProbe
 
     private var processTextChannel: MethodChannel? = null
@@ -83,61 +38,54 @@ class MainActivity : FlutterActivity() {
             .setMethodCallHandler(pronunciationSignalProbe)
 
         offlineVoiceProbe = AndroidOfflineVoiceCapabilityProbe(this)
-        MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            AndroidOfflineVoiceCapabilityProbe.CHANNEL_NAME,
-        ).setMethodCallHandler(offlineVoiceProbe)
+        MethodChannel(messenger, AndroidOfflineVoiceCapabilityProbe.CHANNEL_NAME)
+            .setMethodCallHandler(offlineVoiceProbe)
 
-        // Process text channel for share/select text integration
-        processTextChannel = MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            "com.deutschbilarabi.app/process_text"
-        )
+        MethodChannel(messenger, AndroidPlayIntegrityManager.CHANNEL_NAME)
+            .setMethodCallHandler(AndroidPlayIntegrityManager(this))
+
+        processTextChannel = MethodChannel(messenger, PROCESS_TEXT_CHANNEL)
         processTextChannel?.setMethodCallHandler { call, result ->
-            if (call.method == "ready") {
-                processTextListenerReady = true
-                dispatchPendingProcessText()
-                result.success(null)
-            } else {
-                result.notImplemented()
-            }
-        }
-
-        // TTS settings opener
-        MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            "com.deutsch_bilarabi.app/tts_settings",
-        ).setMethodCallHandler { call, result ->
-            if (call.method == "openTtsInstall") {
-                try {
-                    val intent = Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA)
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    startActivity(intent)
-                    result.success(true)
-                } catch (e: Exception) {
-                    try {
-                        val fallbackIntent = Intent("com.android.settings.TTS_SETTINGS")
-                        fallbackIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                        startActivity(fallbackIntent)
-                        result.success(true)
-                    } catch (ex: Exception) {
-                        result.error("UNAVAILABLE", "Cannot open TTS settings", null)
-                    }
+            when (call.method) {
+                "ready" -> {
+                    processTextListenerReady = true
+                    result.success(null)
+                    dispatchPendingProcessText()
                 }
+                "notReady" -> {
+                    processTextListenerReady = false
+                    result.success(null)
+                }
+                else -> result.notImplemented()
+            }
+        }
+
+        MethodChannel(messenger, TTS_SETTINGS_CHANNEL).setMethodCallHandler { call, result ->
+            if (call.method == "openTtsInstall") {
+                openTtsInstaller(result)
             } else {
                 result.notImplemented()
             }
         }
+    }
 
-        // Play Integrity
-        MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            AndroidPlayIntegrityManager.CHANNEL_NAME,
-        ).setMethodCallHandler(AndroidPlayIntegrityManager(this))
+    override fun onCreate(savedInstanceState: Bundle?) {
+        WindowCompat.enableEdgeToEdge(window)
+        super.onCreate(savedInstanceState)
+        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        if ((applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
+        captureProcessText(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        captureProcessText(intent)
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         if (::offlineVoiceProbe.isInitialized) {
             offlineVoiceProbe.destroy()
         }
@@ -150,7 +98,6 @@ class MainActivity : FlutterActivity() {
         processTextChannel?.setMethodCallHandler(null)
         processTextChannel = null
         super.cleanUpFlutterEngine(flutterEngine)
->>>>>>> origin/staging/v2-full-platform
     }
 
     override fun onRequestPermissionsResult(
@@ -170,13 +117,72 @@ class MainActivity : FlutterActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
-<<<<<<< HEAD
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        // Prevent the OS/app-switcher from exposing learning data in screenshots (privacy/security).
-        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-        if ((applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
-            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+    private fun captureProcessText(source: Intent?) {
+        if (source?.action != Intent.ACTION_PROCESS_TEXT) return
+        val selected = try {
+            source.getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)?.toString()?.trim()
+        } catch (_: RuntimeException) {
+            null
+        }
+        if (selected.isNullOrEmpty()) return
+        if (pendingProcessText.size >= MAX_PENDING_PROCESS_TEXT) {
+            pendingProcessText.removeFirst()
+        }
+        pendingProcessText.addLast(selected)
+        dispatchPendingProcessText()
+    }
+
+    private fun dispatchPendingProcessText() {
+        val channel = processTextChannel ?: return
+        if (!processTextListenerReady || processTextInFlight || pendingProcessText.isEmpty()) {
+            return
+        }
+        processTextInFlight = true
+        val selected = pendingProcessText.first()
+        channel.invokeMethod(
+            "processText",
+            selected,
+            object : MethodChannel.Result {
+                override fun success(result: Any?) {
+                    if (pendingProcessText.isNotEmpty()) {
+                        pendingProcessText.removeFirst()
+                    }
+                    processTextInFlight = false
+                    dispatchPendingProcessText()
+                }
+
+                override fun error(
+                    errorCode: String,
+                    errorMessage: String?,
+                    errorDetails: Any?,
+                ) {
+                    processTextInFlight = false
+                    processTextListenerReady = false
+                }
+
+                override fun notImplemented() {
+                    processTextInFlight = false
+                    processTextListenerReady = false
+                }
+            },
+        )
+    }
+
+    private fun openTtsInstaller(result: MethodChannel.Result) {
+        try {
+            val intent = Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(intent)
+            result.success(true)
+        } catch (_: Exception) {
+            try {
+                val fallbackIntent = Intent(TTS_SETTINGS_ACTION)
+                fallbackIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(fallbackIntent)
+                result.success(true)
+            } catch (_: Exception) {
+                result.error("UNAVAILABLE", "Cannot open TTS settings", null)
+            }
         }
 =======
     private fun captureProcessText(source: Intent?) {
@@ -224,5 +230,12 @@ class MainActivity : FlutterActivity() {
         private const val TTS_SETTINGS_ACTION = "com.android.settings.TTS_SETTINGS"
         private const val MAX_PENDING_PROCESS_TEXT = 10
 >>>>>>> origin/staging/v2-full-platform
+    }
+
+    companion object {
+        private const val PROCESS_TEXT_CHANNEL = "com.deutsch_bilarabi.app/process_text"
+        private const val TTS_SETTINGS_CHANNEL = "com.deutsch_bilarabi.app/tts_settings"
+        private const val TTS_SETTINGS_ACTION = "com.android.settings.TTS_SETTINGS"
+        private const val MAX_PENDING_PROCESS_TEXT = 10
     }
 }

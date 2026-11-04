@@ -15,8 +15,4 @@ enum GrammarCapability {
   inflectional,
   agglutinative,
   analytic,
-  grammaticalCase,
 }
-
-/// Compatibility name used by declarative grammar profiles.
-typedef GrammarFeature = GrammarCapability;

@@ -1,8 +1,9 @@
+import 'dart:collection';
 import 'package:characters/characters.dart';
 
 class TrieNode {
   final Map<String, TrieNode> children = <String, TrieNode>{};
-  final Set<String> wordIds = <String>{};
+  final Set<String> wordIds = LinkedHashSet<String>();
 }
 
 /// A bounded, language-specific *search-key* index. It does not mutate or
@@ -51,38 +52,12 @@ class TrieSearchEngine {
     final foldGerman = lang == 'de' || lang == 'und';
     final foldArabic = lang == 'ar' || lang == 'und';
     final foldHebrew = lang == 'he' || lang == 'und';
-
-    final diacritics = {
-      'ä': 'ae',
-      'ö': 'oe',
-      'ü': 'ue',
-      'ß': 'ss',
-      'é': 'e',
-      'è': 'e',
-      'ê': 'e',
-      'ë': 'e',
-      'á': 'a',
-      'à': 'a',
-      'â': 'a',
-      'ã': 'a',
-      'ó': 'o',
-      'ò': 'o',
-      'ô': 'o',
-      'õ': 'o',
-      'ú': 'u',
-      'ù': 'u',
-      'û': 'u',
-      'ñ': 'n',
-      'ç': 'c',
-      'ı': 'i',
-      'ğ': 'g',
-      'ş': 's',
-    };
-
     if (foldGerman) {
-      diacritics.forEach((k, v) {
-        result = result.replaceAll(k, v);
-      });
+      result = result
+          .replaceAll('ä', 'ae')
+          .replaceAll('ö', 'oe')
+          .replaceAll('ü', 'ue')
+          .replaceAll('ß', 'ss');
     }
     if (foldArabic) {
       result = result.replaceAll(
@@ -125,6 +100,10 @@ class TrieSearchEngine {
     for (final unit in units) {
       final existing = current.children[unit];
       if (existing != null) {
+        if (!existing.wordIds.contains(id) &&
+            existing.wordIds.length >= maxResultsPerNode) {
+          return indexed;
+        }
         current = existing;
       } else {
         if (_nodeCount >= maxNodes) break;
@@ -133,10 +112,11 @@ class TrieSearchEngine {
         _nodeCount++;
         current = created;
       }
-
-      if (current.wordIds.length < maxResultsPerNode) {
-        current.wordIds.add(id);
+      if (!current.wordIds.contains(id) &&
+          current.wordIds.length >= maxResultsPerNode) {
+        return indexed;
       }
+      current.wordIds.add(id);
       indexed = true;
     }
     return indexed;
