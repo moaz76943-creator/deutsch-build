@@ -1,0 +1,1251 @@
+{
+  "schema": 1,
+  "captured_at_utc": "2026-10-25T02:34:41.351424+00:00",
+  "state": "PARTIAL_AUDIT_AND_BACKLOG_CHECKPOINT_NOT_COMPLETE",
+  "initial_full_pagination_counts": {
+    "private": 195,
+    "public": 192,
+    "total": 387
+  },
+  "open_before_this_draft_checkpoint": {
+    "private": 194,
+    "public": 188,
+    "total": 382
+  },
+  "live_heads": {
+    "private_main": "74de3d22e23559e5924a49d63c4f8e168d30c08c",
+    "private_staging": "7269ddfea246201ec1ea5c5d302cab2083322558",
+    "public_main": "75f29f2a61fb7f39ab30b8b4622d0616ae180017"
+  },
+  "merged_receipts": [
+    {
+      "TASK_ID": "MASS_REPAIR_20261025",
+      "REPOSITORY": "moaz76943-creator/deutsch-build",
+      "BASE_BRANCH": "staging/v2-full-platform",
+      "START_SHA": "3313acfe2a25822857c53fbf891df306e324000c",
+      "COMMIT_SHA": "66a2d521f9b6857a59787c525eca168cbbd74f69",
+      "PR_NUMBER": 537,
+      "MERGED": "YES",
+      "MERGE_SHA": "93bc7e0312e51b6b0f80cbfb75362a35c32feb5a",
+      "TESTS": "13 targeted tests PASS; hosted SKIPPED not PASS",
+      "REAL_OUTPUT": "Full-history fail-closed Gitleaks audit and actual scanner regressions",
+      "BLOCKER": "Publication/rights/hosted-account restrictions remain independent; no gate bypass",
+      "NEXT_ACTION": "Re-read live target/PR before next independent task",
+      "MERGED_PATH_BYTES_VERIFIED": true
+    },
+    {
+      "TASK_ID": "MASS_REPAIR_20261025",
+      "REPOSITORY": "moaz76943-creator/deutsch-build",
+      "BASE_BRANCH": "staging/v2-full-platform",
+      "START_SHA": "93bc7e0312e51b6b0f80cbfb75362a35c32feb5a",
+      "COMMIT_SHA": "4188c80551ce73818c2274f3c04eaeb5d54e9c18",
+      "PR_NUMBER": 538,
+      "MERGED": "YES",
+      "MERGE_SHA": "8eae06e1753985d76672c8aa556f422899fc894a",
+      "TESTS": "32 targeted tests PASS; hosted failed before allocation due billing",
+      "REAL_OUTPUT": "Existing Security Audit essential and history-aware; outcome decision fail-closed",
+      "BLOCKER": "Publication/rights/hosted-account restrictions remain independent; no gate bypass",
+      "NEXT_ACTION": "Re-read live target/PR before next independent task",
+      "MERGED_PATH_BYTES_VERIFIED": true
+    },
+    {
+      "TASK_ID": "POLYGLOT-HOURLY-FACTORY-EXEC",
+      "REPOSITORY": "moaz76943-creator/-offline-packs-store",
+      "BASE_BRANCH": "main",
+      "START_SHA": "3ac95e42e04f3ffb60e45324036fd77a68bff5c7",
+      "COMMIT_SHA": "5e9f21fd2601edf347ee74d19d8c19c1d3ce04fc",
+      "PR_NUMBER": 637,
+      "MERGED": "YES",
+      "MERGE_SHA": "3151d4421c104d96669888db24457f7402155d28",
+      "TESTS": "62 orchestration +31 dispatcher tests PASS, including nested suites; exact-head required hosted gate SUCCESS",
+      "REAL_OUTPUT": "Strict JSON partition verification in existing worker",
+      "BLOCKER": "Publication/rights/hosted-account restrictions remain independent; no gate bypass",
+      "NEXT_ACTION": "Re-read live target/PR before next independent task",
+      "MERGED_PATH_BYTES_VERIFIED": true
+    },
+    {
+      "TASK_ID": "POLYGLOT-HOURLY-FACTORY-EXEC",
+      "REPOSITORY": "moaz76943-creator/-offline-packs-store",
+      "BASE_BRANCH": "main",
+      "START_SHA": "3151d4421c104d96669888db24457f7402155d28",
+      "COMMIT_SHA": "296a5b3b921d6d1340f8fd62e9908bbd610bf981",
+      "PR_NUMBER": 634,
+      "MERGED": "YES",
+      "MERGE_SHA": "42691ef6dd2f04688f66a037bcfda0d38bdd45a1",
+      "TESTS": "RED1 cleanup regression ->26 PASS before/after ordinary merge; exact-head required hosted gate SUCCESS",
+      "REAL_OUTPUT": "Immutable receipts integrated; fixed deletion of staging files owned by another run",
+      "BLOCKER": "Publication/rights/hosted-account restrictions remain independent; no gate bypass",
+      "NEXT_ACTION": "Re-read live target/PR before next independent task",
+      "MERGED_PATH_BYTES_VERIFIED": true
+    },
+    {
+      "TASK_ID": "POLYGLOT-HOURLY-FACTORY-EXEC",
+      "REPOSITORY": "moaz76943-creator/-offline-packs-store",
+      "BASE_BRANCH": "main",
+      "START_SHA": "42691ef6dd2f04688f66a037bcfda0d38bdd45a1",
+      "COMMIT_SHA": "e8dffb2008c0820654844554af281a358edeaea6",
+      "PR_NUMBER": 638,
+      "MERGED": "YES",
+      "MERGE_SHA": "c583bef85cd1faa279e77fae9e96870f43b9a758",
+      "TESTS": "64 orchestration +40 queue-autoseed tests PASS; required exact-head hosted gate SUCCESS",
+      "REAL_OUTPUT": "Controller emits SUCCESS_NO_WORK or WORK_CLAIMED without premature production claim",
+      "BLOCKER": "Publication/rights/hosted-account restrictions remain independent; no gate bypass",
+      "NEXT_ACTION": "Re-read live target/PR before next independent task",
+      "MERGED_PATH_BYTES_VERIFIED": true
+    },
+    {
+      "TASK_ID": "MASS_REPAIR_20261025",
+      "REPOSITORY": "moaz76943-creator/deutsch-build",
+      "BASE_BRANCH": "staging/v2-full-platform",
+      "START_SHA": "8eae06e1753985d76672c8aa556f422899fc894a",
+      "COMMIT_SHA": "a4f1a79550d1abb3cdc2d8ec6fa71d8a54fc6878",
+      "PR_NUMBER": 339,
+      "MERGED": "YES",
+      "MERGE_SHA": "7269ddfea246201ec1ea5c5d302cab2083322558",
+      "TESTS": "44 tests PASS after ordinary staging merge; hosted unavailable/skipped not PASS",
+      "REAL_OUTPUT": "RepairPlanner integrates with guarded file ownership and current agent-contract guard",
+      "BLOCKER": "Publication/rights/hosted-account restrictions remain independent; no gate bypass",
+      "NEXT_ACTION": "Re-read live target/PR before next independent task",
+      "MERGED_PATH_BYTES_VERIFIED": true
+    },
+    {
+      "TASK_ID": "POLYGLOT-HOURLY-FACTORY-EXEC",
+      "REPOSITORY": "moaz76943-creator/-offline-packs-store",
+      "BASE_BRANCH": "main",
+      "START_SHA": "c583bef85cd1faa279e77fae9e96870f43b9a758",
+      "COMMIT_SHA": "c51d2d8e786a962377b4f1ec281e84c60e4830be",
+      "PR_NUMBER": 628,
+      "MERGED": "YES",
+      "MERGE_SHA": "f21c14c844e62ff1112b04e5106000ff7af2e759",
+      "TESTS": "15 tests +6 subtests PASS; exact-head required hosted gate SUCCESS",
+      "REAL_OUTPUT": "Ingestion access preflight uses explicitly selected repository root",
+      "BLOCKER": "Publication/rights/hosted-account restrictions remain independent; no gate bypass",
+      "NEXT_ACTION": "Re-read live target/PR before next independent task",
+      "MERGED_PATH_BYTES_VERIFIED": true
+    },
+    {
+      "TASK_ID": "POLYGLOT-HOURLY-FACTORY-EXEC",
+      "REPOSITORY": "moaz76943-creator/-offline-packs-store",
+      "BASE_BRANCH": "main",
+      "START_SHA": "f21c14c844e62ff1112b04e5106000ff7af2e759",
+      "COMMIT_SHA": "d47e9fd6b30d5d9f24de347ffb681c90eb128dbc",
+      "PR_NUMBER": 627,
+      "MERGED": "YES",
+      "MERGE_SHA": "75f29f2a61fb7f39ab30b8b4622d0616ae180017",
+      "TESTS": "14 tests PASS on original/integration tips after missing jsonschema setup; exact-head required hosted gate SUCCESS",
+      "REAL_OUTPUT": "Community bundle preflight uses selected staging root/ancestor, separate from #628",
+      "BLOCKER": "Publication/rights/hosted-account restrictions remain independent; no gate bypass",
+      "NEXT_ACTION": "Re-read live target/PR before next independent task",
+      "MERGED_PATH_BYTES_VERIFIED": true
+    }
+  ],
+  "visibility": {
+    "observed": "private",
+    "changed": false,
+    "publication_approved": false
+  },
+  "security": {
+    "scanner": "Gitleaks v8.30.1, upstream archive checksum verified",
+    "final_git_scan": {
+      "status": "FINDINGS",
+      "ref_count": 920,
+      "finding_count": 142,
+      "publication_approved": false
+    },
+    "historical_github_credential": {
+      "file": "get-app",
+      "commit": "b19dfd49050a",
+      "present_in_current_main_or_staging": false,
+      "revocation_verified": false,
+      "revocation_http_status": 403,
+      "blocker": "Official endpoint accepts only anonymous requests; available egress supplies authenticated identity. No credential value stored in this checkpoint."
+    },
+    "private_key_triage": "Two test keys exactly match published RFC8032 seed; generic findings still require triage",
+    "commit_metadata_secret_findings": 0,
+    "initial_issue_bodies_and_comments_secret_findings": 0,
+    "historical_sensitive_filename_candidates": [],
+    "lfs_pointer_count": 0,
+    "coverage_limitations": [
+      "Zero findings from a bounded scan do not prove absence of personal data or legal rights",
+      "PR review comments, image contents/OCR, every Actions log and all artifact/release contents not cleared",
+      "Default private main has55 executable workflow YAML files versus32 on integration staging; staging tests/repairs do not clear default main for publication",
+      "Other refs can advance after snapshot; refresh before action"
+    ]
+  },
+  "artifact_inventory": {
+    "count": 39,
+    "total_bytes": 3172270781,
+    "contents_cleared": false,
+    "artifacts": [
+      {
+        "expired": false,
+        "id": 12019947916,
+        "name": "deutsch-android-debug-8107d0fde3b812b692243ba4e45a620e5492caa0",
+        "size_in_bytes": 79063480,
+        "workflow_run": {
+          "head_branch": "staging/v2-full-platform",
+          "head_repository_id": 1406470226,
+          "head_sha": "8107d0fde3b812b692243ba4e45a620e5492caa0",
+          "id": 38837205196,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 12018287219,
+        "name": "deutsch-android-debug-602f572a984e20966c31ab29d110dba4ddd9cb82",
+        "size_in_bytes": 79062198,
+        "workflow_run": {
+          "head_branch": "staging/v2-full-platform",
+          "head_repository_id": 1406470226,
+          "head_sha": "602f572a984e20966c31ab29d110dba4ddd9cb82",
+          "id": 38832732754,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 12017824922,
+        "name": "deutsch-android-debug-c4aa0aaaa05b22b16a6a0b68ead69459d77d009f",
+        "size_in_bytes": 79062197,
+        "workflow_run": {
+          "head_branch": "staging/v2-full-platform",
+          "head_repository_id": 1406470226,
+          "head_sha": "c4aa0aaaa05b22b16a6a0b68ead69459d77d009f",
+          "id": 38834312944,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 12013467348,
+        "name": "deutsch-android-debug-f81db9b932c80df7373b3127d34b41f40d87299e",
+        "size_in_bytes": 79062197,
+        "workflow_run": {
+          "head_branch": "staging/v2-full-platform",
+          "head_repository_id": 1406470226,
+          "head_sha": "f81db9b932c80df7373b3127d34b41f40d87299e",
+          "id": 38820962949,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 12003895569,
+        "name": "deutsch-android-debug-58137647ed0608c0b4bfe9a44d1426683b23e900",
+        "size_in_bytes": 79062193,
+        "workflow_run": {
+          "head_branch": "staging/v2-full-platform",
+          "head_repository_id": 1406470226,
+          "head_sha": "58137647ed0608c0b4bfe9a44d1426683b23e900",
+          "id": 38797152117,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11978740277,
+        "name": "deutsch-android-debug-5ce4dd1c832d49fa93d3638c929286acb48ba824",
+        "size_in_bytes": 79058158,
+        "workflow_run": {
+          "head_branch": "staging/v2-full-platform",
+          "head_repository_id": 1406470226,
+          "head_sha": "5ce4dd1c832d49fa93d3638c929286acb48ba824",
+          "id": 38743657211,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11976961294,
+        "name": "deutsch-android-debug-b3859312ccb0a7e69a02d5ec61b56f0f26946b5a",
+        "size_in_bytes": 79057671,
+        "workflow_run": {
+          "head_branch": "staging/v2-full-platform",
+          "head_repository_id": 1406470226,
+          "head_sha": "b3859312ccb0a7e69a02d5ec61b56f0f26946b5a",
+          "id": 38742308773,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11974457006,
+        "name": "deutsch-android-debug-595b3b00b159016ad13391a816af628a308e25d0",
+        "size_in_bytes": 79057673,
+        "workflow_run": {
+          "head_branch": "staging/v2-full-platform",
+          "head_repository_id": 1406470226,
+          "head_sha": "595b3b00b159016ad13391a816af628a308e25d0",
+          "id": 38735590266,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11970946500,
+        "name": "deutsch-android-debug-931a2f067c1e2b63c8cd912b60f1170d864994b7",
+        "size_in_bytes": 79057669,
+        "workflow_run": {
+          "head_branch": "staging/v2-full-platform",
+          "head_repository_id": 1406470226,
+          "head_sha": "931a2f067c1e2b63c8cd912b60f1170d864994b7",
+          "id": 38730756034,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11969238065,
+        "name": "deutsch-android-debug-42aca79055d28206028c8ba7e2a490e5c25c5440",
+        "size_in_bytes": 79051321,
+        "workflow_run": {
+          "head_branch": "staging/v2-full-platform",
+          "head_repository_id": 1406470226,
+          "head_sha": "42aca79055d28206028c8ba7e2a490e5c25c5440",
+          "id": 38728609913,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11966917037,
+        "name": "deutsch-android-debug-ad1db71f2b18eb3dbb9ead95c9e4b664e64c5b14",
+        "size_in_bytes": 79049141,
+        "workflow_run": {
+          "head_branch": "staging/v2-full-platform",
+          "head_repository_id": 1406470226,
+          "head_sha": "ad1db71f2b18eb3dbb9ead95c9e4b664e64c5b14",
+          "id": 38721578410,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11945909085,
+        "name": "deutsch-android-debug-fc7267802bf7ebf6370ca587a348a8d6748aa938",
+        "size_in_bytes": 79049137,
+        "workflow_run": {
+          "head_branch": "staging/v2-full-platform",
+          "head_repository_id": 1406470226,
+          "head_sha": "fc7267802bf7ebf6370ca587a348a8d6748aa938",
+          "id": 38676119798,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11944994057,
+        "name": "deutsch-android-debug-50d38cce36e0df5e999bf19ee6f7547a6ec6aefa",
+        "size_in_bytes": 79041235,
+        "workflow_run": {
+          "head_branch": "staging/v2-full-platform",
+          "head_repository_id": 1406470226,
+          "head_sha": "50d38cce36e0df5e999bf19ee6f7547a6ec6aefa",
+          "id": 38673664081,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11942120299,
+        "name": "deutsch-android-debug-6cac3d0c790c733ab08fdd6657264ee5822f65a7",
+        "size_in_bytes": 79042906,
+        "workflow_run": {
+          "head_branch": "staging/v2-full-platform",
+          "head_repository_id": 1406470226,
+          "head_sha": "6cac3d0c790c733ab08fdd6657264ee5822f65a7",
+          "id": 38665472639,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11682425019,
+        "name": "app-release",
+        "size_in_bytes": 151287529,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "e69a849377ca9b6a486413c1df2d576eea66f8ed",
+          "id": 38084465422,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11681740065,
+        "name": "app-release",
+        "size_in_bytes": 21667839,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "88ad5baf6218b4fe11c45b719a185b0727dd4c5e",
+          "id": 38083496016,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11681335480,
+        "name": "app-release",
+        "size_in_bytes": 21476301,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "28283b4dd1645155a367746b383fa3b5012db9fb",
+          "id": 38081813901,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11681319870,
+        "name": "app-release",
+        "size_in_bytes": 151288103,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "28ec88e57c06ac1fce88550d45dde501e0c390aa",
+          "id": 38084418714,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11680866406,
+        "name": "app-release",
+        "size_in_bytes": 19466313,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "fe5e0ebf24587d54d3091b14fc40a40ca59b9ed9",
+          "id": 38080969977,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11680637931,
+        "name": "app-release",
+        "size_in_bytes": 21476412,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "3428b954b383ffefff74d886e09f0a9d4bfbb0de",
+          "id": 38081908696,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11588787014,
+        "name": "app-debug-apk",
+        "size_in_bytes": 87385245,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "87255e614d6c82c8fa504d151b10f04a0bcdbdc1",
+          "id": 37865992595,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11588725749,
+        "name": "app-debug-apk",
+        "size_in_bytes": 87377891,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "61d2d3736c82044b4f45527f95e3c793aca13488",
+          "id": 37865333674,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11588254027,
+        "name": "app-debug-apk",
+        "size_in_bytes": 87385245,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "631b8afa2e8e43aa8fe4bf30673785bef428ca59",
+          "id": 37866366649,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11588218361,
+        "name": "app-debug-apk",
+        "size_in_bytes": 87385243,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "bdb6c5595f46a1a9564817abde6dfcd5bd884ee0",
+          "id": 37865922014,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11588167262,
+        "name": "app-debug-apk",
+        "size_in_bytes": 87377890,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "9f4a50545aad6a94d778e5773d268bd27d72ff6f",
+          "id": 37865200468,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11588167135,
+        "name": "app-debug-apk",
+        "size_in_bytes": 87346184,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "b5eaa4cece9f84af04c55dac1f7daed000203ff0",
+          "id": 37865100429,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11588052756,
+        "name": "app-debug-apk",
+        "size_in_bytes": 87385245,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "773a16c9b15e6314f836e70235528f5ef2ea5498",
+          "id": 37865397610,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11588019341,
+        "name": "app-debug-apk",
+        "size_in_bytes": 87385244,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "f88e640f1e50d74605e282829a51400ef6cef343",
+          "id": 37866247216,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11587913801,
+        "name": "app-debug-apk",
+        "size_in_bytes": 87385248,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "10f473c9356a6a82af42bd3d2daf747dfc604c50",
+          "id": 37865552875,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11587053180,
+        "name": "app-debug-apk",
+        "size_in_bytes": 87346191,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "9e96a4fe37165fb8fe340f8bd81d18d9be854539",
+          "id": 37863742787,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11586141813,
+        "name": "app-debug-apk",
+        "size_in_bytes": 87345975,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "389f895ba6970c3181bae8698a31e794365e94cb",
+          "id": 37859418871,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11585737549,
+        "name": "app-debug-apk",
+        "size_in_bytes": 87345970,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "389f895ba6970c3181bae8698a31e794365e94cb",
+          "id": 37859418166,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11584726459,
+        "name": "app-debug-apk",
+        "size_in_bytes": 87345978,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "2c782fca5f60479e0a26525c4282d611478d873c",
+          "id": 37856050670,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11584530342,
+        "name": "app-debug-apk",
+        "size_in_bytes": 87327599,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "c1284c9aa156af355f495cf4e78f379173471802",
+          "id": 37854930069,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11582488009,
+        "name": "app-debug-apk",
+        "size_in_bytes": 91147897,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "c1d5334011ac5fe490b0f43e3cd73209b59a7799",
+          "id": 37852255075,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11582007526,
+        "name": "app-debug-apk",
+        "size_in_bytes": 91131131,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "ad300dda30a335d89700ec77c6ec2449829ac298",
+          "id": 37850369059,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11581773673,
+        "name": "app-debug-apk",
+        "size_in_bytes": 91147899,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "810550cc18b3ef1a3a61baed3b2223fd4019a2b1",
+          "id": 37850472114,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11581339553,
+        "name": "app-debug-apk",
+        "size_in_bytes": 91147900,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "810550cc18b3ef1a3a61baed3b2223fd4019a2b1",
+          "id": 37850435537,
+          "repository_id": 1406470226
+        }
+      },
+      {
+        "expired": false,
+        "id": 11578883357,
+        "name": "app-debug-apk",
+        "size_in_bytes": 91131133,
+        "workflow_run": {
+          "head_branch": "main",
+          "head_repository_id": 1406470226,
+          "head_sha": "ad300dda30a335d89700ec77c6ec2449829ac298",
+          "id": 37844617690,
+          "repository_id": 1406470226
+        }
+      }
+    ]
+  },
+  "releases": [
+    {
+      "id": 410736302,
+      "tag": "v3.0.0",
+      "assets": [
+        {
+          "id": 634126973,
+          "name": "af-1.0.0.pack.gz",
+          "size": 74270
+        },
+        {
+          "id": 634126974,
+          "name": "am-1.0.0.pack.gz",
+          "size": 74270
+        },
+        {
+          "id": 634126972,
+          "name": "ar-1.0.0.pack.gz",
+          "size": 431608
+        },
+        {
+          "id": 634126971,
+          "name": "az-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634126979,
+          "name": "bg-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127011,
+          "name": "bn-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127004,
+          "name": "bs-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127015,
+          "name": "ca-1.0.0.pack.gz",
+          "size": 74265
+        },
+        {
+          "id": 634127007,
+          "name": "ceb-1.0.0.pack.gz",
+          "size": 74557
+        },
+        {
+          "id": 634127014,
+          "name": "cs-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127046,
+          "name": "cy-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127041,
+          "name": "da-1.0.0.pack.gz",
+          "size": 74265
+        },
+        {
+          "id": 634127045,
+          "name": "de-1.0.0.pack.gz",
+          "size": 524507
+        },
+        {
+          "id": 634127052,
+          "name": "el-1.0.0.pack.gz",
+          "size": 74264
+        },
+        {
+          "id": 634127053,
+          "name": "en-1.0.0.pack.gz",
+          "size": 167601
+        },
+        {
+          "id": 634127097,
+          "name": "eo-1.0.0.pack.gz",
+          "size": 74270
+        },
+        {
+          "id": 634127099,
+          "name": "es-1.0.0.pack.gz",
+          "size": 167588
+        },
+        {
+          "id": 634127102,
+          "name": "et-1.0.0.pack.gz",
+          "size": 74270
+        },
+        {
+          "id": 634127105,
+          "name": "eu-1.0.0.pack.gz",
+          "size": 74269
+        },
+        {
+          "id": 634127103,
+          "name": "fa-1.0.0.pack.gz",
+          "size": 74262
+        },
+        {
+          "id": 634127112,
+          "name": "fi-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127114,
+          "name": "fr-1.0.0.pack.gz",
+          "size": 167554
+        },
+        {
+          "id": 634127113,
+          "name": "ga-1.0.0.pack.gz",
+          "size": 74266
+        },
+        {
+          "id": 634127122,
+          "name": "gl-1.0.0.pack.gz",
+          "size": 74269
+        },
+        {
+          "id": 634127117,
+          "name": "gu-1.0.0.pack.gz",
+          "size": 74270
+        },
+        {
+          "id": 634127143,
+          "name": "ha-1.0.0.pack.gz",
+          "size": 74260
+        },
+        {
+          "id": 634127142,
+          "name": "he-1.0.0.pack.gz",
+          "size": 74261
+        },
+        {
+          "id": 634127148,
+          "name": "hi-1.0.0.pack.gz",
+          "size": 74269
+        },
+        {
+          "id": 634127150,
+          "name": "hr-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127157,
+          "name": "hu-1.0.0.pack.gz",
+          "size": 74270
+        },
+        {
+          "id": 634127167,
+          "name": "hy-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127174,
+          "name": "id-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127171,
+          "name": "ig-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127169,
+          "name": "is-1.0.0.pack.gz",
+          "size": 74270
+        },
+        {
+          "id": 634127176,
+          "name": "it-1.0.0.pack.gz",
+          "size": 81233
+        },
+        {
+          "id": 634127179,
+          "name": "ja-1.0.0.pack.gz",
+          "size": 74266
+        },
+        {
+          "id": 634127183,
+          "name": "jv-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127185,
+          "name": "ka-1.0.0.pack.gz",
+          "size": 74265
+        },
+        {
+          "id": 634127186,
+          "name": "kk-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127197,
+          "name": "km-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127199,
+          "name": "kn-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127208,
+          "name": "ko-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127213,
+          "name": "ku-1.0.0.pack.gz",
+          "size": 74267
+        },
+        {
+          "id": 634127221,
+          "name": "ky-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127224,
+          "name": "la-1.0.0.pack.gz",
+          "size": 74266
+        },
+        {
+          "id": 634127229,
+          "name": "lb-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127234,
+          "name": "lo-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127244,
+          "name": "lt-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127243,
+          "name": "lv-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127247,
+          "name": "mg-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127249,
+          "name": "mk-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127251,
+          "name": "ml-1.0.0.pack.gz",
+          "size": 74269
+        },
+        {
+          "id": 634127265,
+          "name": "mn-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127277,
+          "name": "mr-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127267,
+          "name": "ms-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127270,
+          "name": "mt-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127276,
+          "name": "my-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127297,
+          "name": "ne-1.0.0.pack.gz",
+          "size": 74269
+        },
+        {
+          "id": 634127299,
+          "name": "nl-1.0.0.pack.gz",
+          "size": 81289
+        },
+        {
+          "id": 634127301,
+          "name": "no-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127303,
+          "name": "ny-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127304,
+          "name": "om-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127317,
+          "name": "or-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127319,
+          "name": "pa-1.0.0.pack.gz",
+          "size": 74266
+        },
+        {
+          "id": 634127320,
+          "name": "pl-1.0.0.pack.gz",
+          "size": 74269
+        },
+        {
+          "id": 634127321,
+          "name": "ps-1.0.0.pack.gz",
+          "size": 74269
+        },
+        {
+          "id": 634127347,
+          "name": "pt-1.0.0.pack.gz",
+          "size": 81240
+        },
+        {
+          "id": 634127351,
+          "name": "ro-1.0.0.pack.gz",
+          "size": 74269
+        },
+        {
+          "id": 634127357,
+          "name": "ru-1.0.0.pack.gz",
+          "size": 81291
+        },
+        {
+          "id": 634127356,
+          "name": "rw-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127369,
+          "name": "sd-1.0.0.pack.gz",
+          "size": 74269
+        },
+        {
+          "id": 634127376,
+          "name": "si-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127382,
+          "name": "sk-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127388,
+          "name": "sl-1.0.0.pack.gz",
+          "size": 74269
+        },
+        {
+          "id": 634127391,
+          "name": "sm-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127402,
+          "name": "sn-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127405,
+          "name": "so-1.0.0.pack.gz",
+          "size": 74269
+        },
+        {
+          "id": 634127414,
+          "name": "sq-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127417,
+          "name": "sr-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127418,
+          "name": "st-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127426,
+          "name": "su-1.0.0.pack.gz",
+          "size": 74270
+        },
+        {
+          "id": 634127428,
+          "name": "sv-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127439,
+          "name": "sw-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127440,
+          "name": "ta-1.0.0.pack.gz",
+          "size": 74265
+        },
+        {
+          "id": 634127442,
+          "name": "te-1.0.0.pack.gz",
+          "size": 74264
+        },
+        {
+          "id": 634127448,
+          "name": "tg-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127452,
+          "name": "th-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127470,
+          "name": "ti-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127474,
+          "name": "tk-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127476,
+          "name": "tl-1.0.0.pack.gz",
+          "size": 74269
+        },
+        {
+          "id": 634127487,
+          "name": "tr-1.0.0.pack.gz",
+          "size": 81340
+        },
+        {
+          "id": 634127489,
+          "name": "tt-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127499,
+          "name": "uk-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127506,
+          "name": "ur-1.0.0.pack.gz",
+          "size": 74269
+        },
+        {
+          "id": 634127508,
+          "name": "uz-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127511,
+          "name": "vi-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127516,
+          "name": "xh-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127520,
+          "name": "yo-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127525,
+          "name": "zh-1.0.0.pack.gz",
+          "size": 74271
+        },
+        {
+          "id": 634127528,
+          "name": "zu-1.0.0.pack.gz",
+          "size": 74269
+        }
+      ],
+      "contents_cleared": false
+    },
+    {
+      "id": 409210309,
+      "tag": "latest",
+      "assets": [
+        {
+          "id": 629113690,
+          "name": "deutsch-app.apk",
+          "size": 10019898
+        }
+      ],
+      "contents_cleared": false
+    }
+  ],
+  "factory": {
+    "source_ledger_approved_entries": 0,
+    "manifest_production_packs": 0,
+    "rights": "UNVERIFIED_RIGHTS",
+    "READY_eligible_verified_tasks": 0,
+    "known_open_registry_tasks": {
+      "58": "SUCCEEDED, candidate_count=0",
+      "119": "SUCCEEDED, candidate_count=0"
+    },
+    "real_produced_validated_published_packs": 0,
+    "heavy_workers_dispatched": 0,
+    "source_admission_pr": 636,
+    "source_admission_state": "BLOCKED: evidence QA2 assertion failures; pack conformance expected source-gate state mismatch; rights review still required",
+    "status_fix_pr": 638
+  },
+  "billing": {
+    "additional_billing_authorized_or_changed": false,
+    "paid_services_or_larger_runners": false,
+    "private_runner_failure": "Account payment/spending restriction before allocation, not failing test code",
+    "random_reruns": false
+  },
+  "tasks": {
+    "TASK_01": "PARTIAL; scanner merged, true historical credential and incomplete privacy/artifact/rights triage remain",
+    "TASK_02": "BLOCKED; no visibility change",
+    "TASK_03": "PARTIAL; security audit fixed on staging, hosted billing and #536 remain blocked",
+    "TASK_04": "PARTIAL;8 squashes verified;382 open before checkpoint; conservative triage is not blanket merge approval",
+    "TASK_05": "NOT COMPLETE; #529 remains active Draft and changed HEAD, #507/#502 Draft; no available locked Flutter SDK; no untested Flutter merge",
+    "TASK_06": "PARTIAL; independent safety repairs and telemetry merged; no eligible admitted content, source #636 blocked",
+    "TASK_07": "PARTIAL; source/API inventory and latest126 workflow records captured; productive effects not inferred from green checks",
+    "TASK_08": "NO ADDITIONAL BILLING; security/learner/rights checks retained",
+    "TASK_09": "This Draft checkpoint preserves incomplete work; all completed source fixes already pushed and merged"
+  },
+  "next_actions": [
+    "Resolve historical credential revocation through suitable owner/anonymous access; retain private visibility until all publication gates pass",
+    "Finish privacy, image, full log/artifact/release and code/content/audio/font rights audit; do not rewrite history or force push automatically",
+    "Restore authorized free execution capability or use an available locked Flutter toolchain for #536/#529; do not increase spending",
+    "Reconcile #636 with its current source owner and actual failed tests/rights evidence; admit only verified partitions before dispatching up to3 independent heavy workers",
+    "Resume non-Draft scoped PRs one at a time using current SHAs, actual tests and existing protection/review helpers; keep all unmerged features",
+    "Inspect #623/#573 and #620/#569 semantically before any duplicate decision; no title-based closure performed"
+  ],
+  "checkpoint_purpose": "Existing project-record recovery surface, not a new coordinator, approval gate or production claim"
+}
