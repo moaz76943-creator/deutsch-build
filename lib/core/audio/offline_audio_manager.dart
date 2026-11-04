@@ -1,5 +1,9 @@
 import 'package:flutter_tts/flutter_tts.dart';
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> origin/staging/v2-full-platform
 /// The platform TTS channel must not exist until an actual playback request.
 class OfflineAudioManager {
   static final OfflineAudioManager instance = OfflineAudioManager._init();

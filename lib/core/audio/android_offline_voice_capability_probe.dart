@@ -7,7 +7,9 @@ class AndroidOfflineVoiceCapabilityProbe {
 
   Future<List<String>> getVerifiedOfflineLocales() async {
     try {
-      final dynamic voices = await _tts.getVoices;
+      final locales = <String>{};
+      final voices = await _tts.getVoices;
+<<<<<<< HEAD
       if (voices == null) return [];
 
       final List<String> locales = [];
@@ -18,6 +20,14 @@ class AndroidOfflineVoiceCapabilityProbe {
             if (locale != null) {
               locales.add(locale);
             }
+=======
+      if (voices is List) {
+        for (final voice in voices) {
+          if (voice is! Map) continue;
+          final locale = voice['locale'];
+          if (locale is String && locale.isNotEmpty) {
+            locales.add(locale);
+>>>>>>> origin/staging/v2-full-platform
           }
         }
         // An advertised language, or absent network metadata, is not offline proof.

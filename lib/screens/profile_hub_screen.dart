@@ -86,7 +86,11 @@ class ProfileHubScreen extends StatelessWidget {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
+<<<<<<< HEAD
+                        builder: (_) => const OfflineStorageScreen()));
+=======
                         builder: (_) => const LanguageManagerScreen()));
+>>>>>>> origin/staging/v2-full-platform
               },
               child: const Row(
                 children: <Widget>[
@@ -113,6 +117,7 @@ class ProfileHubScreen extends StatelessWidget {
                 ],
               ),
             ),
+<<<<<<< HEAD
             const SizedBox(height: 12),
             AppBaseGlassCard(
               onTap: () => _showPrivacyPolicy(context),
@@ -138,6 +143,30 @@ class ProfileHubScreen extends StatelessWidget {
                   ),
                   Icon(Icons.arrow_forward_ios_rounded,
                       color: Colors.white38, size: 16),
+=======
+            const SizedBox(height: 16),
+            AppBaseGlassCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text('حول التطبيق',
+                      style: AppTypography.title.copyWith(color: Colors.white)),
+                  const SizedBox(height: 8),
+                  const Text(
+                    kMicrophoneDisclosureText,
+                    style: TextStyle(color: Colors.white70, fontSize: 13),
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: () {
+                      launchUrl(
+                        Uri.parse(kPrivacyPolicyUrl),
+                        mode: LaunchMode.externalApplication,
+                      );
+                    },
+                    child: const Text(kPrivacyPolicyUrl),
+                  ),
+>>>>>>> origin/staging/v2-full-platform
                 ],
               ),
             ),

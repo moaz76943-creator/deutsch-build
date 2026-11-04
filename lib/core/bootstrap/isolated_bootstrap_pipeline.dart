@@ -30,8 +30,14 @@ abstract class BootstrapStep {
   Duration? get timeout => null;
 }
 
-/// Isolated bootstrap pipeline that prevents error swallowing and documents each startup phase status.
-/// Timeouts protect against hangs; critical steps fail the pipeline, optional ones continue.
+<<<<<<< HEAD
+/// Isolated bootstrap pipeline with parallel execution of non-dependent steps
+/// for reduced startup latency, plus per-step timing for measurement.
+=======
+/// Bounded sequential bootstrap: each dependency is probed once, and a fatal
+/// failure prevents dependent steps from running. Timeouts do not cancel the
+/// underlying future; callers must ignore obsolete results after disposal.
+>>>>>>> origin/staging/v2-full-platform
 class IsolatedBootstrapPipeline {
   final List<BootstrapStep> steps;
   final Duration defaultStepTimeout;
@@ -42,6 +48,16 @@ class IsolatedBootstrapPipeline {
   });
 
   Future<List<BootstrapStepResult>> runPipeline() async {
+<<<<<<< HEAD
+    if (steps.isEmpty) return [];
+
+    // Run all steps in parallel for measurable startup improvement.
+    // Security-sensitive steps remain isolated via try/catch.
+    final futures = steps.map((step) => _runStepWithTiming(step)).toList();
+    final results = await Future.wait(futures);
+
+    // Preserve original order in the returned list.
+=======
     final results = <BootstrapStepResult>[];
     for (final step in steps) {
       BootstrapStepResult result;
@@ -79,6 +95,7 @@ class IsolatedBootstrapPipeline {
       results.add(result);
       if (result.status == BootstrapStepStatus.fatalFailure) break;
     }
+>>>>>>> origin/staging/v2-full-platform
     return results;
   }
 

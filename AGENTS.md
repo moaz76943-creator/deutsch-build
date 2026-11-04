@@ -6,6 +6,23 @@ All agents, coding assistants, OpenCode sessions, and automation working in this
 - `docs/project-record/PROJECT_INTENT.md`
 - `.github/SYSTEM_RULES.md` (offline-first absolute, no direct SharedPreferences outside ports, quality gate required)
 
+<<<<<<< HEAD
+## Commit and CI policy (effective 2026-10-15)
+
+- Never add CI-skip tokens (including `[skip ci]`, `[ci skip]`, `[no ci]`, `[skip actions]`, `[actions skip]`) or `skip-checks: true` to **new** commit messages, whether created by Jules, Gemini, Antigravity, or an automated workflow.
+- Do not skip mandatory GitHub Actions or treat `SKIPPED` / `NOT_RUN` as a passing test. Optimize costs with focused tests, caching, and bounded concurrency, not commit-level suppression.
+- Keep historical commits unchanged. For older PRs with skip directives, use a reviewed, non-skipping integration tip and validate the exact head before merge; never force-push branches to rewrite their history.
+- Follow the repository's actual branch and task CI contracts; this notice does not activate disabled workflows or authorize paid services.
+- Canonical working repository for this instance: `moaz76943-creator/deutsch-build`. Cross-check against any upstream if needed, but operate here.
+
+## Mutation and Handoff Protocol
+
+Before any mutation:
+1. Inspect live branch/PR/CI state.
+2. Reconcile task ownership and mutable scope.
+3. Reuse the existing TASK_ID when work is already active.
+4. Treat another owner’s branch/PR/path as READ-ONLY until durable handoff.
+=======
 ## Commit and CI policy (updated 2026-10-24)
 
 - Commit messages may include `[skip ci]`, `[ci skip]`, `[no ci]`, `[skip actions]`, `[actions skip]` or `skip-checks: true` when chosen by the author. Their presence alone does not reject a PR or invalidate tested code.
@@ -19,6 +36,7 @@ Before any mutation:
 3. reconcile task ownership and mutable scope;
 4. reuse the existing TASK_ID when work is already active;
 5. treat another owner’s branch/PR/path as READ-ONLY until durable handoff.
+>>>>>>> origin/staging/v2-full-platform
 
 After meaningful movement:
 - Leave durable evidence (commits, PR comments, issue updates).
