@@ -30,9 +30,8 @@ class StableFlow extends AdaptationReason {
   const StableFlow();
 }
 
-class UnverifiedCEFR extends AdaptationReason {
-  final String reason = 'blocked: unverified';
-  const UnverifiedCEFR();
+class UnverifiedCefrBlocked extends AdaptationReason {
+  const UnverifiedCefrBlocked();
 }
 
 class AdaptationDecision {
@@ -128,12 +127,13 @@ class AdaptiveCognitiveEngine {
       final isCefrVerified = recentWindow.every((m) => m.isCefrVerified);
 
       if (allCorrect && isFast && recentWindow.length >= 3) {
-        if (!isCefrVerified) {
-          decision = const AdaptationDecision(
-              AdaptationAction.maintainFlow, UnverifiedCEFR());
-        } else {
+        final allCefrVerified = recentWindow.every((m) => m.isCefrVerified);
+        if (allCefrVerified) {
           decision = const AdaptationDecision(
               AdaptationAction.deepenLinguisticChallenge, ConsistentMastery());
+        } else {
+          decision = const AdaptationDecision(
+              AdaptationAction.maintainFlow, UnverifiedCefrBlocked());
         }
       } else {
         decision = const AdaptationDecision(
