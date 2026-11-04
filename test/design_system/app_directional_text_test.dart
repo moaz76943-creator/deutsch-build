@@ -3,6 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('shared direction API accepts normalized locale tags', () {
+    expect(AppTextDirection.forLanguageCode(' ar-SA '), TextDirection.rtl);
+    expect(AppTextDirection.forLanguageCode('FA_IR'), TextDirection.rtl);
+    expect(AppTextDirection.forLanguageCode('de-DE'), TextDirection.ltr);
+    expect(AppTextDirection.forLanguageCode(''), TextDirection.ltr);
+    expect(AppTextDirection.forLanguageCode('unknown'), TextDirection.ltr);
+  });
+
   for (final scenario in [
     (text: 'مرحبا', code: null, forced: null, direction: TextDirection.rtl),
     (text: 'Hallo', code: null, forced: null, direction: TextDirection.ltr),
