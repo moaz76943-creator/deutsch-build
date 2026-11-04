@@ -148,25 +148,54 @@ def collect_snapshot(api: Callable[[str], Any] = github_api) -> dict[str, Any]:
 
 
 def validate_snapshot(snapshot: Any) -> dict[str, Any]:
+    """Reject malformed offline snapshots before rendering or claiming LIVE data."""
     if not isinstance(snapshot, dict) or snapshot.get("repository") != REPOSITORY or snapshot.get("branch") != INTEGRATION_BRANCH:
         raise SnapshotError("Snapshot repository or integration branch mismatch")
     observations = snapshot.get("observations")
-    if not isinstance(observations, dict):
-        raise SnapshotError("Missing observation states")
+    expected = {"head", "pulls", "runs", "workflows"}
+    if not isinstance(observations, dict) or set(observations) != expected:
+        raise SnapshotError("Missing or unexpected observation states")
+    errors = snapshot.get("errors", {})
+    if (not isinstance(errors, dict)
+            or any(k not in expected or not isinstance(v, str) for k, v in errors.items())):
+        raise SnapshotError("Malformed snapshot diagnostics")
     for key in ("head", "pulls", "runs", "workflows"):
-        item = observations.get(key)
-        if not isinstance(item, dict) or item.get("status") not in ("LIVE", "CACHED", "UNAVAILABLE", "NOT_RUN"):
+        item = observations[key]
+        if (not isinstance(item, dict)
+                or item.get("status") not in ("LIVE", "CACHED", "UNAVAILABLE", "NOT_RUN")
+                or type(item.get("truncated")) is not bool):
             raise SnapshotError(f"Missing or invalid status for {key}")
-        if item["status"] in DATA_STATES:
-            if key == "head":
-                head = item.get("items")
-                if (not isinstance(head, dict) or not isinstance(head.get("sha"), str)
-                        or not re.fullmatch(r"[0-9a-fA-F]{40}", head["sha"])):
-                    raise SnapshotError("Invalid LIVE HEAD SHA")
-            elif not isinstance(item.get("items"), list):
-                raise SnapshotError(f"Missing live data for {key}")
+        if item["status"] not in DATA_STATES:
+            if item.get("items") is not None:
+                raise SnapshotError(f"Unverified data must not contain claimed {key} items")
+            continue
+        if key == "head":
+            head = item.get("items")
+            if (not isinstance(head, dict) or not isinstance(head.get("sha"), str)
+                    or not re.fullmatch(r"[0-9a-fA-F]{40}", head["sha"])):
+                raise SnapshotError("Invalid LIVE HEAD SHA")
+            continue
+        rows = item.get("items")
+        if not isinstance(rows, list) or len(rows) > (MAX_PR_PAGES * MAX_ITEMS if key == "pulls" else MAX_ITEMS):
+            raise SnapshotError(f"Invalid {key} observation list")
+        for row in rows:
+            if not isinstance(row, dict):
+                raise SnapshotError(f"Non-object {key} observation row")
+            if key == "pulls":
+                sha = row.get("head_sha")
+                if (type(row.get("number")) is not int or row["number"] <= 0
+                        or not isinstance(row.get("title"), str)
+                        or type(row.get("draft")) is not bool
+                        or not isinstance(row.get("base"), str)
+                        or not row["base"]
+                        or type(row.get("mergeable")) not in (bool, type(None))
+                        or not isinstance(sha, str)
+                        or (sha != "UNKNOWN" and not re.fullmatch(r"[0-9a-fA-F]{40}", sha))):
+                    raise SnapshotError("Malformed pull request observation")
+            elif (type(row.get("id")) is not int or row["id"] <= 0
+                  or any(not isinstance(row.get(field), str) for field in ("name", "status", "conclusion"))):
+                raise SnapshotError(f"Malformed {key} observation")
     return snapshot
-
 
 def _e(value: Any) -> str:
     return html.escape(str(value), quote=True)
@@ -193,7 +222,7 @@ def render(snapshot: dict[str, Any]) -> str:
     lanes = "".join(
         f'<article class="lane" data-filter="{_e(name + " " + detail)}">'
         f'<h3>{_e(name)}</h3><p>{_e(detail)}</p>'
-        f'<a target="_blank" rel="noopener noreferrer" href="{base_url}/tree/{quote(browse_ref, safe="/")}/{quote(path, safe="/")}">فتح الملفات في GitHub ↗</a>'
+        f'<a target="_blank" rel="noopener noreferrer" href="{base_url}/{"blob" if Path(path).suffix else "tree"}/{quote(browse_ref, safe="/")}/{quote(path, safe="/")}">فتح الملفات في GitHub ↗</a>'
         f'</article>' for name, path, detail in LANES
     )
     pulls = snapshot["observations"]["pulls"]
