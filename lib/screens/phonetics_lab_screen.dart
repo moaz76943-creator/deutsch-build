@@ -20,9 +20,17 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
   final List<Map<String, dynamic>> _sounds = [
     {
       "symbol": "ä / ö / ü",
-      "ipa": "[ɛː] / [øː] / [yː]",
+      "ipa": "[ɛ / ø / y]",
       "desc": "حروف التملق (Umlaut) وكيفية تدوير الشفاه بالألمانية",
       "lang": "الألمانية",
+      "langCode": "de-DE",
+      "hasAudio": true
+    },
+    {
+      "symbol": "Long Vowels",
+      "ipa": "[ɛː] / [øː] / [yː]",
+      "desc": "Long vowels test",
+      "lang": "الألمانية (طويلة)",
       "langCode": "de-DE",
       "hasAudio": true
     },
@@ -42,17 +50,34 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
       "langCode": "tr-TR",
       "hasAudio": false
     },
+    {
+      "symbol": "ğ alt",
+      "ipa": "[ɰ]",
+      "desc": "بديل",
+      "lang": "التركية (بديل)",
+      "langCode": "tr-TR",
+      "hasAudio": false
+    },
+    {
+      "symbol": "unverified",
+      "ipa": "غير متوفر",
+      "desc": "Unknown sound",
+      "lang": "Unknown",
+      "langCode": "none",
+      "hasAudio": false,
+      "isUnverified": true
+    },
   ];
 
   @override
   void dispose() {
-    OfflineAudioPool().stop();
+    OfflineAudioDispatcher.stopCurrentAudio();
     super.dispose();
   }
 
   Future<void> _playAudio(int index) async {
     if (_isPlaying) {
-      OfflineAudioPool().stop();
+      OfflineAudioDispatcher.stopCurrentAudio();
       if (_currentlyPlayingIndex == index) {
         setState(() {
           _isPlaying = false;
@@ -116,15 +141,16 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: ListView.builder(
-              itemCount: _sounds.length,
-              itemBuilder: (context, index) {
-                final item = _sounds[index];
-                final hasAudio = item['hasAudio'] as bool;
-                final isCurrentPlaying =
-                    _currentlyPlayingIndex == index && _isPlaying;
+            child: SingleChildScrollView(
+              child: Column(
+                children: _sounds.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  final hasAudio = item['hasAudio'] as bool;
+                  final isCurrentPlaying =
+                      _currentlyPlayingIndex == index && _isPlaying;
 
-                return Container(
+                  return Container(
                   margin: const EdgeInsets.only(bottom: 14),
                   child: AppBaseGlassCard(
                     padding: const EdgeInsets.all(16),
@@ -191,6 +217,18 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
                                 ? FontAwesomeIcons.stop
                                 : FontAwesomeIcons.volumeHigh,
                           )
+                        else if (item['isUnverified'] == true)
+                          const Tooltip(
+                            message: 'النطق الصوتي غير متوفر حالياً',
+                            child: Padding(
+                              padding: EdgeInsets.all(12.0),
+                              child: Icon(
+                                Icons.volume_off,
+                                color: Colors.white38,
+                                size: 20,
+                              ),
+                            ),
+                          )
                         else
                           const Tooltip(
                             message: 'النطق الصوتي غير متوفر حالياً',
@@ -206,8 +244,9 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
                       ],
                     ),
                   ),
-                );
-              },
+                  );
+                }).toList(),
+              ),
             ),
           ),
         ),
