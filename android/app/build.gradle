@@ -190,4 +190,6 @@ dependencies {
     // نعتمد فقط على multidex الأساسي بدون مكتبات Desugaring المعقدة
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'com.google.android.play:integrity:1.4.0'
+    // Baseline Profiles: installs precompiled ART profiles for faster startup
+    implementation 'androidx.profileinstaller:profileinstaller:1.4.1'
 }
