@@ -1,6 +1,8 @@
 import argparse
+import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import fcntl
@@ -33,8 +35,8 @@ class ScopeGuard:
             self.lock_fd.seek(0)
             try:
                 data = json.load(self.lock_fd)
-            except json.JSONDecodeError:
-                data = {"leases": {}}
+            except json.JSONDecodeError as exc:
+                raise ValueError("Scope ledger corrupted; manual reconciliation required") from exc
 
             for path in paths:
                 p = PurePosixPath(path)
@@ -57,8 +59,8 @@ class ScopeGuard:
             self.lock_fd.seek(0)
             try:
                 data = json.load(self.lock_fd)
-            except json.JSONDecodeError:
-                data = {"leases": {}}
+            except json.JSONDecodeError as exc:
+                raise ValueError("Scope ledger corrupted; manual reconciliation required") from exc
             for path in paths:
                 if path in data.get("leases", {}) and data["leases"][path]["agent_id"] == agent_id:
                     data["leases"][path]["status"] = status
@@ -79,8 +81,8 @@ class AutoHealExecutor:
         self.guard = ScopeGuard()
         self.failures_ledger_path = failures_ledger_path
         self.backup_dir = tempfile.mkdtemp(prefix="auto_heal_backup_")
-        self.MAX_ATTEMPTS = 3
-        self.attempts_file = ".auto_heal_attempts.json"
+        self.attempts_file = attempts_file
+        self.failures_file = failures_file
 
     def __del__(self):
         if hasattr(self, 'backup_dir') and os.path.exists(self.backup_dir):
@@ -94,19 +96,27 @@ class AutoHealExecutor:
 
         if not plan.get("signature"):
             raise ValueError("Plan rejected: Missing signature or unauthenticated context.")
-        if not plan.get("base_sha"):
-            raise ValueError("Plan rejected: Missing base_sha.")
+        if not isinstance(plan.get("base_sha"), str) or not re.fullmatch(r"[0-9a-f]{40}", plan["base_sha"]):
+            raise ValueError("Plan rejected: Invalid base_sha; expected exact 40-character commit SHA.")
         if "allowed_paths" not in plan:
             plan["allowed_paths"] = []
         return plan
 
     def _verify_base_sha(self):
         try:
-            current_sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
-            if self.plan["base_sha"] != "any" and current_sha != self.plan["base_sha"]:
-                print(f"Warning: Current SHA {current_sha} does not match plan BASE_SHA {self.plan['base_sha']}")
-        except Exception:
-            pass
+            current_sha = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL
+            ).decode().strip()
+        except (OSError, subprocess.CalledProcessError) as exc:
+            raise RuntimeError("Cannot verify git HEAD for repair plan") from exc
+        if current_sha != self.plan["base_sha"]:
+            raise ValueError(
+                f"BASE_SHA mismatch: expected {self.plan['base_sha']}, got {current_sha}"
+            )
+
+    def _backup_slot(self, path):
+        # A path is evidence about the source, never a relative backup target.
+        return os.path.join(self.backup_dir, hashlib.sha256(os.fsencode(path)).hexdigest())
 
     def _check_bounded_attempts(self, max_attempts=3):
         plan_id = self.plan.get('plan_id', 'unknown')
@@ -140,16 +150,11 @@ class AutoHealExecutor:
     def _backup_files(self):
         for path in self.plan.get("allowed_paths", []):
             if os.path.exists(path):
-                # Handle absolute paths safely for copying into backup_dir
-                rel_path = os.path.relpath(path, '/') if path.startswith('/') else path
-                dest = os.path.join(self.backup_dir, rel_path)
-                os.makedirs(os.path.dirname(dest), exist_ok=True)
-                shutil.copy2(path, dest)
+                shutil.copy2(path, self._backup_slot(path))
 
     def _restore_files(self):
         for path in self.plan.get("allowed_paths", []):
-            rel_path = os.path.relpath(path, '/') if path.startswith('/') else path
-            src = os.path.join(self.backup_dir, rel_path)
+            src = self._backup_slot(path)
             if os.path.exists(src):
                 shutil.copy2(src, path)
             elif os.path.exists(path):
@@ -172,88 +177,112 @@ class AutoHealExecutor:
         for op in self.plan.get("operations", []):
             print(f"Would execute: {op.get('type')} on {op.get('path', 'unknown')}")
 
-    def _check_and_increment_attempts(self, max_attempts=3):
-        plan_id = self.plan.get("plan_id")
-        if not plan_id:
-            return
+    @staticmethod
+    def _atomic_json_write(path, value):
+        directory = os.path.dirname(os.path.abspath(path))
+        fd, temporary = tempfile.mkstemp(prefix=".auto_heal.", suffix=".tmp", dir=directory)
+        try:
+            with os.fdopen(fd, 'w') as stream:
+                json.dump(value, stream)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(temporary, path)
+        finally:
+            if os.path.exists(temporary):
+                os.unlink(temporary)
 
-        attempts = {}
-        if os.path.exists(self.attempts_file):
-            try:
+    def _check_and_increment_attempt(self):
+        plan_id = self.plan.get('plan_id', 'unknown')
+        try:
+            if os.path.exists(self.attempts_file):
                 with open(self.attempts_file, 'r') as f:
-                    attempts = json.load(f)
-            except json.JSONDecodeError:
-                pass
+                    data = json.load(f)
+            else:
+                data = {}
+        except (json.JSONDecodeError, UnicodeError) as exc:
+            raise ValueError("Attempt history corrupted; manual reconciliation required") from exc
 
-        count = attempts.get(plan_id, 0)
-        if count >= max_attempts:
-            raise RuntimeError(f"Plan {plan_id} has reached maximum attempt limit of {max_attempts}.")
+        if not isinstance(data, dict):
+            raise ValueError("Attempt history corrupted; expected a JSON object")
+        attempts = data.get(plan_id, 0)
+        if type(attempts) is not int or attempts < 0:
+            raise ValueError("Attempt history corrupted; invalid counter")
+        if attempts >= 2:
+            raise ValueError(f"Execution blocked: maximum attempts (2) exceeded for plan {plan_id}.")
 
-        attempts[plan_id] = count + 1
-        with open(self.attempts_file, 'w') as f:
-            json.dump(attempts, f)
+        data[plan_id] = attempts + 1
+        self._atomic_json_write(self.attempts_file, data)
+
+    def _record_failure(self, error_message):
+        plan_id = self.plan.get('plan_id', 'unknown')
+        if os.path.exists(self.failures_file):
+            with open(self.failures_file, 'r') as stream:
+                data = json.load(stream)
+        else:
+            data = {}
+        if not isinstance(data, dict):
+            raise ValueError("Failure history corrupted; expected a JSON object")
+        failures = data.setdefault(plan_id, [])
+        if not isinstance(failures, list):
+            raise ValueError("Failure history corrupted; expected a failure list")
+        failures.append(str(error_message))
+        self._atomic_json_write(self.failures_file, data)
+
+    def _record_failure_safely(self, error):
+        try:
+            self._record_failure(error)
+        except Exception as logging_error:
+            print(f"Warning: failure evidence unavailable: {type(logging_error).__name__}", file=sys.stderr)
 
     def execute(self):
         print(f"Executing plan: {self.plan.get('plan_id', 'unknown')}")
+
         try:
-            self._check_bounded_attempts()
-        except RuntimeError as e:
+            self._check_and_increment_attempt()
+        except (ValueError, OSError) as e:
             print(e)
+            self._record_failure_safely(e)
             sys.exit(1)
 
         self._verify_base_sha()
 
         try:
-            self._check_and_increment_attempts()
-        except RuntimeError as e:
-            print(f"BLOCKED: {e}")
+            self.guard.claim(self.agent_id, paths)
+            self.guard.update_status(self.agent_id, paths, "ACTIVE")
+        except (ValueError, OSError) as e:
+            print(f"Failed to claim leases: {e}")
+            self._record_failure_safely(e)
             sys.exit(1)
 
-        paths = self.plan.get("allowed_paths", [])
-
-        attempts_data = {}
-        if os.path.exists(self.attempts_file):
-            with open(self.attempts_file, 'r') as f:
-                attempts_data = json.load(f)
-
-        plan_id = self.plan.get("plan_id", "unknown")
-        attempts = attempts_data.get(plan_id, 0)
-
-        if attempts >= self.max_attempts:
-            print(f"Execution blocked: Maximum attempts ({self.max_attempts}) reached for plan {plan_id}.")
+        try:
+            self._backup_files()
+        except Exception as exc:
+            # No repair operation has been applied yet. Release ownership
+            # without restoring incomplete backups over existing learner files.
+            try:
+                self.guard.update_status(self.agent_id, paths, "CANCELLED")
+            finally:
+                self._record_failure_safely(exc)
+            print(f"Backup failed; no files modified: {type(exc).__name__}")
             sys.exit(1)
-
-        attempts_data[plan_id] = attempts + 1
-        with open(self.attempts_file, 'w') as f:
-            json.dump(attempts_data, f)
-
-        for path in paths:
-            self.guard.add_allowed_path(path)
-            if not self.guard.request_ownership(path):
-                print(f"Failed to claim lease for {path}")
-                sys.exit(1)
-
-        self._backup_files()
 
         try:
             for op in self.plan.get("operations", []):
                 self._apply_operation(op)
 
             if not self._run_gate():
-                print("Verification failed. Rolling back...")
-                self._record_failure()
-                self.rollback()
-                sys.exit(1)
-
-            print("Execution and verification successful.")
+                raise RuntimeError("Verification failed.")
 
             if self.plan.get("commit"):
                 self._commit_changes()
-
+            self.guard.update_status(self.agent_id, paths, "COMPLETE")
+            print("Execution and verification successful.")
         except Exception as e:
             print(f"Error during execution: {e}. Rolling back...")
-            self._record_failure()
-            self.rollback()
+            try:
+                self.rollback()
+            finally:
+                self._record_failure_safely(e)
             sys.exit(1)
 
     def verify(self):
@@ -297,26 +326,32 @@ class AutoHealExecutor:
                 f.write(content)
 
         elif op_type == "rebuild_fts5":
-            if path:
-                # Actual logic would hook into build scripts, e.g.
-                script = "tools/language_pack_sqlite.py"
-                if os.path.exists(script):
-                    try:
-                        subprocess.check_call([sys.executable, script, "--rebuild-fts5", path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                    except subprocess.CalledProcessError:
-                        print(f"Failed to rebuild FTS5 for {path}")
-                else:
-                    # Simulation/Stub
-                    with open(path, 'a') as f:
-                        f.write("\n-- FTS5 Rebuilt\n")
+            if not path:
+                raise ValueError("FTS5 rebuild requires an allowed artifact path")
+            script = "tools/language_pack_sqlite.py"
+            if not os.path.isfile(script):
+                raise FileNotFoundError("FTS5 builder unavailable; refusing to mutate artifact")
+            subprocess.check_call(
+                [sys.executable, script, "--rebuild-fts5", path],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
 
         elif op_type == "regenerate_artifact":
-            if path:
-                os.makedirs(os.path.dirname(path), exist_ok=True)
-                with tempfile.NamedTemporaryFile(mode='w', delete=False, dir=os.path.dirname(path)) as tmp_f:
-                    tmp_f.write(op.get("content", "regenerated"))
-                    tmp_path = tmp_f.name
-                os.replace(tmp_path, path)
+            if not path:
+                raise ValueError("Artifact regeneration requires an allowed path")
+            directory = os.path.dirname(os.path.abspath(path))
+            os.makedirs(directory, exist_ok=True)
+            fd, temp_path = tempfile.mkstemp(prefix=f".{os.path.basename(path)}.", suffix=".tmp", dir=directory)
+            try:
+                with os.fdopen(fd, 'w') as stream:
+                    stream.write(op.get("content", "regenerated"))
+                    stream.flush()
+                    os.fsync(stream.fileno())
+                os.replace(temp_path, path)
+            finally:
+                if os.path.exists(temp_path):
+                    os.unlink(temp_path)
         else:
             raise ValueError(f"Unknown operation type: {op_type}")
 
@@ -326,7 +361,7 @@ class AutoHealExecutor:
         subprocess.check_call(["git", "checkout", "-b", branch])
         for path in self.plan.get("allowed_paths", []):
             subprocess.check_call(["git", "add", path])
-        msg = f"Fix({self.plan.get('plan_id', 'unknown')}): Auto-heal repair [skip ci]"
+        msg = f"Fix({self.plan.get('plan_id', 'unknown')}): Auto-heal repair"
         subprocess.check_call(["git", "commit", "-m", msg])
         print("Commit successful. Push must be authorized manually or by policy.")
 
