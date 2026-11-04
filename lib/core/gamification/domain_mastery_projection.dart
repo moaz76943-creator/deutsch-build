@@ -1,5 +1,3 @@
-// مسار الملف: lib/core/gamification/domain_mastery_projection.dart
-
 import '../progress/review_transaction_envelope.dart';
 
 /// نموذج عرض إتقان المجال (Projection) كما حدده تقرير هندسة التحفيز.
