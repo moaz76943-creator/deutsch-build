@@ -20,13 +20,8 @@ class BootstrapStepResult {
 /// degrade to [BootstrapStepStatus.recoverableFailure] and the next phase runs.
 abstract class BootstrapStep {
   String get name;
-
-  /// When true, a failure or timeout stops every later phase.
+  Duration get timeout => const Duration(seconds: 6);
   bool get isCritical => true;
-
-  /// Replaces [IsolatedBootstrapPipeline.defaultStepTimeout] for this phase.
-  Duration? get timeout => null;
-
   Future<BootstrapStepResult> execute();
 
   // Existing steps remain source-compatible. Optional steps may opt out of
@@ -35,9 +30,8 @@ abstract class BootstrapStep {
   Duration? get timeout => null;
 }
 
-/// Bounded sequential bootstrap: each dependency is probed once, and a fatal
-/// failure prevents dependent steps from running. Timeouts do not cancel the
-/// underlying future; callers must ignore obsolete results after disposal.
+/// Isolated bootstrap pipeline that prevents error swallowing and documents each startup phase status.
+/// Timeouts protect against hangs; critical steps fail the pipeline, optional ones continue.
 class IsolatedBootstrapPipeline {
   final List<BootstrapStep> steps;
   final Duration defaultStepTimeout;
@@ -52,9 +46,7 @@ class IsolatedBootstrapPipeline {
     for (final step in steps) {
       BootstrapStepResult result;
       try {
-        final received = await step.execute().timeout(
-              step.timeout ?? defaultStepTimeout,
-            );
+        final received = await step.execute().timeout(step.timeout);
         result = BootstrapStepResult(
           stepName: step.name,
           status: !step.isCritical &&
@@ -71,7 +63,7 @@ class IsolatedBootstrapPipeline {
               : BootstrapStepStatus.recoverableFailure,
           message: 'Phase timed out',
         );
-      } catch (_) {
+      } catch (e) {
         result = BootstrapStepResult(
           stepName: step.name,
           status: step.isCritical
@@ -79,6 +71,10 @@ class IsolatedBootstrapPipeline {
               : BootstrapStepStatus.recoverableFailure,
           message: 'Phase failed',
         );
+      }
+      results.add(result);
+      if (result.status == BootstrapStepStatus.fatalFailure) {
+        break;
       }
       results.add(result);
       if (result.status == BootstrapStepStatus.fatalFailure) break;
