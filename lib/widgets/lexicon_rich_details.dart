@@ -25,15 +25,16 @@ class LexiconRichDetails extends StatelessWidget {
     final List<Widget> details = [];
 
     if (partOfSpeech != null && partOfSpeech!.isNotEmpty) {
-      details.add(_buildDetailItem('POS: ', partOfSpeech!));
+      // Isolate inserted strings so mixed scripts do not reorder incorrectly
+      details.add(_buildDetailItem('POS: ', '\u2068$partOfSpeech\u2069'));
     }
 
     if (gender != null && gender!.isNotEmpty) {
-      details.add(_buildDetailItem('Gender: ', gender!));
+      details.add(_buildDetailItem('Gender: ', '\u2068$gender\u2069'));
     }
 
     if (pluralForm != null && pluralForm!.isNotEmpty) {
-      details.add(_buildDetailItem('Plural: ', pluralForm!));
+      details.add(_buildDetailItem('Plural: ', '\u2068$pluralForm\u2069'));
     }
 
     if (ipa != null && ipa!.isNotEmpty) {
