@@ -13,19 +13,10 @@ class AndroidOfflineVoiceCapabilityProbe {
       if (voices == null) return [];
 
       final List<String> locales = [];
-      if (voices is Iterable) {
-        for (final voice in voices) {
-          if (voice is Map) {
-            final locale = voice['locale'] as String?;
-            if (locale != null) {
-              locales.add(locale);
-            }
-=======
-      if (voices is List) {
-        for (final voice in voices) {
-          if (voice is! Map) continue;
-          final locale = voice['locale'];
-          if (locale is String && locale.isNotEmpty) {
+      for (final dynamic voice in (voices as Iterable<dynamic>)) {
+        if (voice is Map) {
+          final locale = voice['locale'] as String?;
+          if (locale != null) {
             locales.add(locale);
 >>>>>>> origin/staging/v2-full-platform
           }
