@@ -1,5 +1,7 @@
 // مسار الملف: lib/core/gamification/domain_mastery_projection.dart
 
+import '../progress/review_transaction_envelope.dart';
+
 /// نموذج عرض إتقان المجال (Projection) كما حدده تقرير هندسة التحفيز.
 /// لا يعتمد على التصفح، بل على نجاح الاسترجاع المتباعد (SRS).
 class DomainMasteryProjection {
@@ -9,8 +11,7 @@ class DomainMasteryProjection {
   final int eligibleCardCount; // إجمالي البطاقات المتاحة في المجال
   final int introducedCardCount; // البطاقات التي بدأ المستخدم بتعلمها
   final int recalledCardCount; // البطاقات التي تذكرها بنجاح مؤخراً
-  final int
-      masteredCardCount; // البطاقات التي تجاوزت فترات مراجعة طويلة (متقنة)
+  final int masteredCardCount; // البطاقات التي تجاوزت فترات مراجعة طويلة (متقنة)
   final int dueCardCount; // البطاقات المستحقة للمراجعة الآن
   final DateTime lastEvidenceUtc; // آخر نشاط حقيقي في هذا المجال
   final int masteryRevision; // رقم المراجعة لضمان التزامن
@@ -27,8 +28,7 @@ class DomainMasteryProjection {
     required this.lastEvidenceUtc,
     required this.masteryRevision,
   })  : assert(eligibleCardCount >= 0, 'eligibleCardCount cannot be negative'),
-        assert(
-            introducedCardCount >= 0, 'introducedCardCount cannot be negative'),
+        assert(introducedCardCount >= 0, 'introducedCardCount cannot be negative'),
         assert(recalledCardCount >= 0, 'recalledCardCount cannot be negative'),
         assert(masteredCardCount >= 0, 'masteredCardCount cannot be negative'),
         assert(dueCardCount >= 0, 'dueCardCount cannot be negative');
@@ -44,8 +44,6 @@ class DomainMasteryProjection {
   DomainMasteryState get masteryState {
     if (introducedCardCount <= 0) return DomainMasteryState.available;
     // Require an approved mastery threshold before advancement. (e.g. 0.9 or 100%)
-    // The objective mentions "Require an approved mastery threshold before advancement."
-    // Let's use 0.9 as an arbitrary threshold, or 100%. "0.9 threshold for masteryState advancement" was in the review plan.
     if (masteryPercentage >= 0.9 && eligibleCardCount > 0) {
       return DomainMasteryState.mastered;
     }
