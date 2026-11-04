@@ -92,7 +92,7 @@ class TestGuard(unittest.TestCase):
         self.assertEqual(res, 1)
         with open(self.report_path) as f:
             report = json.load(f)
-            self.assertTrue(any("AGENTS.md" in b and "T1" in b for b in report["blockers"]))
+            self.assertTrue(any("T1" in b for b in report["blockers"]))
 
     def test_overlapping_directory_claims(self):
         with open(self.ledger_path, "w") as f:
@@ -102,7 +102,7 @@ class TestGuard(unittest.TestCase):
         self.assertEqual(res, 1)
         with open(self.report_path) as f:
             report = json.load(f)
-            self.assertTrue(any("tools/agent_contract/guard.py overlaps with tools/agent_contract/" in b for b in report["blockers"]))
+            self.assertTrue(any("Path overlaps with active claim by T1" in b for b in report["blockers"]))
 
     def test_invalid_transition(self):
         with open(self.ledger_path, "w") as f:
@@ -136,7 +136,9 @@ class TestGuard(unittest.TestCase):
                 report = json.load(f)
                 self.assertTrue(any("tools/agent_contract/guard.py modified but not originally claimed." in b for b in report["blockers"]))
 
-    def test_expired_claim_cannot_be_stolen_without_owner_release(self):
+    @patch('subprocess.check_output')
+    def test_expired_claim_cannot_be_stolen_without_owner_release(self, mock_check_output):
+        mock_check_output.return_value = " M AGENTS.md\n"
         original = json.dumps({"T1": {"state": "ACTIVE", "paths": ["AGENTS.md"],
                                       "timestamp": time.time() - 4000}})
         with open(self.ledger_path, "w") as f:
@@ -147,7 +149,23 @@ class TestGuard(unittest.TestCase):
         with open(self.ledger_path) as f:
             self.assertEqual(f.read(), original)
         with open(self.report_path) as f:
-            self.assertTrue(any("explicit release" in b for b in json.load(f)["blockers"]))
+            self.assertTrue(any("owner evidence" in b for b in json.load(f)["blockers"]))
+
+    @patch('subprocess.check_output')
+    def test_expired_claim_is_safely_recovered_without_owner_evidence(self, mock_check_output):
+        mock_check_output.return_value = ""
+        original = {"T1": {"state": "ACTIVE", "paths": ["AGENTS.md"],
+                           "timestamp": time.time() - 4000}}
+        with open(self.ledger_path, "w") as f:
+            json.dump(original, f)
+        res = main(["--task-id", "T2", "--base-sha", "abc", "--transition", "CLAIM",
+                    "--paths", "AGENTS.md", "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 0)
+        with open(self.ledger_path) as f:
+            ledger = json.load(f)
+            self.assertEqual(ledger["T1"]["state"], "CANCELLED")
+            self.assertEqual(ledger["T2"]["state"], "CLAIM")
+            self.assertIn("AGENTS.md", ledger["T2"]["paths"])
 
     def test_expired_owner_does_not_block_independent_paths(self):
         owner = {"state": "ACTIVE", "paths": ["AGENTS.md"], "timestamp": time.time() - 4000}

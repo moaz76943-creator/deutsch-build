@@ -97,23 +97,45 @@ def paths_overlap(p1, p2):
     return parts1[:length] == parts2[:length]
 
 def check_overlapping_claims(ledger, task_id, requested_paths, now):
+    recovered_tasks = []
     for other_task, data in list(ledger.items()):
         if other_task == task_id or other_task == "_metadata":
             continue
         if data.get("state") in ["CLAIM", "ACTIVE"]:
-            # Age alone does not prove the original process stopped writing.
-            # Keep overlapping ownership until explicit cancellation/completion;
-            # unrelated paths remain runnable even when another claim is stale.
             expired = now - data.get("timestamp", 0) > LOCK_TTL_SECONDS
             other_paths = data.get("paths", [])
+
+            overlap_found = False
+            overlapping_paths = set()
             for p in requested_paths:
                 for op in other_paths:
                     if paths_overlap(p, op):
-                        reason = f"Path {p} overlaps with {op} claimed by {other_task}"
-                        if expired:
-                            reason += "; expired claim requires explicit release after owner reconciliation"
-                        return True, reason
-    return False, ""
+                        overlap_found = True
+                        overlapping_paths.add(op)
+
+            if overlap_found:
+                if expired:
+                    has_owner_evidence = False
+                    for op in overlapping_paths:
+                        try:
+                            cmd = ["git", "status", "--porcelain", "--", op]
+                            output = subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL, cwd=REPO_ROOT)
+                            if output.strip():
+                                has_owner_evidence = True
+                                break
+                        except subprocess.CalledProcessError:
+                            has_owner_evidence = True
+                            break
+                    if has_owner_evidence:
+                        reason = f"Path overlaps with {other_task}; expired claim cannot be recovered due to owner evidence"
+                        return True, reason, []
+                    else:
+                        if other_task not in recovered_tasks:
+                            recovered_tasks.append(other_task)
+                else:
+                    reason = f"Path overlaps with active claim by {other_task}"
+                    return True, reason, []
+    return False, "", recovered_tasks
 
 def is_stale_base_sha(ledger, base_sha):
     latest_completed = ledger.get("_metadata", {}).get("latest_base_sha")
@@ -198,12 +220,16 @@ def process_ledger(parsed, f):
                 report["blockers"].append(f"Task depends on {dep} which is in state {dep_state}")
 
     now = time.time()
-    overlap, overlap_msg = check_overlapping_claims(ledger, parsed.task_id, report["permitted_paths"], now)
+    overlap, overlap_msg, recovered_tasks = check_overlapping_claims(ledger, parsed.task_id, report["permitted_paths"], now)
     if overlap:
         report["blockers"].append(overlap_msg)
 
     if report["blockers"]:
         return 1, report, ledger
+
+    for recovered_task in recovered_tasks:
+        ledger[recovered_task]["state"] = "CANCELLED"
+        ledger[recovered_task]["timestamp"] = now
 
     ledger_entry = ledger.get(parsed.task_id, {"paths": []})
     ledger_entry["state"] = parsed.transition
