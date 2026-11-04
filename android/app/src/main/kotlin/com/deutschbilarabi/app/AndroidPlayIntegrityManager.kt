@@ -1,6 +1,7 @@
 package com.deutschbilarabi.app
 
 import android.content.Context
+import com.google.android.gms.tasks.Tasks
 import com.google.android.play.core.integrity.IntegrityManagerFactory
 import com.google.android.play.core.integrity.IntegrityTokenRequest
 import io.flutter.plugin.common.MethodCall
@@ -20,15 +21,14 @@ import kotlinx.coroutines.withContext
  * Requires dependency:
  * implementation 'com.google.android.play:integrity:1.4.0'
  *
- * Cloud Project Number is injected at build time from local.properties or
- * environment (CLOUD_PROJECT_NUMBER). Release builds fail if it is unset or 0.
+ * And Cloud Project Number configured in Play Console / backend.
  */
 class AndroidPlayIntegrityManager(private val context: Context) : MethodChannel.MethodCallHandler {
 
     companion object {
         const val CHANNEL_NAME = "com.deutschbilarabi.app/play_integrity"
-        // Injected via BuildConfig from Gradle (local.properties / env)
-        private val CLOUD_PROJECT_NUMBER: Long = BuildConfig.CLOUD_PROJECT_NUMBER
+        // Replace with your actual Google Cloud Project Number from Play Console
+        private const val CLOUD_PROJECT_NUMBER = 0L
     }
 
     private val integrityManager by lazy {
@@ -46,7 +46,7 @@ class AndroidPlayIntegrityManager(private val context: Context) : MethodChannel.
 
     private fun requestIntegrityToken(call: MethodCall, result: MethodChannel.Result) {
         if (CLOUD_PROJECT_NUMBER == 0L) {
-            result.error("not_configured", "Cloud project number not set. Configure CLOUD_PROJECT_NUMBER for production integrity checks.", null)
+            result.error("not_configured", "Cloud project number not set", null)
             return
         }
 
@@ -56,14 +56,17 @@ class AndroidPlayIntegrityManager(private val context: Context) : MethodChannel.
             try {
                 val token = withContext(Dispatchers.IO) {
                     val request = IntegrityTokenRequest.builder()
-                        .setCloudProjectNumber(projectNumber)
+                        .setCloudProjectNumber(CLOUD_PROJECT_NUMBER)
                         .setNonce(nonce)
                         .build()
 
-                    integrityManager.requestIntegrityToken(request).await().token()
+                    Tasks.await(integrityManager.requestIntegrityToken(request)).token()
                 }
                 result.success(token)
             } catch (e: Exception) {
+                if (e is InterruptedException) {
+                    Thread.currentThread().interrupt()
+                }
                 result.error("integrity_failed", e.message, null)
             }
         }
