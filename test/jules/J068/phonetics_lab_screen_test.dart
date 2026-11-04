@@ -29,7 +29,7 @@ void main() {
     expect(find.text('[ɲ]'), findsOneWidget);
 
     expect(find.text('ğ'), findsOneWidget);
-    expect(find.text('[ː]'), findsOneWidget);
+    expect(find.text('[ɰ]'), findsOneWidget);
   });
 
   testWidgets('Rapid taps on AppAudioButton handles disabled state correctly', (WidgetTester tester) async {
@@ -59,7 +59,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('التركية'), findsOneWidget);
-    expect(find.text('[ː]'), findsOneWidget);
+    expect(find.text('[ɰ]'), findsOneWidget);
   });
 
   testWidgets('Speed options cycle correctly', (WidgetTester tester) async {
@@ -88,6 +88,7 @@ void main() {
       ),
     );
 
+    // Test unverified/unavailable phonetics behavior per the latest PhoneticsLabScreen
     expect(find.byTooltip('النطق الصوتي غير متوفر حالياً'), findsOneWidget);
   });
 
