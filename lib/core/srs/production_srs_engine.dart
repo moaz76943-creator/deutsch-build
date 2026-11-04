@@ -39,6 +39,11 @@ class ProductionSrsEngine {
         'currentEaseFactor must be a positive finite number',
       );
     }
+    if (!morphologicalMultiplier.isFinite || morphologicalMultiplier <= 0) {
+      throw ArgumentError(
+        'morphologicalMultiplier must be a positive finite number',
+      );
+    }
 
     int newRepetitions = currentRepetitions;
     int newInterval = currentIntervalDays;
@@ -61,6 +66,7 @@ class ProductionSrsEngine {
               (currentIntervalDays *
                       currentEaseFactor *
                       morphologicalMultiplier)
+                  .clamp(1, 36500)
                   .round());
         }
         newRepetitions += 1;
@@ -77,6 +83,7 @@ class ProductionSrsEngine {
                       currentEaseFactor *
                       1.3 *
                       morphologicalMultiplier)
+                  .clamp(1, 36500)
                   .round());
         }
         newRepetitions += 1;
