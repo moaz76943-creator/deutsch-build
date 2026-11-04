@@ -2,43 +2,103 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/models/assessment.dart';
 
 void main() {
-  group('assessmentNormalize', () {
-    test('lowercases strings', () {
-      expect(assessmentNormalize('HELLO'), 'hello');
-      expect(assessmentNormalize('HeLlO'), 'hello');
+  group('assessmentAnswerMatches', () {
+    final defaultQuestion = AssessmentQuestion(
+      id: 'q1',
+      itemId: 'i1',
+      prompt: 'What is the answer?',
+      expected: 'correct answer',
+      type: AssessmentQuestionType.translation,
+      accepted: ['alternative answer', 'another one'],
+      skill: 'translation',
+    );
+
+    test('returns false if response is marked incorrect', () {
+      final response = AssessmentResponse(
+        questionId: 'q1',
+        itemId: 'i1',
+        answer: 'correct answer',
+        correct: false,
+        hinted: false,
+      );
+      expect(assessmentAnswerMatches(response, defaultQuestion), isFalse);
     });
 
-    test('trims whitespace', () {
-      expect(assessmentNormalize('  hello  '), 'hello');
-      expect(assessmentNormalize('\thello\n'), 'hello');
+    test('returns true if answer is empty after normalization', () {
+      final response = AssessmentResponse(
+        questionId: 'q1',
+        itemId: 'i1',
+        answer: '   ',
+        correct: true,
+        hinted: false,
+      );
+      expect(assessmentAnswerMatches(response, defaultQuestion), isTrue);
     });
 
-    test('collapses multiple whitespace characters', () {
-      expect(assessmentNormalize('hello   world'), 'hello world');
-      expect(assessmentNormalize('hello \t\n world'), 'hello world');
+    test('returns true for exact match of expected answer', () {
+      final response = AssessmentResponse(
+        questionId: 'q1',
+        itemId: 'i1',
+        answer: 'correct answer',
+        correct: true,
+        hinted: false,
+      );
+      expect(assessmentAnswerMatches(response, defaultQuestion), isTrue);
     });
 
-    test('removes trailing punctuation', () {
-      expect(assessmentNormalize('hello.'), 'hello');
-      expect(assessmentNormalize('hello!'), 'hello');
-      expect(assessmentNormalize('hello?'), 'hello');
-      expect(assessmentNormalize('hello.!?'), 'hello');
+    test('matches correctly with different casing', () {
+      final response = AssessmentResponse(
+        questionId: 'q1',
+        itemId: 'i1',
+        answer: 'CoRrEcT AnSwEr',
+        correct: true,
+        hinted: false,
+      );
+      expect(assessmentAnswerMatches(response, defaultQuestion), isTrue);
     });
 
-    test('leaves internal punctuation intact', () {
-      expect(assessmentNormalize('hello, world!'), 'hello, world');
-      expect(assessmentNormalize('hello.world!'), 'hello.world');
-      expect(assessmentNormalize('what\'s up?'), 'what\'s up');
+    test('matches correctly after removing trailing punctuation', () {
+      final response = AssessmentResponse(
+        questionId: 'q1',
+        itemId: 'i1',
+        answer: 'correct answer!?.',
+        correct: true,
+        hinted: false,
+      );
+      expect(assessmentAnswerMatches(response, defaultQuestion), isTrue);
     });
 
-    test('handles empty and whitespace-only strings', () {
-      expect(assessmentNormalize(''), '');
-      expect(assessmentNormalize('   '), '');
-      expect(assessmentNormalize(' .!? '), '');
+    test('matches correctly when multiple whitespaces are present', () {
+      final response = AssessmentResponse(
+        questionId: 'q1',
+        itemId: 'i1',
+        answer: 'correct     answer',
+        correct: true,
+        hinted: false,
+      );
+      expect(assessmentAnswerMatches(response, defaultQuestion), isTrue);
     });
 
-    test('handles mixed combinations', () {
-      expect(assessmentNormalize('  HELLO \t\n WORLD.!?  '), 'hello world');
+    test('returns true if it matches one of the accepted answers', () {
+      final response = AssessmentResponse(
+        questionId: 'q1',
+        itemId: 'i1',
+        answer: ' alternative  Answer! ',
+        correct: true,
+        hinted: false,
+      );
+      expect(assessmentAnswerMatches(response, defaultQuestion), isTrue);
+    });
+
+    test('returns false if it does not match expected or any accepted answers', () {
+      final response = AssessmentResponse(
+        questionId: 'q1',
+        itemId: 'i1',
+        answer: 'wrong answer',
+        correct: true,
+        hinted: false,
+      );
+      expect(assessmentAnswerMatches(response, defaultQuestion), isFalse);
     });
   });
 }
