@@ -24,7 +24,8 @@ class ResilientAsyncBuilder<T> extends StatefulWidget {
     this.loadingBuilder,
     this.emptyBuilder,
     this.errorBuilder,
-  }) : assert((futureBuilder != null && dataBuilder != null) || (fetcher != null && builder != null));
+  }) : assert((futureBuilder != null && dataBuilder != null) ||
+            (fetcher != null && builder != null));
 
   final Future<T?> Function(ContentCancellationToken token)? futureBuilder;
   final Widget Function(BuildContext context, T data)? dataBuilder;
@@ -59,6 +60,7 @@ class _ResilientAsyncBuilderState<T> extends State<ResilientAsyncBuilder<T>> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.requestKey != widget.requestKey ||
         oldWidget.futureBuilder != widget.futureBuilder ||
+        oldWidget.fetcher != widget.fetcher ||
         oldWidget.timeout != widget.timeout) {
       _load();
     }
@@ -80,18 +82,25 @@ class _ResilientAsyncBuilderState<T> extends State<ResilientAsyncBuilder<T>> {
           } else if (result is UiStateEmpty<T>) {
             _state = UIState<T>.empty(result.message ?? widget.emptyMessage);
           } else if (result is UiStateDegraded<T>) {
-            _state = UIState<T>.degraded(result.data, message: result.warningMessage);
+            _state = UIState<T>.degraded(result.data,
+                message: result.warningMessage);
           } else if (result is UiStateFailed<T>) {
             _state = UIState<T>.failed(
-              ContentFailure('ui_async_failure', result.userMessage ?? 'Offline request failed'),
+              ContentFailure('ui_async_failure',
+                  result.userMessage ?? 'Offline request failed'),
               result.userMessage ?? 'Unable to load content.',
             );
           } else {
-            _state = UIState<T>.loading();
+            _state = UIState<T>.failed(
+              const ContentFailure(
+                  'ui_nonterminal_result', 'Request returned a loading state'),
+              'Unable to load content.',
+            );
           }
         });
       }, onError: (Object error, StackTrace stack) {
         if (!mounted || token.isCancelled) return;
+        if (error is TimeoutException) token.cancel();
         setState(() {
           _state = UIState<T>.failed(
             const ContentFailure('ui_async_failure', 'Offline request failed'),
@@ -111,6 +120,7 @@ class _ResilientAsyncBuilderState<T> extends State<ResilientAsyncBuilder<T>> {
         });
       }, onError: (Object error, StackTrace stack) {
         if (!mounted || token.isCancelled) return;
+        if (error is TimeoutException) token.cancel();
         setState(() {
           if (error is StorageFailure) {
             _state = UIState<T>.corrupted(
@@ -121,7 +131,8 @@ class _ResilientAsyncBuilderState<T> extends State<ResilientAsyncBuilder<T>> {
             _state = UIState<T>.empty(widget.emptyMessage);
           } else {
             _state = UIState<T>.failed(
-              const ContentFailure('ui_async_failure', 'Offline request failed'),
+              const ContentFailure(
+                  'ui_async_failure', 'Offline request failed'),
               'Unable to load content.',
             );
           }
