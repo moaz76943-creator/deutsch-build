@@ -11,11 +11,11 @@ import '../registry/feature_capability_registry.dart';
 import 'isolated_bootstrap_pipeline.dart';
 
 enum StartupState {
-  INITIALIZING,
-  READY,
-  DEGRADED,
-  SAFE_MODE,
-  CRITICAL_ERROR,
+  initializing,
+  ready,
+  degraded,
+  safeMode,
+  fatal,
 }
 
 class StartupOutcome {
@@ -50,10 +50,10 @@ class DeviceStartupOperations implements StartupOperations {
       final bootFuture = _bootFuture ??=
           _guard.beginBoot().timeout(const Duration(seconds: 3));
       if (await bootFuture) {
-        return const StartupOutcome(StartupState.SAFE_MODE);
+        return const StartupOutcome(StartupState.safeMode);
       }
     } catch (_) {
-      return const StartupOutcome(StartupState.CRITICAL_ERROR);
+      return const StartupOutcome(StartupState.fatal);
     }
 
     // Preference access is a critical local-storage dependency. Never erase
@@ -63,7 +63,7 @@ class DeviceStartupOperations implements StartupOperations {
       preferences = await SharedPreferences.getInstance()
           .timeout(const Duration(seconds: 2));
     } catch (_) {
-      return const StartupOutcome(StartupState.CRITICAL_ERROR);
+      return const StartupOutcome(StartupState.fatal);
     }
 
     late final List<BootstrapStepResult> results;
@@ -76,11 +76,11 @@ class DeviceStartupOperations implements StartupOperations {
           .runPipeline()
           .timeout(const Duration(seconds: 10));
     } catch (_) {
-      return const StartupOutcome(StartupState.CRITICAL_ERROR);
+      return const StartupOutcome(StartupState.fatal);
     }
 
     if (results.any((r) => r.status == BootstrapStepStatus.fatalFailure)) {
-      return const StartupOutcome(StartupState.CRITICAL_ERROR);
+      return const StartupOutcome(StartupState.fatal);
     }
 
     final contentAvailable = results.any(
@@ -99,7 +99,7 @@ class DeviceStartupOperations implements StartupOperations {
     if (hasOptionalFailure || !contentAvailable) {
       // Keep the last-known-good marker; never replace it with a failed boot.
       return StartupOutcome(
-        StartupState.DEGRADED,
+        StartupState.degraded,
         contentAvailable: contentAvailable,
       );
     }
@@ -111,18 +111,18 @@ class DeviceStartupOperations implements StartupOperations {
           .timeout(const Duration(seconds: 2));
       if (!saved) {
         return const StartupOutcome(
-          StartupState.DEGRADED,
+          StartupState.degraded,
           contentAvailable: true,
         );
       }
     } catch (_) {
       return const StartupOutcome(
-        StartupState.DEGRADED,
+        StartupState.degraded,
         contentAvailable: true,
       );
     }
     return const StartupOutcome(
-      StartupState.READY,
+      StartupState.ready,
       contentAvailable: true,
     );
   }
@@ -144,11 +144,11 @@ class DeviceStartupOperations implements StartupOperations {
           .getContentDb('de')
           .timeout(const Duration(seconds: 7));
       return const StartupOutcome(
-        StartupState.DEGRADED,
+        StartupState.degraded,
         contentAvailable: true,
       );
     } catch (_) {
-      return const StartupOutcome(StartupState.DEGRADED);
+      return const StartupOutcome(StartupState.degraded);
     }
   }
 }
@@ -237,7 +237,7 @@ class StartupBoundary extends StatefulWidget {
 
 class _StartupBoundaryState extends State<StartupBoundary> {
   late final StartupOperations _operations;
-  StartupState _state = StartupState.INITIALIZING;
+  StartupState _state = StartupState.initializing;
   bool _contentAvailable = false;
   int _generation = 0;
   int _manualRetries = 0;
@@ -259,15 +259,15 @@ class _StartupBoundaryState extends State<StartupBoundary> {
     try {
       outcome = await _operations.start().timeout(widget.startupTimeout);
     } catch (_) {
-      outcome = const StartupOutcome(StartupState.CRITICAL_ERROR);
+      outcome = const StartupOutcome(StartupState.fatal);
     }
     if (!mounted || generation != _generation) return;
     setState(() {
       _state = outcome.state;
       _contentAvailable = outcome.contentAvailable;
-      _safeSession = outcome.state == StartupState.SAFE_MODE;
+      _safeSession = outcome.state == StartupState.safeMode;
     });
-    if (_state == StartupState.READY || _state == StartupState.DEGRADED) {
+    if (_state == StartupState.ready || _state == StartupState.degraded) {
       _stableTimer?.cancel();
       _stableTimer = Timer(widget.stabilityWindow, () {
         if (!mounted || generation != _generation) return;
@@ -282,7 +282,7 @@ class _StartupBoundaryState extends State<StartupBoundary> {
     _manualRetries++;
     _stableTimer?.cancel();
     setState(() {
-      _state = StartupState.INITIALIZING;
+      _state = StartupState.initializing;
       _contentAvailable = false;
     });
     _start();
@@ -290,18 +290,18 @@ class _StartupBoundaryState extends State<StartupBoundary> {
 
   Future<void> _continueSafeOffline() async {
     final generation = ++_generation;
-    setState(() => _state = StartupState.INITIALIZING);
+    setState(() => _state = StartupState.initializing);
     StartupOutcome outcome;
     try {
       outcome = await _operations
           .continueSafeOffline()
           .timeout(const Duration(seconds: 9));
     } catch (_) {
-      outcome = const StartupOutcome(StartupState.DEGRADED);
+      outcome = const StartupOutcome(StartupState.degraded);
     }
     if (!mounted || generation != _generation) return;
     setState(() {
-      _state = StartupState.DEGRADED;
+      _state = StartupState.degraded;
       _contentAvailable = outcome.contentAvailable;
       _safeSession = true;
     });
@@ -311,13 +311,13 @@ class _StartupBoundaryState extends State<StartupBoundary> {
     if (_manualRetries >= 1) return;
     _manualRetries++;
     final generation = ++_generation;
-    setState(() => _state = StartupState.INITIALIZING);
+    setState(() => _state = StartupState.initializing);
     try {
       await _operations.exitSafeMode().timeout(const Duration(seconds: 4));
     } catch (_) {
       // Remain in safe mode. Never clear learner data or bypass recovery.
       if (mounted && generation == _generation) {
-        setState(() => _state = StartupState.SAFE_MODE);
+        setState(() => _state = StartupState.safeMode);
       }
       return;
     }
@@ -335,7 +335,7 @@ class _StartupBoundaryState extends State<StartupBoundary> {
   @override
   Widget build(BuildContext context) {
     switch (_state) {
-      case StartupState.INITIALIZING:
+      case StartupState.initializing:
         return const Scaffold(
           body: Center(
             child: Directionality(
@@ -351,9 +351,9 @@ class _StartupBoundaryState extends State<StartupBoundary> {
             ),
           ),
         );
-      case StartupState.READY:
+      case StartupState.ready:
         return widget.child;
-      case StartupState.DEGRADED:
+      case StartupState.degraded:
         if (_contentAvailable) {
           return Column(
             children: [
@@ -377,7 +377,7 @@ class _StartupBoundaryState extends State<StartupBoundary> {
               'يمكنك المحاولة مجددًا بعد التأكد من تثبيت الحزمة.',
           retry: _manualRetries < 1 && !_safeSession ? _retry : null,
         );
-      case StartupState.SAFE_MODE:
+      case StartupState.safeMode:
         return _recoveryScreen(
           icon: Icons.health_and_safety_outlined,
           title: 'الوضع الآمن',
@@ -387,7 +387,7 @@ class _StartupBoundaryState extends State<StartupBoundary> {
           secondaryAction: _continueSafeOffline,
           secondaryLabel: 'متابعة آمنة بالمحتوى المحلي',
         );
-      case StartupState.CRITICAL_ERROR:
+      case StartupState.fatal:
         return _recoveryScreen(
           icon: Icons.error_outline,
           title: 'تعذر بدء الخدمات الأساسية',
