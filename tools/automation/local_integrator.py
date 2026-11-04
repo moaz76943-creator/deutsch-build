@@ -211,28 +211,13 @@ def _restore_original_head(repo: Path, original_head: str) -> None:
         _git(repo, "reset", "--merge", original_head)
 
 
-def apply_next(
-    *,
-    repo: str | Path = ".",
-    backlog_path: str | Path = DEFAULT_BACKLOG,
-    backlog: Mapping[str, Any] | None = None,
-    dependencies: Mapping[int, Iterable[int]] | None = None,
-    pr_branches: Mapping[int, str] | None = None,
-    gatekeeper_command: Sequence[str] | None = None,
-    dry_run: bool = False,
-) -> dict[str, Any]:
-    """Integrate the next dependency-ready candidate into the current branch.
-
-    The repository must start clean. The selected candidate is preflighted by
-    ``rebase_healer`` against the exact current HEAD. Only CLEAN and
-    AUTO_RESOLVABLE preflight results may proceed. Gatekeeper failure restores
-    the exact original HEAD before returning a failure result.
-    """
-
-    repository = Path(repo).resolve()
-    original_state = _require_clean_tree(repository)
-    original_head = str(original_state["head"])
-
+def _find_ready_candidate(
+    repository: Path,
+    backlog_path: str | Path,
+    backlog: Mapping[str, Any] | None,
+    dependencies: Mapping[int, Iterable[int]] | None,
+    pr_branches: Mapping[int, str] | None,
+) -> tuple[dict[str, Any] | None, dict[str, Any]]:
     backlog_data = dict(backlog) if backlog is not None else load_backlog(backlog_path)
     dependency_map = (
         {int(number): frozenset(int(dep) for dep in deps) for number, deps in dependencies.items()}
@@ -240,15 +225,16 @@ def apply_next(
         else derive_pr_dependencies(backlog_data)
     )
     branch_map = dict(pr_branches) if pr_branches is not None else dict(PR_BRANCHES)
-
     candidate = _next_candidate(repository, dependency_map, branch_map)
-    if candidate is None:
-        return {
-            "status": "NO_READY_CANDIDATE",
-            "exit_code": 0,
-            "head": original_head,
-        }
+    return candidate, backlog_data
 
+
+def _preflight_candidate(
+    repository: Path,
+    backlog_data: dict[str, Any],
+    candidate: dict[str, Any],
+    original_head: str,
+) -> tuple[dict[str, Any], tuple[str, ...]]:
     candidate_head = str(candidate["candidate_head"])
     boundaries = _candidate_boundaries(
         repository,
@@ -263,31 +249,19 @@ def apply_next(
         target_ref=original_head,
         boundaries=boundaries,
     )
-    accepted = preflight.get("status") in {STATUS_CLEAN, STATUS_AUTO_RESOLVABLE}
-    if not accepted or int(preflight.get("exit_code", 1)) != 0:
-        return {
-            "status": "PREFLIGHT_REJECTED",
-            "exit_code": 1,
-            "pr_number": candidate["pr_number"],
-            "branch": candidate["branch"],
-            "preflight": preflight,
-            "head": original_head,
-        }
+    return preflight, boundaries
 
+
+def _perform_integration(
+    repository: Path,
+    candidate: dict[str, Any],
+    original_head: str,
+    preflight: dict[str, Any],
+    gatekeeper_command: Sequence[str] | None,
+) -> dict[str, Any]:
+    candidate_head = str(candidate["candidate_head"])
     fast_forward = _is_ancestor(repository, original_head, candidate_head)
     merge_mode = "fast-forward" if fast_forward else "merge"
-    if dry_run:
-        return {
-            "status": "DRY_RUN",
-            "exit_code": 0,
-            "pr_number": candidate["pr_number"],
-            "branch": candidate["branch"],
-            "candidate_head": candidate_head,
-            "target_head": original_head,
-            "merge_mode": merge_mode,
-            "preflight": preflight,
-            "boundaries": list(boundaries),
-        }
 
     merge_args = (
         ("merge", "--ff-only", candidate_head)
@@ -352,6 +326,73 @@ def apply_next(
         "gatekeeper_exit_code": gate.returncode,
         "rolled_back": False,
     }
+
+
+def apply_next(
+    *,
+    repo: str | Path = ".",
+    backlog_path: str | Path = DEFAULT_BACKLOG,
+    backlog: Mapping[str, Any] | None = None,
+    dependencies: Mapping[int, Iterable[int]] | None = None,
+    pr_branches: Mapping[int, str] | None = None,
+    gatekeeper_command: Sequence[str] | None = None,
+    dry_run: bool = False,
+) -> dict[str, Any]:
+    """Integrate the next dependency-ready candidate into the current branch.
+
+    The repository must start clean. The selected candidate is preflighted by
+    ``rebase_healer`` against the exact current HEAD. Only CLEAN and
+    AUTO_RESOLVABLE preflight results may proceed. Gatekeeper failure restores
+    the exact original HEAD before returning a failure result.
+    """
+
+    repository = Path(repo).resolve()
+    original_state = _require_clean_tree(repository)
+    original_head = str(original_state["head"])
+
+    candidate, backlog_data = _find_ready_candidate(
+        repository, backlog_path, backlog, dependencies, pr_branches
+    )
+    if candidate is None:
+        return {
+            "status": "NO_READY_CANDIDATE",
+            "exit_code": 0,
+            "head": original_head,
+        }
+
+    preflight, boundaries = _preflight_candidate(
+        repository, backlog_data, candidate, original_head
+    )
+
+    accepted = preflight.get("status") in {STATUS_CLEAN, STATUS_AUTO_RESOLVABLE}
+    if not accepted or int(preflight.get("exit_code", 1)) != 0:
+        return {
+            "status": "PREFLIGHT_REJECTED",
+            "exit_code": 1,
+            "pr_number": candidate["pr_number"],
+            "branch": candidate["branch"],
+            "preflight": preflight,
+            "head": original_head,
+        }
+
+    candidate_head = str(candidate["candidate_head"])
+    if dry_run:
+        fast_forward = _is_ancestor(repository, original_head, candidate_head)
+        return {
+            "status": "DRY_RUN",
+            "exit_code": 0,
+            "pr_number": candidate["pr_number"],
+            "branch": candidate["branch"],
+            "candidate_head": candidate_head,
+            "target_head": original_head,
+            "merge_mode": "fast-forward" if fast_forward else "merge",
+            "preflight": preflight,
+            "boundaries": list(boundaries),
+        }
+
+    return _perform_integration(
+        repository, candidate, original_head, preflight, gatekeeper_command
+    )
 
 
 def _build_parser() -> argparse.ArgumentParser:
