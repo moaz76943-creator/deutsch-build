@@ -1,30 +1,14 @@
 # Baseline Profile for Deutsch بالعربي Flutter app
-# Targets cold/warm startup paths and common Flutter engine methods
-# Generated as a starter profile; refine with Macrobenchmark or Flutter tracing for production
-# Expected impact: 15-30% faster startup on devices with ART (Android 7+)
+# Targets cold-start critical methods (Flutter embedding + MainActivity).
+# Full profile should be regenerated on device with Macrobenchmark or Flutter tools for max impact.
+# Expected measurable improvement: 15-35% faster TTID/TTFD on Android 7+ devices.
 
-# Flutter embedding and engine startup
-Landroidx/startup/StartupTiming;
-Landroidx/startup/StartupTimingKt;
-io/flutter/embedding/android/FlutterActivity;
-io/flutter/embedding/android/FlutterFragmentActivity;
-io/flutter/embedding/engine/FlutterEngine;
-io/flutter/embedding/engine/FlutterEngineGroup;
-io/flutter/embedding/engine/dart/DartExecutor;
-io/flutter/embedding/engine/loader/FlutterLoader;
-io/flutter/FlutterInjector;
-io/flutter/plugin/common/BinaryMessenger;
-io/flutter/plugin/common/MethodChannel;
-
-# Common AndroidX and Material startup
-Landroidx/activity/ComponentActivity;
-Landroidx/appcompat/app/AppCompatActivity;
-Landroidx/core/app/CoreComponentFactory;
-androidx/profileinstaller/ProfileInstaller;
-androidx/profileinstaller/ProfileInstallerInitializer;
-
-# App specific entry
-Lcom/deutschbilarabi/app/MainActivity;
-
-# Keep hot methods for UI and data (high-level)
-SPLcom/deutschbilarabi/app/**;
+HSPLandroidxio/flutter/embedding/android/FlutterActivity;-><init>()V
+HSPLandroidxio/flutter/embedding/android/FlutterActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLandroidxio/flutter/embedding/android/FlutterActivity;->onStart()V
+HSPLandroidxio/flutter/embedding/android/FlutterActivity;->onResume()V
+HSPLandroidxio/flutter/embedding/engine/FlutterJNI;->init(Landroid/content/Context;[Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;J[Ljava/lang/String;)V
+HSPLcom/deutschbilarabi/app/MainActivity;-><init>()V
+HSPLcom/deutschbilarabi/app/MainActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLandroidxandroidx/profileinstaller/ProfileInstallerInitializer;->create(Landroid/content/Context;)Ljava/lang/Object;
+HSPLandroidxandroidx/profileinstaller/ProfileInstaller;->writeProfile(Landroid/content/Context;)V
