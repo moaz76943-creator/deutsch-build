@@ -331,9 +331,7 @@ def synchronize_arb(
     for key in base_keys:
         value = target_arb[key]
         if not isinstance(value, str) or not value.strip():
-            raise LocalizationAgentError(
-                f"empty translation for key: {key}"
-            )
+            raise LocalizationAgentError(f"empty translation for key: {key}")
         result[key] = value
 
         base_meta = dict(_metadata(base_arb, key))
@@ -350,26 +348,17 @@ def synchronize_arb(
     return result
 
 
-def _audit_message_key(
+def _audit_message(
     key: str,
-    base_arb: Mapping[str, Any],
-    target_arb: Mapping[str, Any],
+    base_text: Any,
+    target_text: Any,
+    base_meta: Mapping[str, Any],
+    target_meta: Mapping[str, Any],
     locale: str,
     base_locale: str,
     errors: list[AuditIssue],
     warnings: list[AuditIssue],
 ) -> None:
-    if key not in target_arb:
-        errors.append(
-            AuditIssue(
-                "arb.missing_key",
-                key,
-                "required ARB message is missing",
-            )
-        )
-        return
-    base_text = base_arb[key]
-    target_text = target_arb[key]
     if not isinstance(base_text, str) or not isinstance(target_text, str):
         errors.append(
             AuditIssue(
@@ -389,8 +378,6 @@ def _audit_message_key(
         )
         return
 
-    base_meta = _metadata(base_arb, key)
-    target_meta = _metadata(target_arb, key)
     try:
         base_args = icu_argument_names(base_text)
         target_args = icu_argument_names(target_text)
@@ -408,9 +395,8 @@ def _audit_message_key(
         )
 
     for field in ("placeholders", "layout"):
-        if (
-            field in target_meta
-            and target_meta.get(field) != base_meta.get(field)
+        if field in target_meta and target_meta.get(field) != base_meta.get(
+            field
         ):
             errors.append(
                 AuditIssue(
@@ -468,8 +454,7 @@ def _audit_message_key(
             AuditIssue(
                 "layout.high_expansion",
                 key,
-                f"localized text expands to "
-                f"{expansion:.2f}x source width",
+                f"localized text expands to " f"{expansion:.2f}x source width",
                 severity="warning",
             )
         )
@@ -484,10 +469,7 @@ def audit_arb(
     errors: list[AuditIssue] = []
     warnings: list[AuditIssue] = []
     target_locale_raw = locale_code or target_arb.get("@@locale")
-    if (
-        not isinstance(target_locale_raw, str)
-        or not target_locale_raw.strip()
-    ):
+    if not isinstance(target_locale_raw, str) or not target_locale_raw.strip():
         raise LocalizationAgentError(
             "target ARB requires @@locale or locale_code"
         )
@@ -495,10 +477,7 @@ def audit_arb(
     direction = text_direction_for(locale)
 
     declared = target_arb.get("@@locale")
-    if (
-        isinstance(declared, str)
-        and _primary_language(declared) != locale
-    ):
+    if isinstance(declared, str) and _primary_language(declared) != locale:
         errors.append(
             AuditIssue(
                 "locale.mismatch",
@@ -518,14 +497,29 @@ def audit_arb(
     target_keys = set(_message_keys(target_arb))
 
     for key in base_keys:
-        _audit_message_key(
-            key=key,
-            base_arb=base_arb,
-            target_arb=target_arb,
-            locale=locale,
-            base_locale=base_locale,
-            errors=errors,
-            warnings=warnings,
+        if key not in target_keys:
+            errors.append(
+                AuditIssue(
+                    "arb.missing_key",
+                    key,
+                    "required ARB message is missing",
+                )
+            )
+            continue
+        base_text = base_arb[key]
+        target_text = target_arb[key]
+        base_meta = _metadata(base_arb, key)
+        target_meta = _metadata(target_arb, key)
+        _audit_message(
+            key,
+            base_text,
+            target_text,
+            base_meta,
+            target_meta,
+            locale,
+            base_locale,
+            errors,
+            warnings,
         )
 
     extra = sorted(target_keys.difference(base_keys))
