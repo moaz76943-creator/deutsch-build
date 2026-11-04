@@ -17,7 +17,7 @@ except ModuleNotFoundError:
 _CEFR_LEVELS = {"unknown", "A1", "A2", "B1", "B2", "C1", "C2"}
 
 
-def _create_schema(connection: sqlite3.Connection) -> None:
+def _setup_schema(connection: sqlite3.Connection) -> None:
     connection.execute("PRAGMA page_size=4096")
     connection.execute("PRAGMA journal_mode=OFF")
     connection.execute("PRAGMA synchronous=OFF")
@@ -117,7 +117,12 @@ def _create_schema(connection: sqlite3.Connection) -> None:
         "ON german_word_family_members(family_id, semantic_distance)"
     )
 
-def _insert_metadata(connection: sqlite3.Connection, document: Mapping[str, Any], canonical_schema_version: int) -> None:
+
+def _insert_metadata(
+    connection: sqlite3.Connection,
+    document: Mapping[str, Any],
+    canonical_schema_version: int,
+) -> None:
     pack = document["pack"]
     content_rows = len(document["lexicon"])
     verb_rows = sum(
@@ -140,7 +145,10 @@ def _insert_metadata(connection: sqlite3.Connection, document: Mapping[str, Any]
         sorted(metadata.items()),
     )
 
-def _insert_localization(connection: sqlite3.Connection, document: Mapping[str, Any]) -> None:
+
+def _insert_localization(
+    connection: sqlite3.Connection, document: Mapping[str, Any]
+) -> None:
     localization_rows = [
         (key, value["text"], value["direction"])
         for key, value in document["localization"].items()
@@ -150,7 +158,10 @@ def _insert_localization(connection: sqlite3.Connection, document: Mapping[str, 
         localization_rows,
     )
 
-def _insert_lexicon(connection: sqlite3.Connection, document: Mapping[str, Any]) -> None:
+
+def _insert_lexicon(
+    connection: sqlite3.Connection, document: Mapping[str, Any]
+) -> None:
     lexicon_rows = [
         (
             entry["id"],
@@ -173,7 +184,10 @@ def _insert_lexicon(connection: sqlite3.Connection, document: Mapping[str, Any])
         lexicon_rows,
     )
 
-def _insert_concepts(connection: sqlite3.Connection, document: Mapping[str, Any]) -> None:
+
+def _insert_concepts(
+    connection: sqlite3.Connection, document: Mapping[str, Any]
+) -> None:
     for entry in document["lexicon"]:
         fields = entry["fields"]
         canonical = fields.get("canonical", {})
@@ -281,7 +295,10 @@ def _insert_concepts(connection: sqlite3.Connection, document: Mapping[str, Any]
                     ),
                 )
 
-def _insert_word_families(connection: sqlite3.Connection, document: Mapping[str, Any]) -> None:
+
+def _insert_word_families(
+    connection: sqlite3.Connection, document: Mapping[str, Any]
+) -> None:
     family_bases: dict[str, str] = {}
     family_members: list[tuple[Any, ...]] = []
     for entry in document["lexicon"]:
@@ -321,7 +338,10 @@ def _insert_word_families(connection: sqlite3.Connection, document: Mapping[str,
         sorted(family_members),
     )
 
-def _insert_grammar(connection: sqlite3.Connection, document: Mapping[str, Any]) -> None:
+
+def _insert_grammar(
+    connection: sqlite3.Connection, document: Mapping[str, Any]
+) -> None:
     grammar_rows = [
         (
             entry["id"],
@@ -351,7 +371,7 @@ def build_sqlite_bytes(
         path = Path(temp) / "content.sqlite"
         connection = sqlite3.connect(path)
         try:
-            _create_schema(connection)
+            _setup_schema(connection)
             _insert_metadata(connection, document, canonical_schema_version)
             _insert_localization(connection, document)
             _insert_lexicon(connection, document)
