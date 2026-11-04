@@ -208,34 +208,13 @@ def validate_german_source(document: Mapping[str, Any]) -> QaReport:
 
 
 def _validate_word_family_entry(
-    raw_entry: Any,
-    index: int,
-    concept_ids: set[str],
-    families: dict[str, list[tuple[str, str, str]]],
+    family: Mapping[str, Any],
+    concept_id: str,
+    concept_ids: set[str | None],
+    path: str,
     issues: list[QaIssue],
+    families: dict[str, list[tuple[str, str, str]]],
 ) -> None:
-    if not isinstance(raw_entry, Mapping):
-        return
-    concept_id = _clean(raw_entry.get("id"))
-    fields = raw_entry.get("fields")
-    if concept_id is None or not isinstance(fields, Mapping):
-        return
-    canonical = fields.get("canonical")
-    if not isinstance(canonical, Mapping):
-        return
-    family = canonical.get("wordFamily")
-    if family is None:
-        return
-
-    path = f"lexicon[{index}].fields.canonical.wordFamily"
-    if not isinstance(family, Mapping):
-        _error(
-            issues,
-            "word_family.invalid",
-            path,
-            "wordFamily must be an explicit object",
-        )
-        return
     allowed_family_keys = {
         "familyId",
         "baseConceptId",
@@ -317,33 +296,32 @@ def _validate_word_family_entry(
         )
 
 
-def _validate_word_family_group(
-    family_id: str,
-    members: list[tuple[str, str, str]],
-    issues: list[QaIssue],
+def _validate_word_family_groups(
+    families: dict[str, list[tuple[str, str, str]]], issues: list[QaIssue]
 ) -> None:
-    base_ids = {member[1] for member in members}
-    if len(base_ids) != 1:
-        _error(
-            issues,
-            "word_family.base_conflict",
-            "wordFamily." + family_id,
-            "all members of a family must share one baseConceptId",
-        )
-        return
-    base_id = next(iter(base_ids))
-    bases = [
-        concept_id
-        for concept_id, _, relation in members
-        if relation == "base"
-    ]
-    if bases != [base_id]:
-        _error(
-            issues,
-            "word_family.base_member_invalid",
-            "wordFamily." + family_id,
-            "family must contain exactly one base relation on baseConceptId",
-        )
+    for family_id, members in families.items():
+        base_ids = {member[1] for member in members}
+        if len(base_ids) != 1:
+            _error(
+                issues,
+                "word_family.base_conflict",
+                "wordFamily." + family_id,
+                "all members of a family must share one baseConceptId",
+            )
+            continue
+        base_id = next(iter(base_ids))
+        bases = [
+            concept_id
+            for concept_id, _, relation in members
+            if relation == "base"
+        ]
+        if bases != [base_id]:
+            _error(
+                issues,
+                "word_family.base_member_invalid",
+                "wordFamily." + family_id,
+                "family must contain exactly one base relation on baseConceptId",
+            )
 
 
 def _validate_word_families(
@@ -380,115 +358,12 @@ def _validate_word_families(
                 "wordFamily must be an explicit object",
             )
             continue
-        allowed_family_keys = {
-            "familyId",
-            "baseConceptId",
-            "relationType",
-            "prefix",
-            "suffix",
-            "semanticDistance",
-            "pedagogicalLevel",
-            "interferenceRisk",
-        }
-        unknown_family_keys = sorted(set(family) - allowed_family_keys)
-        if unknown_family_keys:
-            _error(
-                issues,
-                "word_family.unknown_keys",
-                path,
-                "wordFamily contains unknown keys: " + ", ".join(unknown_family_keys),
-            )
 
-        family_id = _clean(family.get("familyId"))
-        base_id = _clean(family.get("baseConceptId"))
-        relation = _clean(family.get("relationType"))
-        distance = _clean(family.get("semanticDistance"))
-        level = _clean(family.get("pedagogicalLevel"))
-        interference = family.get("interferenceRisk")
+        _validate_word_family_entry(
+            family, concept_id, concept_ids, path, issues, families
+        )
 
-        if family_id is None:
-            _error(
-                issues,
-                "word_family.family_id_blank",
-                path + ".familyId",
-                "familyId is required",
-            )
-        if base_id is None:
-            _error(
-                issues,
-                "word_family.base_id_blank",
-                path + ".baseConceptId",
-                "baseConceptId is required",
-            )
-        elif base_id not in concept_ids:
-            _error(
-                issues,
-                "word_family.base_missing",
-                path + ".baseConceptId",
-                "baseConceptId must reference a concept in the same pack",
-            )
-        if relation not in _WORD_FAMILY_RELATIONS:
-            _error(
-                issues,
-                "word_family.relation_invalid",
-                path + ".relationType",
-                "relationType must be an approved explicit relation",
-            )
-        if distance not in _WORD_FAMILY_DISTANCES:
-            _error(
-                issues,
-                "word_family.distance_invalid",
-                path + ".semanticDistance",
-                "semanticDistance must be low, medium, or high",
-            )
-        if level not in _WORD_FAMILY_LEVELS:
-            _error(
-                issues,
-                "word_family.level_invalid",
-                path + ".pedagogicalLevel",
-                "pedagogicalLevel must be an explicit CEFR level",
-            )
-        if not isinstance(interference, bool):
-            _error(
-                issues,
-                "word_family.interference_invalid",
-                path + ".interferenceRisk",
-                "interferenceRisk must be boolean",
-            )
-        for key in ("prefix", "suffix"):
-            value = family.get(key)
-            if value is not None and _clean(value) is None:
-                _error(
-                    issues,
-                    "word_family.affix_invalid",
-                    path + "." + key,
-                    key + " must be a non-empty string when present",
-                )
-
-        if family_id is not None and base_id is not None and relation is not None:
-            families.setdefault(family_id, []).append((concept_id, base_id, relation))
-
-    for family_id, members in families.items():
-        base_ids = {member[1] for member in members}
-        if len(base_ids) != 1:
-            _error(
-                issues,
-                "word_family.base_conflict",
-                "wordFamily." + family_id,
-                "all members of a family must share one baseConceptId",
-            )
-            continue
-        base_id = next(iter(base_ids))
-        bases = [
-            concept_id for concept_id, _, relation in members if relation == "base"
-        ]
-        if bases != [base_id]:
-            _error(
-                issues,
-                "word_family.base_member_invalid",
-                "wordFamily." + family_id,
-                "family must contain exactly one base relation on baseConceptId",
-            )
+    _validate_word_family_groups(families, issues)
 
 
 def _validate_noun(
