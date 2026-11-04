@@ -1,0 +1,12 @@
+[
+  {
+    "id": "ko_001",
+    "source": "안녕하세요",
+    "target": "مرحباً بكم",
+    "ipa": "/an.njʌŋ.ɦa.se.jo/",
+    "cefr": "A1",
+    "language": "Korean",
+    "family": "Asian",
+    "verified": true
+  }
+]

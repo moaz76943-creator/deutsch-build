@@ -1,0 +1,12 @@
+[
+  {
+    "id": "tr_001",
+    "source": "Merhaba",
+    "target": "مرحباً",
+    "ipa": "/meɾ.ha.ba/",
+    "cefr": "A1",
+    "language": "Turkish",
+    "family": "Turkic",
+    "verified": true
+  }
+]

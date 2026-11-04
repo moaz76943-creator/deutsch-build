@@ -1,0 +1,12 @@
+[
+  {
+    "id": "en_001",
+    "source": "Welcome",
+    "target": "أهلاً بك",
+    "ipa": "/ˈwɛlkəm/",
+    "cefr": "A1",
+    "language": "English",
+    "family": "Germanic",
+    "verified": true
+  }
+]

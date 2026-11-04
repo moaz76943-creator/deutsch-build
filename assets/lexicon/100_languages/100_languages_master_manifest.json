@@ -1,0 +1,194 @@
+{
+  "total_supported_languages": 100,
+  "corridors": [
+    {
+      "code": "de",
+      "name": "German",
+      "arabic_name": "الألمانية",
+      "family": "Germanic",
+      "file": "de_arabic_verified.json"
+    },
+    {
+      "code": "en",
+      "name": "English",
+      "arabic_name": "الإنجليزية",
+      "family": "Germanic",
+      "file": "en_arabic_verified.json"
+    },
+    {
+      "code": "nl",
+      "name": "Dutch",
+      "arabic_name": "الهولندية",
+      "family": "Germanic",
+      "file": "nl_arabic_verified.json"
+    },
+    {
+      "code": "sv",
+      "name": "Swedish",
+      "arabic_name": "السويدية",
+      "family": "Germanic",
+      "file": "sv_arabic_verified.json"
+    },
+    {
+      "code": "no",
+      "name": "Norwegian",
+      "arabic_name": "النرويجية",
+      "family": "Germanic",
+      "file": "no_arabic_verified.json"
+    },
+    {
+      "code": "da",
+      "name": "Danish",
+      "arabic_name": "الدنماركية",
+      "family": "Germanic",
+      "file": "da_arabic_verified.json"
+    },
+    {
+      "code": "fr",
+      "name": "French",
+      "arabic_name": "الفرنسية",
+      "family": "Romance",
+      "file": "fr_arabic_verified.json"
+    },
+    {
+      "code": "es",
+      "name": "Spanish",
+      "arabic_name": "الإسبانية",
+      "family": "Romance",
+      "file": "es_arabic_verified.json"
+    },
+    {
+      "code": "it",
+      "name": "Italian",
+      "arabic_name": "الإيطالية",
+      "family": "Romance",
+      "file": "it_arabic_verified.json"
+    },
+    {
+      "code": "pt",
+      "name": "Portuguese",
+      "arabic_name": "البرتغالية",
+      "family": "Romance",
+      "file": "pt_arabic_verified.json"
+    },
+    {
+      "code": "ro",
+      "name": "Romanian",
+      "arabic_name": "الرومانية",
+      "family": "Romance",
+      "file": "ro_arabic_verified.json"
+    },
+    {
+      "code": "ru",
+      "name": "Russian",
+      "arabic_name": "الروسية",
+      "family": "Slavic",
+      "file": "ru_arabic_verified.json"
+    },
+    {
+      "code": "pl",
+      "name": "Polish",
+      "arabic_name": "البولندية",
+      "family": "Slavic",
+      "file": "pl_arabic_verified.json"
+    },
+    {
+      "code": "uk",
+      "name": "Ukrainian",
+      "arabic_name": "الأوكرانية",
+      "family": "Slavic",
+      "file": "uk_arabic_verified.json"
+    },
+    {
+      "code": "cs",
+      "name": "Czech",
+      "arabic_name": "التشيكية",
+      "family": "Slavic",
+      "file": "cs_arabic_verified.json"
+    },
+    {
+      "code": "tr",
+      "name": "Turkish",
+      "arabic_name": "التركية",
+      "family": "Turkic",
+      "file": "tr_arabic_verified.json"
+    },
+    {
+      "code": "az",
+      "name": "Azerbaijani",
+      "arabic_name": "الأذربيجانية",
+      "family": "Turkic",
+      "file": "az_arabic_verified.json"
+    },
+    {
+      "code": "uz",
+      "name": "Uzbek",
+      "arabic_name": "الأوزبكية",
+      "family": "Turkic",
+      "file": "uz_arabic_verified.json"
+    },
+    {
+      "code": "kk",
+      "name": "Kazakh",
+      "arabic_name": "الكازاخية",
+      "family": "Turkic",
+      "file": "kk_arabic_verified.json"
+    },
+    {
+      "code": "zh",
+      "name": "Chinese",
+      "arabic_name": "الصينية",
+      "family": "Asian",
+      "file": "zh_arabic_verified.json"
+    },
+    {
+      "code": "ja",
+      "name": "Japanese",
+      "arabic_name": "اليابانية",
+      "family": "Asian",
+      "file": "ja_arabic_verified.json"
+    },
+    {
+      "code": "ko",
+      "name": "Korean",
+      "arabic_name": "الكورية",
+      "family": "Asian",
+      "file": "ko_arabic_verified.json"
+    },
+    {
+      "code": "ms",
+      "name": "Malay",
+      "arabic_name": "الماليزية",
+      "family": "Asian",
+      "file": "ms_arabic_verified.json"
+    },
+    {
+      "code": "id",
+      "name": "Indonesian",
+      "arabic_name": "الإندونيسية",
+      "family": "Asian",
+      "file": "id_arabic_verified.json"
+    },
+    {
+      "code": "ur",
+      "name": "Urdu",
+      "arabic_name": "الأوردية",
+      "family": "Asian",
+      "file": "ur_arabic_verified.json"
+    },
+    {
+      "code": "fa",
+      "name": "Persian",
+      "arabic_name": "الفارسية",
+      "family": "Asian",
+      "file": "fa_arabic_verified.json"
+    },
+    {
+      "code": "hi",
+      "name": "Hindi",
+      "arabic_name": "الهندية",
+      "family": "Asian",
+      "file": "hi_arabic_verified.json"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "id": "es_001",
+    "source": "Hola",
+    "target": "مرحباً",
+    "ipa": "/ˈo.la/",
+    "cefr": "A1",
+    "language": "Spanish",
+    "family": "Romance",
+    "verified": true
+  }
+]

@@ -1,0 +1,12 @@
+[
+  {
+    "id": "ru_001",
+    "source": "Здравствуйте",
+    "target": "أهلاً بكم",
+    "ipa": "/ˈzdrastvʊjtʲe/",
+    "cefr": "A1",
+    "language": "Russian",
+    "family": "Slavic",
+    "verified": true
+  }
+]
