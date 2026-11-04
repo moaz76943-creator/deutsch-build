@@ -96,6 +96,21 @@ class DeviceStartupOperations implements StartupOperations {
     final hasOptionalFailure = results.any(
       (r) => r.status == BootstrapStepStatus.recoverableFailure,
     );
+
+    try {
+      if (hasOptionalFailure) {
+        final failures = (preferences.getInt('bootstrap.optional_failures.v1') ?? 0) + 1;
+        await preferences.setInt('bootstrap.optional_failures.v1', failures);
+        if (failures >= 2) {
+          return const StartupOutcome(StartupState.SAFE_MODE);
+        }
+      } else {
+        await preferences.remove('bootstrap.optional_failures.v1');
+      }
+    } catch (_) {
+      // Ignore preference errors during safe mode evaluation.
+    }
+
     if (hasOptionalFailure || !contentAvailable) {
       // Keep the last-known-good marker; never replace it with a failed boot.
       return StartupOutcome(
