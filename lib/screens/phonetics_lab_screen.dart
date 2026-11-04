@@ -42,6 +42,14 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
       "langCode": "tr-TR",
       "hasAudio": false
     },
+    {
+      "symbol": "unverified",
+      "ipa": "غير متوفر",
+      "desc": "وصف غير متوفر",
+      "lang": "لغة غير متوفرة",
+      "langCode": "unverified",
+      "hasAudio": false
+    },
   ];
 
   @override
@@ -107,6 +115,8 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
               ),
               onPressed: _toggleSpeed,
             ),
+            tooltip: 'تغيير سرعة النطق',
+            onPressed: _toggleSpeed,
           )
         ],
       ),
@@ -207,7 +217,7 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
                     ),
                   ),
                 );
-              },
+              }
             ),
           ),
         ),

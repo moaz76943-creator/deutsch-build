@@ -1,3 +1,4 @@
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/screens/phonetics_lab_screen.dart';
@@ -88,8 +89,9 @@ void main() {
       ),
     );
 
-    // Test unverified/unavailable phonetics behavior per the latest PhoneticsLabScreen
-    expect(find.byTooltip('النطق الصوتي غير متوفر حالياً'), findsOneWidget);
+    expect(find.text('unverified'), findsOneWidget);
+    expect(find.text('غير متوفر'), findsOneWidget);
+    expect(find.byType(FaIcon).last, findsWidgets);
   });
 
   testWidgets('Disposal stops audio', (WidgetTester tester) async {
