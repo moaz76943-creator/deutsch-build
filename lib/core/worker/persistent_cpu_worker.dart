@@ -28,12 +28,13 @@ class PersistentCpuWorker with WidgetsBindingObserver {
   static PersistentCpuWorker instance = PersistentCpuWorker._init();
 
   final int maxConcurrentTasks;
-  int maxQueueSize;
+  final int maxQueueSize;
   bool _disposed = false;
 
   int _activeJobs = 0;
   int _generation = 0;
-  final Queue<_QueuedTask<dynamic, dynamic>> _queue = Queue<_QueuedTask<dynamic, dynamic>>();
+  // Dynamic avoids variance type inference issues for a queue holding heterogeneous tasks
+  final Queue<dynamic> _queue = Queue<dynamic>();
 
   PersistentCpuWorker._init()
       : maxConcurrentTasks = 4,
@@ -78,7 +79,8 @@ class PersistentCpuWorker with WidgetsBindingObserver {
 
   void cancelAll() {
     _generation++;
-    for (final task in _queue) {
+    for (final taskDyn in _queue) {
+      final task = taskDyn as _QueuedTask;
       if (!task.completer.isCompleted) {
         task.completer.completeError(WorkerCancelledException());
       }
@@ -109,13 +111,16 @@ class PersistentCpuWorker with WidgetsBindingObserver {
       WidgetsBinding.instance.removeObserver(this);
     } catch (_) {}
     cancelAll();
+    _disposed = true;
   }
 
   Future<R> executeTask<Q, R>(ComputeCallback<Q, R> task, Q message) {
     if (_disposed) {
-      return Future.error(StateError('Worker is disposed'));
+      return Future.error(StateError("Worker is disposed"));
     }
-    if (_queue.length >= maxQueueSize) {
+
+    // Total pending/active jobs needs to be bounded, queue length might be 0 but active jobs is 2!
+    if ((_queue.length + _activeJobs) >= maxQueueSize) {
       return Future.error(WorkerQueueExhaustedException());
     }
 
@@ -348,7 +353,7 @@ class PersistentCpuWorker with WidgetsBindingObserver {
     int rating = data['rating'] as int;
 
     if (ease < 0) {
-      throw ArgumentError('Invalid ease');
+      throw ArgumentError("Ease cannot be negative");
     }
 
     // معادلة الحفظ والمراجعة المتباعدة
