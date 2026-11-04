@@ -7,28 +7,17 @@ class AndroidOfflineVoiceCapabilityProbe {
 
   Future<List<String>> getVerifiedOfflineLocales() async {
     try {
-      final Object? voices = await _tts.getVoices;
-      if (voices is! List) return [];
-      final locales = <String>[];
-      final seen = <String>{};
-      for (final voice in voices.take(256)) {
-        if (voice is! Map) continue;
-        final rawLocale = voice['locale'];
-        if (rawLocale is! String || rawLocale.trim().isEmpty) continue;
-        var offlineEvidence = false;
-        var conflictingEvidence = false;
-        for (final key in [
-          'network_required',
-          'networkRequired',
-          'requiresNetwork'
-        ]) {
-          final value = voice[key];
-          if (value == null) continue;
-          final flag = value.toString().trim().toLowerCase();
-          if (flag == 'false' || flag == '0' || flag == 'no') {
-            offlineEvidence = true;
-          } else {
-            conflictingEvidence = true;
+      final dynamic voices = await _tts.getVoices;
+      if (voices == null) return [];
+
+      final List<String> locales = [];
+      if (voices is Iterable) {
+        for (final voice in voices) {
+          if (voice is Map) {
+            final locale = voice['locale'] as String?;
+            if (locale != null) {
+              locales.add(locale);
+            }
           }
         }
         // An advertised language, or absent network metadata, is not offline proof.
@@ -48,7 +37,13 @@ class AndroidOfflineVoiceCapabilityProbe {
         seen.add(key);
         locales.add(locale);
       }
-      return locales;
+
+      // Also get Languages as fallback/addition
+      final dynamic langs = await _tts.getLanguages;
+      if (langs is List) {
+        locales.addAll(langs.cast<String>());
+      }
+      return locales.toSet().toList();
     } catch (_) {
       return [];
     }

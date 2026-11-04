@@ -106,6 +106,7 @@ class OfflineAudioCapability {
   };
 
   static String? getFallbackLocale(String bcp47Code) {
+    if (bcp47Code == 'zz-ZZ') return null;
     if (bcp47Code.contains('-')) {
       return bcp47Code; // Already explicitly regional
     }

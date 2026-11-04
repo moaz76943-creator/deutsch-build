@@ -50,6 +50,28 @@ void main() {
         .setMockMethodCallHandler(channel, null);
   });
 
+  // Mock MethodChannel for flutter_tts to avoid MissingPluginException
+  const MethodChannel channel = MethodChannel('flutter_tts');
+
+  setUp(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+      if (methodCall.method == 'awaitSpeakCompletion') {
+        return 1;
+      } else if (methodCall.method == 'getVoices') {
+        return ['en-US', 'de-DE', 'fr-FR', 'ar-SA'];
+      } else if (methodCall.method == 'setLanguage') {
+        return 1;
+      } else if (methodCall.method == 'speak') {
+        return 1;
+      } else if (methodCall.method == 'stop') {
+        return 1;
+      } else if (methodCall.method == 'setSpeechRate') {
+        return 1;
+      }
+      return null;
+    });
+  });
+
   test('OfflineAudioDispatcher prevents stale callbacks on fast stops', () async {
     // We expect the speakText to return false on stop before completion,
     // or properly handle MissingPluginException in headless.
