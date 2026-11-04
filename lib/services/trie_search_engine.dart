@@ -1,13 +1,15 @@
 import 'package:characters/characters.dart';
 
 class TrieNode {
-  final Map<String, TrieNode> children = {};
-  final Set<String> wordIds = {};
+  final Map<String, TrieNode> children = <String, TrieNode>{};
+  final Set<String> wordIds = <String>{};
 }
 
 /// A bounded, language-specific *search-key* index. It does not mutate or
 /// replace original surface spellings, and it does not infer segmentation.
 class TrieSearchEngine {
+  static const int maxInputCodeUnits = 2048;
+  static const int maxIdCodeUnits = 128;
   TrieNode _root = TrieNode();
   int _nodeCount = 1;
 
@@ -17,8 +19,6 @@ class TrieSearchEngine {
   final int maxResultsPerNode;
   final int maxSearchResults;
   final int maxWordGraphemes;
-  final int maxInputCodeUnits = 1000;
-  final int maxIdCodeUnits = 100;
 
   TrieSearchEngine({
     this.languageCode = 'und',
@@ -38,10 +38,19 @@ class TrieSearchEngine {
     }
   }
 
-  static String normalizeUniversal(String text) {
-    if (text.isEmpty) return text;
-    String res = text.toLowerCase().trim();
-    res = res.replaceAll(RegExp(r'[\u064B-\u065F\u0670]'), '');
+  static String normalizeForLanguage(String text, String language) {
+    if (text.isEmpty) return '';
+    final lang = language.split('-').first.toLowerCase();
+    // Turkish/Azeri dotted/dotless I must not be collapsed by non-locale-aware
+    // Unicode lowercasing. Prefer exact keys to false cross-lexeme matches.
+    String result = (lang == 'tr' || lang == 'az')
+        ? text.trim()
+        : text.trim().toLowerCase();
+    // 'und' is the default multilingual index used by prefix search. Apply
+    // each script fold there; a specific language keeps only its own fold.
+    final foldGerman = lang == 'de' || lang == 'und';
+    final foldArabic = lang == 'ar' || lang == 'und';
+    final foldHebrew = lang == 'he' || lang == 'und';
 
     final diacritics = {
       'ä': 'ae',
@@ -70,69 +79,16 @@ class TrieSearchEngine {
       'ş': 's',
     };
 
-    diacritics.forEach((k, v) {
-      res = res.replaceAll(k, v);
-    });
-
-    return res;
-  }
-
-  String normalizeForLanguage(String text, String language) {
-    if (text.isEmpty) return '';
-    final lang = language.split('-').first.toLowerCase();
-    String result = (lang == 'tr' || lang == 'az')
-        ? text.trim()
-        : text.trim().toLowerCase();
-
-    if (lang == 'de') {
-      result = result
-          .replaceAll('ä', 'ae')
-          .replaceAll('ö', 'oe')
-          .replaceAll('ü', 'ue')
-          .replaceAll('ß', 'ss');
-    } else if (lang == 'ar') {
-      // Remove Arabic Tashkeel
-      result = result.replaceAll(
-          RegExp(r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]'), '');
-    } else if (lang == 'he') {
-      // Remove Hebrew Niqqud
-      result = result.replaceAll(
-        RegExp(r'[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]'),
-        '',
-      );
-    } else if (lang == 'und') {
-      final diacritics = {
-        'ä': 'ae',
-        'ö': 'oe',
-        'ü': 'ue',
-        'ß': 'ss',
-        'é': 'e',
-        'è': 'e',
-        'ê': 'e',
-        'ë': 'e',
-        'á': 'a',
-        'à': 'a',
-        'â': 'a',
-        'ã': 'a',
-        'ó': 'o',
-        'ò': 'o',
-        'ô': 'o',
-        'õ': 'o',
-        'ú': 'u',
-        'ù': 'u',
-        'û': 'u',
-        'ñ': 'n',
-        'ç': 'c',
-        'ı': 'i',
-        'ğ': 'g',
-        'ş': 's',
-      };
-
+    if (foldGerman) {
       diacritics.forEach((k, v) {
         result = result.replaceAll(k, v);
       });
-
-      result = result.replaceAll(RegExp(r'[\u064B-\u065F\u0670]'), '');
+    }
+    if (foldArabic) {
+      result = result.replaceAll(
+          RegExp(r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]'), '');
+    }
+    if (foldHebrew) {
       result = result.replaceAll(
         RegExp(r'[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]'),
         '',
@@ -141,11 +97,17 @@ class TrieSearchEngine {
     return result;
   }
 
-  String normalizeGerman(String text) => normalizeForLanguage(text, 'de');
+  // Legacy static entrypoints retained; universal no longer means Latin fold.
+  static String normalizeUniversal(String text) =>
+      normalizeForLanguage(text, 'und');
+  static String normalizeGerman(String text) =>
+      normalizeForLanguage(text, 'de');
 
   bool _matchesScope(String? pairKey) =>
       directedPairKey == null || directedPairKey == pairKey;
 
+  /// Returns false when the word cannot be indexed at all.
+  /// A word that exceeds [maxNodes] is indexed only for the prefix that fits.
   bool tryInsert(String word, String id, {String? pairKey}) {
     if (!_matchesScope(pairKey) ||
         id.isEmpty ||
@@ -158,36 +120,11 @@ class TrieSearchEngine {
     final units = normalized.characters.toList(growable: false);
     if (units.length > maxWordGraphemes) return false;
 
-    // Preflight atomic check to make sure we don't exceed maxNodes.
-    TrieNode? cursor = _root;
-    var missingNodes = 0;
-    for (final unit in units) {
-      if (cursor == null) {
-        missingNodes++;
-      } else {
-        final child = cursor.children[unit];
-        if (child == null) {
-          missingNodes++;
-          cursor = null;
-        } else {
-          cursor = child;
-          if (!cursor.wordIds.contains(id) &&
-              cursor.wordIds.length >= maxResultsPerNode) {
-            return false;
-          }
-        }
-      }
-    }
-    if (_nodeCount + missingNodes > maxNodes) return false;
-
     var current = _root;
     var indexed = false;
     for (final unit in units) {
       final existing = current.children[unit];
       if (existing != null) {
-        if (!existing.wordIds.contains(id)) {
-          if (existing.wordIds.length >= maxResultsPerNode) return indexed;
-        }
         current = existing;
       } else {
         if (_nodeCount >= maxNodes) break;
@@ -196,8 +133,8 @@ class TrieSearchEngine {
         _nodeCount++;
         current = created;
       }
-      if (!current.wordIds.contains(id)) {
-        if (current.wordIds.length >= maxResultsPerNode) return indexed;
+
+      if (current.wordIds.length < maxResultsPerNode) {
         current.wordIds.add(id);
       }
       indexed = true;
