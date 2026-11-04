@@ -52,7 +52,7 @@ class LocalLearningAnalytics {
     }
 
     final currentUtc = nowUtc ?? DateTime.now().toUtc();
-    final input = {
+    final input = <String, dynamic>{
       'history': history.map((e) => e.toMap()).toList(),
       'windowDays': windowDays,
       'currentUtc': currentUtc.toIso8601String(),
@@ -72,20 +72,16 @@ class LocalLearningAnalytics {
 
   static Map<String, PairMetrics> _aggregateHistory(
       Map<String, dynamic> input) {
-    final historyValue = input['history'];
-    final List<dynamic> historyMaps =
-        historyValue is List ? historyValue : const <dynamic>[];
-    final windowValue = input['windowDays'];
-    final int windowDays = windowValue is int ? windowValue : 30;
-    final currentValue = input['currentUtc'];
-    if (currentValue is! String) {
-      return <String, PairMetrics>{};
-    }
-    final DateTime currentUtc = DateTime.parse(currentValue);
-    final DateTime threshold = currentUtc.subtract(Duration(days: windowDays));
+    final historyMaps = input['history'] as List<dynamic>? ?? <dynamic>[];
+    final windowDays = input['windowDays'] as int? ?? 30;
+    final currentUtcStr = input['currentUtc'] as String? ?? '';
+    if (currentUtcStr.isEmpty) return <String, PairMetrics>{};
+
+    final currentUtc = DateTime.parse(currentUtcStr);
+    final threshold = currentUtc.subtract(Duration(days: windowDays));
 
     // Deduplicate by reviewEventId and safely parse
-    final Map<String, Map<String, dynamic>> deduplicated = {};
+    final deduplicated = <String, Map<String, dynamic>>{};
     for (var envMap in historyMaps) {
       if (envMap is! Map) continue;
 
@@ -97,7 +93,7 @@ class LocalLearningAnalytics {
       }
     }
 
-    final Map<String, List<Map<String, dynamic>>> byPair = {};
+    final byPair = <String, List<Map<String, dynamic>>>{};
     for (var envMap in deduplicated.values) {
       final timestampStr = envMap['timestamp'];
       if (timestampStr == null || timestampStr is! String) continue;
@@ -114,20 +110,20 @@ class LocalLearningAnalytics {
         final pairKey = envMap['languagePairKey'];
         if (pairKey == null || pairKey is! String || pairKey.isEmpty) continue;
 
-        byPair.putIfAbsent(pairKey, () => []).add(envMap);
+        byPair.putIfAbsent(pairKey, () => <Map<String, dynamic>>[]).add(envMap);
       }
     }
 
-    final Map<String, PairMetrics> result = {};
+    final result = <String, PairMetrics>{};
     for (var entry in byPair.entries) {
       final pairKey = entry.key;
       final events = entry.value;
 
       int totalReviews = 0;
       int successfulReviews = 0;
-      final Set<String> uniqueCards = {};
-      final Set<String> masteredCards = {};
-      final Map<String, int> dailyReviews = {};
+      final uniqueCards = <String>{};
+      final masteredCards = <String>{};
+      final dailyReviews = <String, int>{};
 
       for (var envMap in events) {
         final ratingRaw = envMap['rating'];
@@ -150,10 +146,9 @@ class LocalLearningAnalytics {
         }
 
         final timestampStr = envMap['timestamp'] as String;
-        final timestamp = DateTime.parse(timestampStr).toUtc();
+        final dt = DateTime.parse(timestampStr).toUtc();
         // Explicitly defined local-day grouping (UTC date part only)
-        final localDayStr =
-            "${timestamp.year.toString().padLeft(4, '0')}-${timestamp.month.toString().padLeft(2, '0')}-${timestamp.day.toString().padLeft(2, '0')}";
+        final localDayStr = dt.toIso8601String().substring(0, 10);
         dailyReviews[localDayStr] = (dailyReviews[localDayStr] ?? 0) + 1;
       }
 
@@ -190,7 +185,6 @@ class LocalLearningAnalytics {
         return 'وسام المائة بطاقة المتقنة';
       }
     }
-
     return null;
   }
 }
