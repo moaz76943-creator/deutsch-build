@@ -65,6 +65,11 @@ class ChineseTokenizer(LanguageTokenizer):
             if len(valid_match_lengths) > 1:
                 ambiguous = True
 
+            # If we fall back to a single cluster because no multi-char matches were found in the dictionary,
+            # and it is not in the dictionary, it's ambiguous fallback logic as expected by test_engine.py
+            if longest_match_lexical_id is None and longest_match_end_i == i + 1:
+                ambiguous = True
+
             end_idx = boundaries[longest_match_end_i]
             tokens.append(Token(
                 surface=longest_match_surface,
