@@ -40,6 +40,7 @@ void main() {
     await db.close();
   });
 
+  // 1. Real SQLite review fixtures schedule correct due dates in epoch seconds
   test('Real SQLite review fixtures schedule correct due dates in epoch seconds',
       () async {
     final reviewedAt = DateTime.utc(2023, 1, 1);
@@ -73,6 +74,7 @@ void main() {
     expect(result.first['next_due_at'], schedule.nextReviewEpoch);
   });
 
+  // 2. Duplicate review submissions are safely handled
   test('Duplicate review event ids do not apply the review twice', () async {
     final reviewedAt = DateTime.utc(2023, 1, 1);
 
@@ -104,6 +106,7 @@ void main() {
     expect(result.first['interval_days'], 1);
   });
 
+  // 3. Overdue cards process correctly
   test('Overdue cards process correctly', () async {
     final reviewedAt = DateTime.utc(2023, 1, 1);
 
@@ -135,6 +138,7 @@ void main() {
     expect(result.first['repetition_count'], 2);
   });
 
+  // 4. Reverse pairs are isolated
   test('Reverse pairs are isolated using target_language_code and lexeme_id',
       () async {
     final reviewedAt = DateTime.utc(2023, 1, 1);
@@ -174,6 +178,7 @@ void main() {
     expect(resultAr.first['repetition_count'], 1);
   });
 
+  // 5. Treat wall-clock anomalies as explicit scheduling conditions
   test('Explicit earlier review timestamps are still persisted', () async {
     final reviewedAt = DateTime.utc(2023, 1, 1);
 
@@ -204,6 +209,7 @@ void main() {
     expect(result.first['repetition_count'], 2);
   });
 
+  // 6. Interrupted writes rollback correctly
   test('Interrupted writes rollback correctly', () async {
     final nowSeconds = DateTime.utc(2023, 1, 1).millisecondsSinceEpoch ~/ 1000;
 
