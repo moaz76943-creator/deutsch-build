@@ -1,6 +1,5 @@
 import unittest
 from unittest.mock import patch, MagicMock
-import sys
 
 from tools.automation.repair_planner import (
     RepairPlanner,
@@ -30,7 +29,7 @@ class TestRepairPlanner(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Ambiguous fix rejected"):
             self.planner.classify_failure("Security vulnerability in ambiguous dependency upgrade")
 
-    @patch('tools.automation.scope_guard.ScopeGuard')
+    @patch('tools.automation.repair_planner.ScopeGuard')
     def test_duplicate_attempt_prevented(self, MockGuard):
         sig = "Error: stale fts5 index detected"
         self.planner.generate_plan(sig)
@@ -38,7 +37,7 @@ class TestRepairPlanner(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Duplicate attempt blocked"):
             self.planner.generate_plan(sig)
 
-    @patch('tools.automation.scope_guard.ScopeGuard')
+    @patch('tools.automation.repair_planner.ScopeGuard')
     def test_unsafe_paths_rejected(self, MockGuard):
         # We need paths to be extracted correctly in regex
         # The regex in repair_planner is r"([a-zA-Z0-9_\-\./]+\.[a-zA-Z0-9]+)"
@@ -51,7 +50,7 @@ class TestRepairPlanner(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unsafe path detected"):
             self.planner.generate_plan(sig2)
 
-    @patch('tools.automation.scope_guard.ScopeGuard')
+    @patch('tools.automation.repair_planner.ScopeGuard')
     def test_invalid_ownership(self, MockGuard):
         mock_guard_instance = MagicMock()
         MockGuard.return_value = mock_guard_instance
@@ -61,7 +60,7 @@ class TestRepairPlanner(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "Ownership denied by ScopeGuard"):
             self.planner.generate_plan(sig, dry_run=False)
 
-    @patch('tools.automation.scope_guard.ScopeGuard')
+    @patch('tools.automation.repair_planner.ScopeGuard')
     def test_plan_generation_and_ownership(self, MockGuard):
         mock_guard_instance = MagicMock()
         MockGuard.return_value = mock_guard_instance

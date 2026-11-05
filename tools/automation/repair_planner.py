@@ -1,6 +1,5 @@
 import re
 import uuid
-import sys
 from tools.automation.scope_guard import ScopeGuard
 
 STALE_FTS5 = "STALE_FTS5"
@@ -69,9 +68,6 @@ class RepairPlanner:
 
         transformation = TRANSFORMATIONS[category]
         plan_id = str(uuid.uuid4())
-
-        # Hard fail if missing
-        from tools.automation.scope_guard import ScopeGuard
 
         # We need a valid owner and allowed paths to get ownership
         # In actual usage this is passed from the environment/task context,
