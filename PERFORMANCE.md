@@ -1,5 +1,33 @@
 # Performance Improvements
 
+## 2026-11-06: Expanded Baseline Profile for Broader AOT Coverage (Startup Time / UI Jank)
+
+### Issue
+The initial `baseline-prof.txt` covered core Flutter engine, MainActivity, and basic rendering paths. First-frame composition, layout passes, and common navigation/messaging after launch still incurred interpretation overhead on cold starts, contributing to TTID variance and early jank.
+
+### Change
+- Expanded `android/app/src/main/baseline-prof.txt` with additional hot methods:
+  - FlutterView layout and RenderObject/Element update paths for first-frame and initial UI.
+  - ProfileInstaller install methods.
+- Existing ProfileInstaller 1.4.1 dependency and R8 minifyEnabled + shrinkResources unchanged.
+- No new permissions, no network, no proguard rule modifications.
+
+### Expected Metrics
+| Metric | Before (starter profile) | After (expanded) | Improvement |
+|--------|---------------------------|------------------|-------------|
+| Cold start TTID consistency | Good | Better (more paths AOT) | 5-15% lower variance / modest absolute gain |
+| First-frame / early UI jank | Some interpretation cost | Reduced | Smoother initial composition |
+| Subsequent launches | Optimized core | Broader coverage | More consistent across sessions |
+
+### How to measure
+1. Cold start: `adb shell am force-stop com.deutschbilarabi.app && adb shell am start -W -n com.deutschbilarabi.app/.MainActivity` on physical device (API 31+), compare TotalTime before/after reinstall or profile reinstall.
+2. Perfetto or Android Studio Profiler: first-frame time and main-thread method interpretation slices.
+3. Play Console Vitals after release for startup metrics.
+
+Security note: Profile content is method signatures only (public/hot paths). Official ProfileInstaller + ART AOT. R8 obfuscation and shrink remain fully active. No data, permission, or integrity changes.
+
+---
+
 ## 2026-11-05: ProfileInstaller Upgrade to 1.4.1 (Startup Time / UI Jank)
 
 ### Issue
