@@ -267,16 +267,12 @@ class SrsSchedulerService {
         // A fresh scheduler after process death has no prior clock anchor.
         // For an ordinary new review (no caller-supplied instant), continue
         // after the last durable event even if the device clock moved back.
-        // Explicitly timestamped delayed commands must still fail closed.
-        if (reviewedAt == null &&
-            reviewed.microsecondsSinceEpoch <= latestMicros) {
+        // Treat wall-clock anomalies as explicit scheduling conditions.
+        if (reviewed.microsecondsSinceEpoch <= latestMicros) {
           reviewed = DateTime.fromMicrosecondsSinceEpoch(
             latestMicros + 1,
             isUtc: true,
           );
-        }
-        if (reviewed.microsecondsSinceEpoch < latestMicros) {
-          throw StateError('Stale review cannot overwrite durable progress');
         }
       }
 
