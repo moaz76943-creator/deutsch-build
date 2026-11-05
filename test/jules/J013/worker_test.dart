@@ -25,13 +25,10 @@ void main() {
 
   group('PersistentCpuWorker - Bounded Execution & Failures', () {
     test('throws WorkerQueueExhaustedException when queue is full', () async {
-      // The queue size is 50, and max concurrent tasks is 4.
-      // So if we queue 55, the last ones will throw WorkerQueueExhaustedException.
-
-      // Four running jobs and two pending jobs saturate the bounded queue.
+      // 50 pending jobs and 4 running jobs saturate the bounded queue.
       // Await accepted jobs so they cannot leak into the next test.
       final accepted = <Future<double>>[];
-      for (var i = 0; i < 6; i++) {
+      for (var i = 0; i < 50; i++) {
         accepted.add(worker.calculateNewEaseFactor(2.5, 4));
       }
 

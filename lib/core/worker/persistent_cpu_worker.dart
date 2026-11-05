@@ -1,52 +1,174 @@
 import 'dart:async';
+import 'dart:collection';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
-/// Master Constitution Section 10 Compliant CPU Worker:
-/// Enforces requestGeneration (latest-wins), cancellation on language/screen change,
-/// execution timeout watchdog, and safe resource disposal to prevent leaks.
-class PersistentCpuWorker {
-  int _activeGeneration = 0;
-  bool _isDisposed = false;
-  Completer<dynamic>? _pendingCompleter;
+import '../storage/validation_hash_cache.dart';
+import 'worker_contract.dart';
 
-  int get currentGeneration => _activeGeneration;
-  bool get isDisposed => _isDisposed;
+class WorkerQueueExhaustedException implements Exception {
+  @override
+  String toString() => "WorkerQueueExhaustedException";
+}
 
-  /// Submits an asynchronous CPU task. Only the latest generation result is accepted.
-  Future<T?> executeTask<T>({
-    required Future<T> Function() computation,
-    Duration timeout = const Duration(seconds: 5),
-  }) async {
-    if (_isDisposed) {
-      throw StateError('Worker is disposed. Cannot schedule new CPU tasks.');
+class WorkerCancelledException implements Exception {
+  @override
+  String toString() => "WorkerCancelledException";
+}
+
+abstract class _QueuedTask {
+  int get generation;
+  Completer<dynamic> get completer;
+  Future<void> execute();
+  void cancel();
+}
+
+class _QueuedComputeTask<Q, R> implements _QueuedTask {
+  final ComputeCallback<Q, R> task;
+  final Q message;
+  @override
+  final Completer<dynamic> completer;
+  @override
+  final int generation;
+  final PersistentCpuWorker worker;
+
+  _QueuedComputeTask(this.task, this.message, this.completer, this.generation, this.worker);
+
+  @override
+  Future<void> execute() async {
+    if (generation != worker.currentEpoch || worker.isDisposed) {
+      cancel();
+      return;
     }
 
-    final generation = ++_activeGeneration;
-    final completer = Completer<T?>();
-    _pendingCompleter = completer;
+    try {
+      final result = await compute<Q, R>(task, message);
+
+      if (generation == worker.currentEpoch && !worker.isDisposed) {
+        if (!completer.isCompleted) {
+          completer.complete(result);
+        }
+      } else {
+        cancel();
+      }
+    } catch (e, st) {
+      if (!completer.isCompleted) {
+        completer.completeError(e, st);
+      }
+    }
+  }
+
+  @override
+  void cancel() {
+    if (!completer.isCompleted) {
+      completer.completeError(WorkerCancelledException());
+    }
+  }
+}
+
+class _QueuedWorkerJobTask<R> implements _QueuedTask {
+  final WorkerJob<Object?> job;
+  @override
+  final Completer<dynamic> completer;
+  @override
+  final int generation;
+  final PersistentCpuWorker worker;
+
+  _QueuedWorkerJobTask(this.job, this.completer, this.generation, this.worker);
+
+  @override
+  Future<void> execute() async {
+    if (generation != worker.currentEpoch || worker.isDisposed) {
+      cancel();
+      return;
+    }
+
+    try {
+      final rawResult = await compute<Map<String, Object?>, Map<String, Object?>>(_executeWireJob, _jobToWire(job));
+      final result = _resultFromWire(rawResult, fallback: job);
+
+      if (generation == worker.currentEpoch && !worker.isDisposed) {
+        if (!completer.isCompleted) {
+          completer.complete(
+            WorkerResult<R>(
+              id: result.id,
+              epoch: result.epoch,
+              status: result.status,
+              payload: result.payload as R?,
+              errorCode: result.errorCode,
+            ),
+          );
+        }
+      } else {
+        cancel();
+      }
+    } catch (e) {
+      if (!completer.isCompleted) {
+        completer.complete(
+          WorkerResult<R>(
+            id: job.id,
+            epoch: job.epoch,
+            status: WorkerStatuses.error,
+            payload: null,
+            errorCode: 'worker_exception',
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  void cancel() {
+    if (!completer.isCompleted) {
+      completer.complete(
+        WorkerResult<R>(
+          id: job.id,
+          epoch: job.epoch,
+          status: WorkerStatuses.stale,
+          payload: null,
+          errorCode: 'stale_epoch',
+        ),
+      );
+    }
+  }
+}
 
 class PersistentCpuWorker with WidgetsBindingObserver {
   static PersistentCpuWorker instance = PersistentCpuWorker._init();
 
   final int maxConcurrentTasks;
-  final int maxQueueSize;
+  int maxQueueSize;
   bool _disposed = false;
 
   int _activeJobs = 0;
-  int _generation = 0;
-  // Dynamic avoids variance type inference issues for a queue holding heterogeneous tasks
-  final Queue<dynamic> _queue = Queue<dynamic>();
+  int _currentEpoch = 0;
+  final Queue<_QueuedTask> _queue = Queue<_QueuedTask>();
+
+  int get currentEpoch => _currentEpoch;
+  bool get isDisposed => _disposed;
 
   PersistentCpuWorker._init()
       : maxConcurrentTasks = 4,
         maxQueueSize = 50 {
-    _registerObserver();
+    try {
+      WidgetsBinding.instance.addObserver(this);
+    } catch (_) {}
   }
 
-  void _registerObserver() {
-    try {
-      final result = await computation().timeout(timeout, onTimeout: () {
-        throw TimeoutException('CPU task timed out after ${timeout.inSeconds}s (Gen $generation)');
-      });
+  static Future<PersistentCpuWorker> start({int initialEpoch = 0}) async {
+    if (initialEpoch < 0) {
+      throw ArgumentError.value(
+        initialEpoch,
+        'initialEpoch',
+        'must not be negative',
+      );
+    }
+
+    instance._currentEpoch = initialEpoch;
+    return instance;
+  }
 
   @visibleForTesting
   static void resetForTesting() {
@@ -70,6 +192,18 @@ class PersistentCpuWorker with WidgetsBindingObserver {
     cancelAll();
   }
 
+  void advanceEpoch(int nextEpoch) {
+    if (_disposed) return;
+    if (nextEpoch < _currentEpoch) {
+      return;
+    }
+    if (nextEpoch == _currentEpoch) {
+      return;
+    }
+    _currentEpoch = nextEpoch;
+    cancelAll(incrementEpoch: false);
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
@@ -77,122 +211,63 @@ class PersistentCpuWorker with WidgetsBindingObserver {
     }
   }
 
-  void cancelAll() {
-    _generation++;
-    for (final taskDyn in _queue) {
-      final task = taskDyn as _QueuedTask;
-      if (!task.completer.isCompleted) {
-        task.completer.completeError(WorkerCancelledException());
-      }
-
-      completer.complete(result);
-      return result;
-    } catch (e, st) {
-      if (generation == _activeGeneration && !completer.isCompleted) {
-        completer.completeError(e, st);
-      }
-      return null;
+  void cancelAll({bool incrementEpoch = true}) {
+    if (incrementEpoch) {
+      _currentEpoch++;
     }
+    for (final task in _queue) {
+      task.cancel();
+    }
+    _queue.clear();
   }
 
-  /// Cancels in-flight work immediately (e.g. when language pair or screen changes)
-  void cancelActiveOperations() {
-    _activeGeneration++;
-    if (_pendingCompleter != null && !_pendingCompleter!.isCompleted) {
-      _pendingCompleter!.complete(null);
-      _pendingCompleter = null;
-    }
-  }
-
-  /// Safe disposal freeing all worker references and cancelling subscriptions
   void dispose() {
     _disposed = true;
     try {
       WidgetsBinding.instance.removeObserver(this);
     } catch (_) {}
-    cancelAll();
-    _disposed = true;
+    cancelAll(incrementEpoch: false);
   }
 
-  Future<R> executeTask<Q, R>(ComputeCallback<Q, R> task, Q message) {
+  Future<R> executeTaskWithPayload<Q, R>(
+      ComputeCallback<Q, R> task, Q message) {
     if (_disposed) {
       return Future.error(StateError("Worker is disposed"));
     }
 
-    // Total pending/active jobs needs to be bounded, queue length might be 0 but active jobs is 2!
     if ((_queue.length + _activeJobs) >= maxQueueSize) {
       return Future.error(WorkerQueueExhaustedException());
     }
 
-    final bootstrap = ReceivePort('phase13b.cpu.bootstrap');
-    final responses = ReceivePort('phase13b.cpu.responses');
-    final exits = ReceivePort('phase13b.cpu.exits');
+    final completer = Completer<dynamic>();
+    final queuedTask = _QueuedComputeTask<Q, R>(task, message, completer, _currentEpoch, this);
+    _queue.add(queuedTask);
 
-    final isolate = await Isolate.spawn<Map<String, Object?>>(
-      _cpuWorkerMain,
-      <String, Object?>{
-        'bootstrapPort': bootstrap.sendPort,
-        'responsePort': responses.sendPort,
-      },
-      debugName: 'salim.cpu-worker',
-      errorsAreFatal: true,
-      onExit: exits.sendPort,
-      onError: exits.sendPort,
-    );
+    _pump();
 
-    final command = await bootstrap.first.timeout(
-      const Duration(seconds: 3),
-      onTimeout: () {
-        isolate.kill(priority: Isolate.immediate);
-        bootstrap.close();
-        responses.close();
-        exits.close();
-        throw StateError('CPU worker bootstrap timed out.');
-      },
-    );
-    bootstrap.close();
-
-    if (command is! SendPort) {
-      isolate.kill(priority: Isolate.immediate);
-      responses.close();
-      exits.close();
-      throw StateError('CPU worker did not provide a command port.');
-    }
-
-    return _TypedCpuWorker._(
-      isolate: isolate,
-      commandPort: command,
-      responsePort: responses,
-      exitPort: exits,
-      initialEpoch: initialEpoch,
-    );
+    return completer.future.then((value) => value as R);
   }
 
-  void _pump() {
-    if (_disposed) return;
-    if (_activeJobs >= maxConcurrentTasks || _queue.isEmpty) {
-      return;
+  Future<WorkerResult<R>> submit<R>(WorkerJob<Object?> job) {
+    if (_disposed) {
+      return Future<WorkerResult<R>>.error(
+        StateError('PersistentCpuWorker is closed.'),
+      );
     }
 
-    _currentEpoch = nextEpoch;
-    final retained = Queue<_QueuedWorkerJob>();
+    _validateJob(job);
 
-  void _unpackAndExecute(dynamic task) {
-    if (task is _QueuedTask) {
-      _executeQueuedTask(task);
+    if ((_queue.length + _activeJobs) >= maxQueueSize) {
+      return Future<WorkerResult<R>>.error(
+        StateError('CPU worker queue capacity exceeded: $maxQueueSize.'),
+      );
     }
-  }
 
-  void _executeQueuedTask<Q, R>(_QueuedTask<Q, R> queuedTask) {
-    if (queuedTask.generation != _generation || _disposed) {
-      if (!queuedTask.completer.isCompleted) {
-        queuedTask.completer.completeError(WorkerCancelledException());
-      }
-      _complete(
-        queued,
-        WorkerResult<Object?>(
-          id: queued.job.id,
-          epoch: queued.job.epoch,
+    if (job.epoch != _currentEpoch) {
+      return Future<WorkerResult<R>>.value(
+        WorkerResult<R>(
+          id: job.id,
+          epoch: job.epoch,
           status: WorkerStatuses.stale,
           payload: null,
           errorCode: 'stale_epoch',
@@ -200,183 +275,38 @@ class PersistentCpuWorker with WidgetsBindingObserver {
       );
     }
 
-    _pending.addAll(retained);
-    _dispatchNext();
+    final completer = Completer<dynamic>();
+    final pending = _QueuedWorkerJobTask<R>(job, completer, _currentEpoch, this);
+    _queue.add(pending);
+
+    _pump();
+
+    return completer.future.then((value) => value as WorkerResult<R>);
   }
 
-  Future<void>? _closing;
-
-  Future<void> abort() {
-    _isolate.kill(priority: Isolate.immediate);
-    _handleExit(null);
-    return close();
+  Future<double> calculateNewEaseFactor(double ease, int rating) {
+    return executeTaskWithPayload<Map<String, dynamic>, double>(_heavySrsMath, {
+      'ease': ease,
+      'rating': rating,
+    });
   }
 
-  void _timeout(_QueuedWorkerJob queued) {
-    if (queued.completer.isCompleted) return;
-    if (!identical(_inFlight, queued)) {
-      _pending.remove(queued);
-      _complete(
-          queued,
-          WorkerResult<Object?>(
-              id: queued.job.id,
-              epoch: queued.job.epoch,
-              status: WorkerStatuses.error,
-              payload: null,
-              errorCode: 'job_timeout'));
-      return;
-    }
-    _inFlight = null;
-    _complete(
-        queued,
-        WorkerResult<Object?>(
-            id: queued.job.id,
-            epoch: queued.job.epoch,
-            status: WorkerStatuses.error,
-            payload: null,
-            errorCode: 'job_timeout'));
-    unawaited(abort());
-  }
+  void _pump() {
+    if (_disposed) return;
 
-  Future<void> close() => _closing ??= _close();
-
-  Future<void> _close() async {
-    if (_closed) return;
-    _accepting = false;
-
-    while (_pending.isNotEmpty) {
-      final queued = _pending.removeFirst();
-      _complete(
-        queued,
-        WorkerResult<Object?>(
-          id: queued.job.id,
-          epoch: queued.job.epoch,
-          status: WorkerStatuses.closed,
-          payload: null,
-          errorCode: 'worker_closed',
-        ),
-      );
-    }
-
-    final inFlight = _inFlight;
-    if (inFlight != null && !inFlight.completer.isCompleted) {
-      try {
-        final result = await compute<Q, R>(queuedTask.task, queuedTask.message);
-
-        if (queuedTask.generation == _generation && !_disposed) {
-          if (!queuedTask.completer.isCompleted) {
-            queuedTask.completer.complete(result);
-          }
-        } else {
-          if (!queuedTask.completer.isCompleted) {
-            queuedTask.completer.completeError(WorkerCancelledException());
-          }
-        }
-      } catch (e, st) {
-        if (!queuedTask.completer.isCompleted) {
-          queuedTask.completer.completeError(e, st);
-        }
-      } finally {
-        _activeJobs--;
-        _pump();
-      }
-    }
-
-    if (!_unexpectedExit) {
-      _shutdownCompleter ??= Completer<void>();
-      _commandPort.send(const <String, Object?>{'kind': 'shutdown'});
-      try {
-        await _shutdownCompleter!.future.timeout(
-          const Duration(seconds: 3),
-        );
-      } on TimeoutException {
-        _isolate.kill(priority: Isolate.immediate);
-      }
-    }
-
-    _closed = true;
-    await _responseSubscription.cancel();
-    await _exitSubscription.cancel();
-    _responsePort.close();
-    _exitPort.close();
-    _isolate.kill(priority: Isolate.immediate);
-  }
-
-  void _dispatchNext() {
-    if (!_accepting || _closed || _inFlight != null) return;
-
-    while (_pending.isNotEmpty) {
-      final queued = _pending.removeFirst();
-      if (queued.job.epoch != _currentEpoch) {
-        _complete(
-          queued,
-          WorkerResult<Object?>(
-            id: queued.job.id,
-            epoch: queued.job.epoch,
-            status: WorkerStatuses.stale,
-            payload: null,
-            errorCode: 'stale_epoch',
-          ),
-        );
-        continue;
-      }
-
-      _inFlight = queued;
-      try {
-        _commandPort.send(
-          <String, Object?>{
-            'kind': 'job',
-            'job': _jobToWire(queued.job),
-          },
-        );
-        return;
-      } on Object {
-        _inFlight = null;
-        _complete(
-          queued,
-          WorkerResult<Object?>(
-            id: queued.job.id,
-            epoch: queued.job.epoch,
-            status: WorkerStatuses.error,
-            payload: null,
-            errorCode: 'invalid_payload',
-          ),
-        );
-      }
+    while (_activeJobs < maxConcurrentTasks && _queue.isNotEmpty) {
+      final queuedTask = _queue.removeFirst();
+      _executeQueuedTask(queuedTask);
     }
   }
 
-  // دالة رياضية معزولة تماماً (SM-2 Logic)
-  static double _heavySrsMath(dynamic rawData) {
-    final data = rawData as Map<String, dynamic>;
-    double ease = data['ease'] as double;
-    int rating = data['rating'] as int;
-
-    if (ease < 0) {
-      throw ArgumentError("Ease cannot be negative");
-    }
-
-    // معادلة الحفظ والمراجعة المتباعدة
-    double newEase = ease + (0.1 - (5 - rating) * (0.08 + (5 - rating) * 0.02));
-    if (newEase < 1.3) newEase = 1.3;
-
-    while (_pending.isNotEmpty) {
-      final pending = _pending.removeFirst();
-      _complete(
-        pending,
-        WorkerResult<Object?>(
-          id: pending.job.id,
-          epoch: pending.job.epoch,
-          status: WorkerStatuses.error,
-          payload: null,
-          errorCode: 'worker_exit',
-        ),
-      );
-    }
-
-    final shutdown = _shutdownCompleter;
-    if (shutdown != null && !shutdown.isCompleted) {
-      shutdown.complete();
+  Future<void> _executeQueuedTask(_QueuedTask queuedTask) async {
+    _activeJobs++;
+    try {
+      await queuedTask.execute();
+    } finally {
+      _activeJobs--;
+      _pump();
     }
   }
 
@@ -396,25 +326,23 @@ class PersistentCpuWorker with WidgetsBindingObserver {
     }
   }
 
-  static void _complete(
-    _QueuedWorkerJob queued,
-    WorkerResult<Object?> result,
-  ) {
-    if (!queued.completer.isCompleted) {
-      queued.timer?.cancel();
-      queued.completer.complete(result);
+  static double _heavySrsMath(dynamic rawData) {
+    final data = rawData as Map<String, dynamic>;
+    double ease = data['ease'] as double;
+    int rating = data['rating'] as int;
+
+    if (ease < 0) {
+      throw ArgumentError("Ease cannot be negative");
     }
+
+    double newEase = ease + (0.1 - (5 - rating) * (0.08 + (5 - rating) * 0.02));
+    if (newEase < 1.3) newEase = 1.3;
+
+    return newEase;
   }
 }
 
-final class _QueuedWorkerJob {
-  _QueuedWorkerJob(this.job);
-
-  final WorkerJob<Object?> job;
-  Timer? timer;
-  final Completer<WorkerResult<Object?>> completer =
-      Completer<WorkerResult<Object?>>();
-}
+// --- Background Isolate Wire Implementations ---
 
 Map<String, Object?> _jobToWire(WorkerJob<Object?> job) => <String, Object?>{
       'id': job.id,
@@ -451,40 +379,6 @@ WorkerResult<Object?> _resultFromWire(
   );
 }
 
-void _cpuWorkerMain(Map<String, Object?> bootstrap) async {
-  final bootstrapValue = bootstrap['bootstrapPort'];
-  final responseValue = bootstrap['responsePort'];
-  if (bootstrapValue is! SendPort || responseValue is! SendPort) {
-    return;
-  }
-  final bootstrapPort = bootstrapValue;
-  final responsePort = responseValue;
-
-  final commands = ReceivePort('phase13b.cpu.commands');
-  bootstrapPort.send(commands.sendPort);
-
-  await for (final raw in commands) {
-    if (raw is! Map) continue;
-    final kind = raw['kind'];
-
-    if (kind == 'shutdown') {
-      responsePort.send(const <String, Object?>{'kind': 'shutdownAck'});
-      commands.close();
-      Isolate.exit();
-    }
-
-    if (kind != 'job') continue;
-    final job = raw['job'];
-    final result = await _executeWireJob(job);
-    responsePort.send(
-      <String, Object?>{
-        'kind': 'result',
-        'result': result,
-      },
-    );
-  }
-}
-
 Future<Map<String, Object?>> _executeWireJob(Object? raw) async {
   if (raw is! Map) {
     return _errorWire(
@@ -504,27 +398,6 @@ Future<Map<String, Object?>> _executeWireJob(Object? raw) async {
 
   try {
     switch (type) {
-      case PersistentCpuWorker._callbackType:
-        final arguments = _payloadMap(payload);
-        final function = arguments['function'];
-        if (function is! Function)
-          throw const FormatException('invalid computation');
-        try {
-          final value = await Function.apply(
-              function,
-              arguments['hasArgument'] == true
-                  ? [arguments['argument']]
-                  : const []);
-          return _okWire(id: id, epoch: epoch, payload: value);
-        } catch (error) {
-          return {
-            'id': id,
-            'epoch': epoch,
-            'status': WorkerStatuses.error,
-            'payload': {'error': error.toString()},
-            'errorCode': 'computation_error'
-          };
-        }
       case WorkerJobTypes.srsSchedule:
         final values = _payloadMap(payload);
         final ease = values['ease'];
@@ -641,7 +514,7 @@ Future<String> _sha256(Object? payload) async {
   if (content is! String || content.length > 16 * 1024 * 1024) {
     throw const FormatException('sha256 payload is invalid');
   }
-  final digest = await Sha256().hash(utf8.encode(content));
+  final digest = sha256.convert(utf8.encode(content));
   final buffer = StringBuffer();
   for (final byte in digest.bytes) {
     buffer.write(byte.toRadixString(16).padLeft(2, '0'));
