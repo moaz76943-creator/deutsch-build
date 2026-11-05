@@ -378,5 +378,324 @@ export const vocabExtra: VocabExtraItem[] = [
     },
     exampleDe: 'Wir warten auf den Bus.',
     exampleAr: 'نحن ننتظر الحافلة.'
+  },
+  {
+    id: 'v-extra-56',
+    type: 'verb',
+    level: 'A1',
+    de: 'kommen',
+    ar: 'يأتي',
+    conjugations: {
+      ich: 'komme',
+      du: 'kommst',
+      er: 'kommt',
+      wir: 'kommen',
+      ihr: 'kommt',
+      sie: 'kommen',
+      präteritum: 'kam',
+      perfekt: 'gekommen',
+      aux: 'sein'
+    },
+    exampleDe: 'Ich komme aus Ägypten.',
+    exampleAr: 'أنا آتي من مصر.'
+  },
+  {
+    id: 'v-extra-57',
+    type: 'verb',
+    level: 'A1',
+    de: 'gehen',
+    ar: 'يذهب',
+    conjugations: {
+      ich: 'gehe',
+      du: 'gehst',
+      er: 'geht',
+      wir: 'gehen',
+      ihr: 'geht',
+      sie: 'gehen',
+      präteritum: 'ging',
+      perfekt: 'gegangen',
+      aux: 'sein'
+    },
+    exampleDe: 'Wir gehen heute ins Kino.',
+    exampleAr: 'نذهب اليوم إلى السينما.'
+  },
+  {
+    id: 'v-extra-58',
+    type: 'verb',
+    level: 'A2',
+    de: 'fahren',
+    ar: 'يسافر / يقود',
+    conjugations: {
+      ich: 'fahre',
+      du: 'fährst',
+      er: 'fährt',
+      wir: 'fahren',
+      ihr: 'fahrt',
+      sie: 'fahren',
+      präteritum: 'fuhr',
+      perfekt: 'gefahren',
+      aux: 'sein'
+    },
+    exampleDe: 'Er fährt mit dem Zug nach Hamburg.',
+    exampleAr: 'هو يسافر بالقطار إلى هامبورغ.'
+  },
+  {
+    id: 'v-extra-59',
+    type: 'verb',
+    level: 'A1',
+    de: 'essen',
+    ar: 'يأكل',
+    conjugations: {
+      ich: 'esse',
+      du: 'isst',
+      er: 'isst',
+      wir: 'essen',
+      ihr: 'esst',
+      sie: 'essen',
+      präteritum: 'aß',
+      perfekt: 'gegessen',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich esse gerne Pizza.',
+    exampleAr: 'أنا أحب أكل البيتزا.'
+  },
+  {
+    id: 'v-extra-60',
+    type: 'verb',
+    level: 'A1',
+    de: 'trinken',
+    ar: 'يشرب',
+    conjugations: {
+      ich: 'trinke',
+      du: 'trinkst',
+      er: 'trinkt',
+      wir: 'trinken',
+      ihr: 'trinkt',
+      sie: 'trinken',
+      präteritum: 'trank',
+      perfekt: 'getrunken',
+      aux: 'haben'
+    },
+    exampleDe: 'Trinkst du Kaffee oder Tee?',
+    exampleAr: 'هل تشرب القهوة أم الشاي؟'
+  },
+  {
+    id: 'v-extra-61',
+    type: 'noun',
+    level: 'A1',
+    de: 'Haus',
+    ar: 'منزل',
+    article: 'das',
+    plural: 'Häuser',
+    exampleDe: 'Das Haus ist groß und modern.',
+    exampleAr: 'المنزل كبير وحديث.'
+  },
+  {
+    id: 'v-extra-62',
+    type: 'noun',
+    level: 'A1',
+    de: 'Auto',
+    ar: 'سيارة',
+    article: 'das',
+    plural: 'Autos',
+    exampleDe: 'Mein Auto ist blau.',
+    exampleAr: 'سيارتي زرقاء.'
+  },
+  {
+    id: 'v-extra-63',
+    type: 'noun',
+    level: 'A2',
+    de: 'Stadt',
+    ar: 'مدينة',
+    article: 'die',
+    plural: 'Städte',
+    exampleDe: 'Die Stadt hat viele Museen.',
+    exampleAr: 'المدينة لديها العديد من المتاحف.'
+  },
+  {
+    id: 'v-extra-64',
+    type: 'verb',
+    level: 'A2',
+    de: 'helfen',
+    ar: 'يساعد',
+    conjugations: {
+      ich: 'helfe',
+      du: 'hilfst',
+      er: 'hilft',
+      wir: 'helfen',
+      ihr: 'helft',
+      sie: 'helfen',
+      präteritum: 'half',
+      perfekt: 'geholfen',
+      aux: 'haben'
+    },
+    exampleDe: 'Kannst du mir bitte helfen?',
+    exampleAr: 'هل يمكنك مساعدتي من فضلك؟'
+  },
+  {
+    id: 'v-extra-65',
+    type: 'verb',
+    level: 'A1',
+    de: 'sprechen',
+    ar: 'يتحدث',
+    conjugations: {
+      ich: 'spreche',
+      du: 'sprichst',
+      er: 'spricht',
+      wir: 'sprechen',
+      ihr: 'sprecht',
+      sie: 'sprechen',
+      präteritum: 'sprach',
+      perfekt: 'gesprochen',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich spreche ein bisschen Deutsch.',
+    exampleAr: 'أتحدث قليلاً من الألمانية.'
+  },
+  {
+    id: 'v-extra-66',
+    type: 'noun',
+    level: 'A1',
+    de: 'Buch',
+    ar: 'كتاب',
+    article: 'das',
+    plural: 'Bücher',
+    exampleDe: 'Das Buch liegt auf dem Tisch.',
+    exampleAr: 'الكتاب موجود على الطاولة.'
+  },
+  {
+    id: 'v-extra-67',
+    type: 'noun',
+    level: 'A2',
+    de: 'Arbeit',
+    ar: 'عمل',
+    article: 'die',
+    plural: 'Arbeiten',
+    exampleDe: 'Die Arbeit beginnt um neun Uhr.',
+    exampleAr: 'يبدأ العمل في الساعة التاسعة.'
+  },
+  {
+    id: 'v-extra-68',
+    type: 'verb',
+    level: 'A2',
+    de: 'arbeiten',
+    ar: 'يعمل',
+    conjugations: {
+      ich: 'arbeite',
+      du: 'arbeitest',
+      er: 'arbeitet',
+      wir: 'arbeiten',
+      ihr: 'arbeitet',
+      sie: 'arbeiten',
+      präteritum: 'arbeitete',
+      perfekt: 'gearbeitet',
+      aux: 'haben'
+    },
+    exampleDe: 'Sie arbeitet in einem Krankenhaus.',
+    exampleAr: 'هي تعمل في مستشفى.'
+  },
+  {
+    id: 'v-extra-69',
+    type: 'noun',
+    level: 'A1',
+    de: 'Kind',
+    ar: 'طفل',
+    article: 'das',
+    plural: 'Kinder',
+    exampleDe: 'Das Kind spielt mit dem Ball.',
+    exampleAr: 'الطفل يلعب بالكرة.'
+  },
+  {
+    id: 'v-extra-70',
+    type: 'verb',
+    level: 'A1',
+    de: 'sehen',
+    ar: 'يرى',
+    conjugations: {
+      ich: 'sehe',
+      du: 'siehst',
+      er: 'sieht',
+      wir: 'sehen',
+      ihr: 'seht',
+      sie: 'sehen',
+      präteritum: 'sah',
+      perfekt: 'gesehen',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich sehe den Film gerne.',
+    exampleAr: 'أحب مشاهدة الفيلم.'
+  },
+  {
+    id: 'v-extra-71',
+    type: 'noun',
+    level: 'A2',
+    de: 'Zeit',
+    ar: 'وقت',
+    article: 'die',
+    plural: 'Zeiten',
+    exampleDe: 'Ich habe keine Zeit heute.',
+    exampleAr: 'ليس لدي وقت اليوم.'
+  },
+  {
+    id: 'v-extra-72',
+    type: 'verb',
+    level: 'A2',
+    de: 'brauchen',
+    ar: 'يحتاج',
+    conjugations: {
+      ich: 'brauche',
+      du: 'brauchst',
+      er: 'braucht',
+      wir: 'brauchen',
+      ihr: 'braucht',
+      sie: 'brauchen',
+      präteritum: 'brauchte',
+      perfekt: 'gebraucht',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir brauchen mehr Übung.',
+    exampleAr: 'نحتاج إلى مزيد من التمرين.'
+  },
+  {
+    id: 'v-extra-73',
+    type: 'noun',
+    level: 'A1',
+    de: 'Tisch',
+    ar: 'طاولة',
+    article: 'der',
+    plural: 'Tische',
+    exampleDe: 'Der Tisch ist aus Holz.',
+    exampleAr: 'الطاولة مصنوعة من الخشب.'
+  },
+  {
+    id: 'v-extra-74',
+    type: 'verb',
+    level: 'A1',
+    de: 'hören',
+    ar: 'يسمع',
+    conjugations: {
+      ich: 'höre',
+      du: 'hörst',
+      er: 'hört',
+      wir: 'hören',
+      ihr: 'hört',
+      sie: 'hören',
+      präteritum: 'hörte',
+      perfekt: 'gehört',
+      aux: 'haben'
+    },
+    exampleDe: 'Hörst du die Musik?',
+    exampleAr: 'هل تسمع الموسيقى؟'
+  },
+  {
+    id: 'v-extra-75',
+    type: 'noun',
+    level: 'A2',
+    de: 'Fenster',
+    ar: 'نافذة',
+    article: 'das',
+    plural: 'Fenster',
+    exampleDe: 'Das Fenster ist offen.',
+    exampleAr: 'النافذة مفتوحة.'
   }
 ];
