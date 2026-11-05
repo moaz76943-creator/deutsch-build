@@ -1,103 +1,175 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/quality/production_acceptance_gate.dart';
 
+class MockLanguageReadinessEvidence implements LanguageReadinessEvidence {
+  @override
+  final String languageCode;
+  @override
+  final bool hasLocalPackEvidence;
+  @override
+  final bool isMetadataOnly;
+
+  MockLanguageReadinessEvidence(
+    this.languageCode, {
+    this.hasLocalPackEvidence = true,
+    this.isMetadataOnly = false,
+  });
+}
+
+class MockOptionalFeatureEvidence implements OptionalFeatureEvidence {
+  @override
+  final String featureName;
+  @override
+  final bool isAvailable;
+
+  MockOptionalFeatureEvidence(
+    this.featureName, {
+    this.isAvailable = true,
+  });
+}
+
 void main() {
   group('ProductionAcceptanceGate', () {
-    test('Perfect evidence yields PASSED/APPROVED', () {
-      final evidence = AcceptanceEvidence(
+    test('Perfect evidence yields APPROVED', () {
+      const contract = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        verifiedLanguages: ['en', 'de'],
       );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
-      expect(result.outcome, GateOutcome.passed);
-      expect(result.state, EligibilityState.approved);
-      expect(result.isReady, isTrue);
+      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
+      final promotion = ProductionAcceptanceGate.evaluatePromotion(
+        startupContract: contract,
+        verificationResult: result,
+        languageEvidence: [
+          MockLanguageReadinessEvidence('en'),
+          MockLanguageReadinessEvidence('de'),
+        ],
+        optionalFeatures: [
+          MockOptionalFeatureEvidence('audio', isAvailable: true),
+        ],
+      );
+      expect(promotion, PromotionEligibility.approved);
     });
 
-    test('Missing optional features yields PASSED/DEGRADED', () {
-      final evidence = AcceptanceEvidence(
+    test('Missing optional features yields DEGRADED', () {
+      const contract = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        missingOptionalFeatures: true,
       );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
-      expect(result.outcome, GateOutcome.passed);
-      expect(result.state, EligibilityState.degraded);
-      expect(result.isReady, isTrue);
+      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
+      final promotion = ProductionAcceptanceGate.evaluatePromotion(
+        startupContract: contract,
+        verificationResult: result,
+        languageEvidence: [
+          MockLanguageReadinessEvidence('en'),
+        ],
+        optionalFeatures: [
+          MockOptionalFeatureEvidence('audio', isAvailable: false),
+        ],
+      );
+      expect(promotion, PromotionEligibility.degraded);
     });
 
-    test('Missing evidence (null) yields NOT_RUN/NOT_VERIFIED', () {
-      final result = ProductionAcceptanceGate.evaluateEvidence(null);
-      expect(result.outcome, GateOutcome.notRun);
-      expect(result.state, EligibilityState.notVerified);
-      expect(result.isReady, isFalse);
+    test('Missing evidence (null) yields NOT_VERIFIED', () {
+      final promotion = ProductionAcceptanceGate.evaluatePromotion(
+        startupContract: null,
+        verificationResult: null,
+      );
+      expect(promotion, PromotionEligibility.notVerified);
     });
 
-    test('Stale evidence yields NOT_RUN/NOT_VERIFIED', () {
-      final evidence = AcceptanceEvidence(
+    test('Stale evidence yields NOT_VERIFIED', () {
+      const contract = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        isStale: true,
       );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
-      expect(result.outcome, GateOutcome.notRun);
-      expect(result.state, EligibilityState.notVerified);
-      expect(result.isReady, isFalse);
+      const result = J095VerificationResult(
+        outcome: GateOutcome.notRun,
+        eligibility: PromotionEligibility.notVerified,
+        reason: 'Stale evidence',
+        isEvidenceStale: true,
+      );
+      final promotion = ProductionAcceptanceGate.evaluatePromotion(
+        startupContract: contract,
+        verificationResult: result,
+      );
+      expect(promotion, PromotionEligibility.notVerified);
     });
 
-    test('Corrupted content yields BLOCKED/BLOCKED', () {
-      final evidence = AcceptanceEvidence(
+    test('Corrupted content yields BLOCKED', () {
+      const contract = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        hasCorruptedContent: true,
       );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
-      expect(result.outcome, GateOutcome.blocked);
-      expect(result.state, EligibilityState.blocked);
-      expect(result.isReady, isFalse);
+      const result = J095VerificationResult(
+        outcome: GateOutcome.failed,
+        eligibility: PromotionEligibility.blocked,
+        reason: 'Corrupted content',
+        isStorageCorrupt: true,
+      );
+      final promotion = ProductionAcceptanceGate.evaluatePromotion(
+        startupContract: contract,
+        verificationResult: result,
+      );
+      expect(promotion, PromotionEligibility.blocked);
     });
 
-    test('Regressions yield BLOCKED/BLOCKED', () {
-      final evidence = AcceptanceEvidence(
+    test('Regressions yield BLOCKED', () {
+      const contract = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        hasRegressions: true,
       );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
-      expect(result.outcome, GateOutcome.blocked);
-      expect(result.state, EligibilityState.blocked);
-      expect(result.isReady, isFalse);
+      const result = J095VerificationResult(
+        outcome: GateOutcome.failed,
+        eligibility: PromotionEligibility.blocked,
+        reason: 'Regression',
+        hasMemoryRegression: true,
+      );
+      final promotion = ProductionAcceptanceGate.evaluatePromotion(
+        startupContract: contract,
+        verificationResult: result,
+      );
+      expect(promotion, PromotionEligibility.blocked);
     });
 
-    test('Missing mandatory infrastructure yields FAILED/BLOCKED', () {
-      final evidence = AcceptanceEvidence(
-        isOfflineSafe: true,
-        isStorageGuarded: false,
-        isLifecycleManaged: true,
-      );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
-      expect(result.outcome, GateOutcome.failed);
-      expect(result.state, EligibilityState.blocked);
-      expect(result.isReady, isFalse);
-    });
-
-    test('Unsupported language claims yields FAILED/BLOCKED', () {
-      final evidence = AcceptanceEvidence(
+    test('Missing mandatory infrastructure yields NOT_VERIFIED', () {
+      const contract = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        verifiedLanguages: ['fr'], // 'fr' is assetsReady, not productionReady
       );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
-      expect(result.outcome, GateOutcome.failed);
-      expect(result.state, EligibilityState.blocked);
-      expect(result.isReady, isFalse);
+      const result = J095VerificationResult(
+        outcome: GateOutcome.failed,
+        eligibility: PromotionEligibility.blocked,
+        reason: 'Missing mandatory evidence',
+        hasMissingMandatoryEvidence: true,
+      );
+      final promotion = ProductionAcceptanceGate.evaluatePromotion(
+        startupContract: contract,
+        verificationResult: result,
+      );
+      expect(promotion, PromotionEligibility.notVerified);
+    });
+
+    test('Unsupported language claims yields BLOCKED', () {
+      const contract = J025StartupContract(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+      );
+      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
+      final promotion = ProductionAcceptanceGate.evaluatePromotion(
+        startupContract: contract,
+        verificationResult: result,
+        languageEvidence: [
+          MockLanguageReadinessEvidence('fr', isMetadataOnly: true), // Metadata only
+        ],
+      );
+      expect(promotion, PromotionEligibility.blocked);
     });
 
     test('Legacy verifyAppReadiness acts as adapter', () {
