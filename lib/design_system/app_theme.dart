@@ -1,18 +1,34 @@
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
 import 'app_typography.dart';
 
 class AppTheme {
-  static ThemeData get lightTheme {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.primary,
-      brightness: Brightness.light,
-      primary: AppColors.primary,
-      secondary: AppColors.secondary,
-      tertiary: AppColors.tertiary,
-      surface: AppColors.lightSurface,
-      background: AppColors.lightBackground,
+  /// Builds a Material 3 theme that prefers dynamic (Material You) colors
+  /// when available, otherwise falls back to the brand seed.
+  static ThemeData build({
+    required Brightness brightness,
+    ColorScheme? dynamicScheme,
+  }) {
+    final isDark = brightness == Brightness.dark;
+
+    final ColorScheme colorScheme = dynamicScheme ??
+        ColorScheme.fromSeed(
+          seedColor: isDark ? AppColors.primaryDark : AppColors.primary,
+          brightness: brightness,
+          primary: isDark ? AppColors.primaryDark : AppColors.primary,
+          secondary: isDark ? AppColors.secondaryDark : AppColors.secondary,
+          tertiary: isDark ? AppColors.tertiaryDark : AppColors.tertiary,
+          surface: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+          background: isDark ? const Color(0xFF0B1F4D) : const Color(0xFFF8FAFC),
+        );
+
+    // Slightly boost contrast for accessibility (TalkBack + low-vision users)
+    final adjustedScheme = colorScheme.copyWith(
+      onSurface: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF0F172A),
+      onSurfaceVariant: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+      surfaceContainerHighest: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
     );
 
     return ThemeData(
@@ -20,68 +36,73 @@ class AppTheme {
       brightness: brightness,
       fontFamily: 'Cairo',
       fontFamilyFallback: AppTypography.fallbackFontFamilies,
-      colorScheme: colorScheme,
-      scaffoldBackgroundColor: AppColors.lightBackground,
-      textTheme: _buildTextTheme(colorScheme),
+      colorScheme: adjustedScheme,
+      scaffoldBackgroundColor: adjustedScheme.background,
+      textTheme: _buildTextTheme(adjustedScheme),
+      // Larger touch targets for TalkBack and motor accessibility
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          minimumSize: const Size(64, 48), // Accessibility: larger touch targets
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          minimumSize: const Size(64, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(64, 48),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(64, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
       cardTheme: CardTheme(
-        elevation: 1,
+        elevation: isDark ? 2 : 1,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        color: colorScheme.surface,
+        color: adjustedScheme.surface,
+        surfaceTintColor: adjustedScheme.surfaceTint,
       ),
-      // Support dynamic font scaling and high contrast via system settings
+      appBarTheme: AppBarTheme(
+        backgroundColor: adjustedScheme.surface,
+        foregroundColor: adjustedScheme.onSurface,
+        elevation: 0,
+        scrolledUnderElevation: 2,
+        centerTitle: true,
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        height: 72,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      ),
       visualDensity: VisualDensity.adaptivePlatformDensity,
+      // Respect system font scaling for accessibility
+      materialTapTargetSize: MaterialTapTargetSize.padded,
     );
   }
 
-  static ThemeData get darkTheme {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.primaryDark,
-      brightness: Brightness.dark,
-      primary: AppColors.primaryDark,
-      secondary: AppColors.secondaryDark,
-      tertiary: AppColors.tertiaryDark,
-      surface: AppColors.darkSurface,
-      background: AppColors.darkBackground,
-    );
+  static ThemeData get lightTheme => build(brightness: Brightness.light);
+  static ThemeData get darkTheme => build(brightness: Brightness.dark);
 
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.dark,
-      fontFamily: 'Cairo',
-      fontFamilyFallback: AppTypography.fallbackFontFamilies,
-      colorScheme: colorScheme,
-      scaffoldBackgroundColor: AppColors.darkBackground,
-      textTheme: _buildTextTheme(colorScheme),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          minimumSize: const Size(64, 48),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        ),
-      ),
-      filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          minimumSize: const Size(64, 48),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        ),
-      ),
-      cardTheme: CardTheme(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        color: colorScheme.surface,
-      ),
-      visualDensity: VisualDensity.adaptivePlatformDensity,
+  /// Convenience wrapper that automatically picks dynamic colors when supported.
+  static Widget withDynamicColor({
+    required Widget Function(ThemeData light, ThemeData dark) builder,
+  }) {
+    return DynamicColorBuilder(
+      builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+        final light = build(
+          brightness: Brightness.light,
+          dynamicScheme: lightDynamic,
+        );
+        final dark = build(
+          brightness: Brightness.dark,
+          dynamicScheme: darkDynamic,
+        );
+        return builder(light, dark);
+      },
     );
   }
 
@@ -109,7 +130,6 @@ class AppTheme {
         fontSize: 12,
         color: colorScheme.onSurfaceVariant,
       ),
-      // Flutter automatically scales these with MediaQuery.textScaleFactor for accessibility
     );
   }
 }
