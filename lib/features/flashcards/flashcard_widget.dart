@@ -10,7 +10,7 @@ import 'card_physics_helper.dart';
 class FlashcardWidget extends StatelessWidget {
   final LexicalEntry entry;
   final Animation<double> animation;
-  final VoidCallback onFlip;
+  final VoidCallback? onFlip;
 
   const FlashcardWidget({
     super.key,
@@ -47,37 +47,19 @@ class FlashcardWidget extends StatelessWidget {
     );
   }
 
-  List<Widget> _front() => <Widget>[
+  Widget _buildFrontSide() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
         AppDirectionalText(
           entry.targetTerm,
           style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),
-        if (entry.partOfSpeech.trim().isNotEmpty) ...<Widget>[
+        if (entry.partOfSpeech.trim().isNotEmpty) ...[
           const SizedBox(height: 12),
           AppDirectionalText(entry.partOfSpeech, textAlign: TextAlign.center),
         ],
-      ];
-
-  List<Widget> _back() => <Widget>[
-        AppDirectionalText(
-          entry.sourceMeaning,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center,
-        ),
-        if (entry.targetExample.trim().isNotEmpty) ...<Widget>[
-          const SizedBox(height: 12),
-          AppDirectionalText(entry.targetExample, textAlign: TextAlign.center),
-        ],
-        if (entry.sourceExampleTranslation.trim().isNotEmpty) ...<Widget>[
-          const SizedBox(height: 8),
-          AppDirectionalText(
-            entry.sourceExampleTranslation,
-            textAlign: TextAlign.center,
-          ),
-        ],
-        const Spacer(),
-        const Text('Tap to flip', style: TextStyle(color: Colors.grey)),
       ],
     );
   }
@@ -85,7 +67,7 @@ class FlashcardWidget extends StatelessWidget {
   Widget _buildBackSide() {
     return Transform(
       alignment: Alignment.center,
-      transform: Matrix4.rotationY(pi),
+      transform: Matrix4.rotationY(math.pi),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -95,7 +77,7 @@ class FlashcardWidget extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          if (entry.targetExample.isNotEmpty) ...[
+          if (entry.targetExample.trim().isNotEmpty) ...[
             const Divider(),
             const SizedBox(height: 12),
             AppDirectionalText(
@@ -104,7 +86,7 @@ class FlashcardWidget extends StatelessWidget {
               textAlign: TextAlign.center,
               forceDirection: TextDirection.ltr,
             ),
-            if (entry.sourceExampleTranslation.isNotEmpty) ...[
+            if (entry.sourceExampleTranslation.trim().isNotEmpty) ...[
               const SizedBox(height: 8),
               AppDirectionalText(
                 entry.sourceExampleTranslation,

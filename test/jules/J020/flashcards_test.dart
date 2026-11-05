@@ -3,8 +3,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/lexical_repository.dart';
 import 'package:deutsch_bilarabi/features/flashcards/flashcards_plug.dart';
 import 'package:deutsch_bilarabi/core/srs_scheduler.dart';
+import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
+import 'package:deutsch_bilarabi/core/progress/review_transaction_envelope.dart';
 
 void main() {
+  setUpAll(() {
+    try {
+      SrsCompatBridge.instance.bindCanonicalWriter((ReviewTransactionEnvelope envelope) async {});
+    } catch (_) {
+      // Ignore if already bound
+    }
+  });
+
   group('Flashcards Feature Tests - J020', () {
     final entry1 = LexicalEntry(
       id: 'e1',
