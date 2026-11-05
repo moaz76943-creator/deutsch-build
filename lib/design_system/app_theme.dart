@@ -17,16 +17,24 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
-      brightness: brightness,
+      brightness: Brightness.light,
       fontFamily: 'Cairo',
       fontFamilyFallback: AppTypography.fallbackFontFamilies,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.lightBackground,
       textTheme: _buildTextTheme(colorScheme),
+      // Smoother page transitions for better UX
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: ZoomPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          minimumSize: const Size(64, 48), // Accessibility: larger touch targets
+          minimumSize: const Size(64, 48), // Accessibility: larger touch targets (Google Play quality)
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          elevation: 1,
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
@@ -35,13 +43,33 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
       ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(64, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          minimumSize: const Size(48, 48),
+        ),
+      ),
       cardTheme: CardTheme(
         elevation: 1,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         color: colorScheme.surface,
+        surfaceTintColor: colorScheme.surfaceTint,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        elevation: 0,
+        scrolledUnderElevation: 3,
+        centerTitle: true,
       ),
       // Support dynamic font scaling and high contrast via system settings
       visualDensity: VisualDensity.adaptivePlatformDensity,
+      // Better dark mode enhancements already in darkTheme
     );
   }
 
@@ -64,10 +92,17 @@ class AppTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.darkBackground,
       textTheme: _buildTextTheme(colorScheme),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: ZoomPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           minimumSize: const Size(64, 48),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          elevation: 2,
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
@@ -76,10 +111,29 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
       ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(64, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          minimumSize: const Size(48, 48),
+        ),
+      ),
       cardTheme: CardTheme(
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         color: colorScheme.surface,
+        surfaceTintColor: colorScheme.surfaceTint,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        elevation: 0,
+        scrolledUnderElevation: 3,
+        centerTitle: true,
       ),
       visualDensity: VisualDensity.adaptivePlatformDensity,
     );
@@ -109,7 +163,8 @@ class AppTheme {
         fontSize: 12,
         color: colorScheme.onSurfaceVariant,
       ),
-      // Flutter automatically scales these with MediaQuery.textScaleFactor for accessibility
+      // Flutter automatically scales these with MediaQuery.textScaleFactor for accessibility (font scaling)
+      // For TalkBack: ensure content descriptions on interactive elements in widgets
     );
   }
 }
