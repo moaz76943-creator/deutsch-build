@@ -3,6 +3,28 @@ import 'package:deutsch_bilarabi/core/quality/production_acceptance_gate.dart';
 
 class MockJ025StartupContract implements J025StartupContract {
   @override
+  final bool isOfflineSafe;
+  @override
+  final bool isStorageGuarded;
+  @override
+  final bool isLifecycleManaged;
+  @override
+  final bool isContentCorrupted;
+  @override
+  final bool isIntegrityEvidenceMissing;
+  @override
+  final bool isStartupRecoveryFailed;
+  @override
+  final bool isVerificationStale;
+  @override
+  final Set<String> registeredLanguages;
+  @override
+  final Set<String> verifiedDictionaries;
+  @override
+  final bool hasOptionalAudio;
+  @override
+  final bool hasExecutedTests;
+  @override
   final bool hasNewDartErrors;
   @override
   final bool hasNormalStartup;
@@ -10,6 +32,17 @@ class MockJ025StartupContract implements J025StartupContract {
   final bool hasSafeModeStartup;
 
   MockJ025StartupContract({
+    this.isOfflineSafe = true,
+    this.isStorageGuarded = true,
+    this.isLifecycleManaged = true,
+    this.isContentCorrupted = false,
+    this.isIntegrityEvidenceMissing = false,
+    this.isStartupRecoveryFailed = false,
+    this.isVerificationStale = false,
+    this.registeredLanguages = const {},
+    this.verifiedDictionaries = const {},
+    this.hasOptionalAudio = true,
+    this.hasExecutedTests = true,
     this.hasNewDartErrors = false,
     this.hasNormalStartup = true,
     this.hasSafeModeStartup = true,
@@ -17,6 +50,12 @@ class MockJ025StartupContract implements J025StartupContract {
 }
 
 class MockJ095VerificationResult implements J095VerificationResult {
+  @override
+  final GateOutcome outcome;
+  @override
+  final PromotionEligibility eligibility;
+  @override
+  final String reason;
   @override
   final bool hasMemoryRegression;
   @override
@@ -29,6 +68,9 @@ class MockJ095VerificationResult implements J095VerificationResult {
   final bool hasMissingMandatoryEvidence;
 
   MockJ095VerificationResult({
+    this.outcome = GateOutcome.passed,
+    this.eligibility = PromotionEligibility.approved,
+    this.reason = '',
     this.hasMemoryRegression = false,
     this.hasFTS5Regression = false,
     this.isStorageCorrupt = false,
