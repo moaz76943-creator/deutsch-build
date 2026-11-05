@@ -18,19 +18,31 @@ class DataIntegritySigner {
   }
 
   static bool verifyManifest(Map<String, dynamic>? manifest, String? payload) {
-    if (manifest == null || payload == null) return false;
+    if (manifest == null || payload == null || payload.isEmpty) {
+      return false;
+    }
+
+    if (!manifest.containsKey('hash') || !manifest.containsKey('algorithm')) {
+      return false;
+    }
 
     // Check for approved key
     final keyId = manifest['keyId'];
-    if (keyId != approvedTrustedKey) return false;
+    if (keyId != approvedTrustedKey) {
+      return false;
+    }
 
     // Check for required algorithm metadata
     final algorithm = manifest['algorithm'];
-    if (algorithm != 'fnv1a') return false;
+    if (algorithm != 'fnv1a') {
+      return false;
+    }
 
     // Check for required hash
     final expectedHash = manifest['hash'];
-    if (expectedHash == null || expectedHash is! int) return false;
+    if (expectedHash == null || expectedHash is! int) {
+      return false;
+    }
 
     // Check expiration if present
     final expiresAt = manifest['expiresAt'];
