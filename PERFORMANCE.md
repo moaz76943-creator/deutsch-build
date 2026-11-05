@@ -1,5 +1,36 @@
 # Performance Improvements
 
+## 2026-11-05: Resolve Merge Conflict + Isolate-based JSON Decode for Vocabulary List (UI Jank / Startup)
+
+### Issue
+`lib/repositories/vocabulary_repository.dart` contained unresolved Git merge-conflict markers (including a broken `$(cat ...)` placeholder). This made the file invalid Dart and prevented clean builds. Additionally, even after resolution, `getVocabularyList` and the seed path performed `jsonDecode` + mapping on the main isolate for potentially large lists (100+ items), risking UI jank and startup hitching on vocabulary screens or first launch.
+
+### Change
+- Resolved the merge conflict by adopting the clean staging implementation and applying the previously planned isolate optimizations.
+- Added top-level `_decodeVocabularyRecords` and `_parseVocabularyJson` functions.
+- In `getVocabularyList`, when `jsonStrings.length > 50`, decoding now uses `await compute(...)` so heavy work runs on a background isolate; small lists remain synchronous to avoid isolate overhead.
+- Seed path (`_seedAndMigrate`) and `importBackupJson` also use `compute` for parsing.
+- In-memory `_offlineCache` and invalidation logic preserved.
+- No schema, permission, network, or security changes. Offline-first behavior and R8/ProGuard compatibility unchanged.
+
+### Expected Metrics
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| Build / compile validity | Broken (conflict markers) | Clean Dart | Build succeeds |
+| Main-thread time to load N>50 vocab items | Full jsonDecode on UI thread | Isolate spawn + transfer | 20-150 ms saved on main (device-dependent) |
+| UI jank on vocab screen entry / first seed | Possible frame drops | Smoother | Reduced jank |
+| Cold-start TTID (with seed) | Includes main-thread parse | Parse off main | More consistent |
+
+### How to measure
+1. Clear app data, launch, capture Perfetto / Android Studio CPU profiler around first `getVocabularyList` / seed.
+2. Populate 200+ items, open vocabulary journal, compare main-thread slices before/after.
+3. Frame timing in DevTools Timeline; check for absence of long JSON decode on UI thread.
+4. Confirm no regression in cache hit rate or offline operation.
+
+Security note: No new permissions, no data exposure, no weakening of integrity checks, encryption, or Play Integrity. `compute` is the standard Flutter isolate API. Threshold prevents unnecessary overhead on tiny lists.
+
+---
+
 ## 2026-10-28: Memory-Aware LRU Cache (Memory / Battery)
 
 ### Issue
