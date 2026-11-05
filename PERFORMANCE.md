@@ -1,5 +1,31 @@
 # Performance Improvements
 
+## 2026-11-05: ProfileInstaller Upgrade to 1.4.1 (Startup Time / UI Jank)
+
+### Issue
+Baseline profiles were using `androidx.profileinstaller:profileinstaller:1.3.1`. Version 1.4.1 adds multi-process profile recording support and full compatibility with API 35+ (relevant for compileSdk 36 / future targetSdk), ensuring reliable AOT profile installation on modern devices without requiring further library updates for platform changes.
+
+### Change
+- Upgraded dependency in `android/app/build.gradle` from 1.3.1 → 1.4.1.
+- Existing `baseline-prof.txt` (hot startup paths for MainActivity, FlutterEngine, rendering, messaging) continues to be consumed by ProfileInstaller.
+- R8 minifyEnabled + shrinkResources remain fully active. No new permissions, no cleartext, no proguard rule changes.
+
+### Expected Metrics
+| Metric | Before (1.3.1) | After (1.4.1) | Improvement |
+|--------|----------------|---------------|-------------|
+| Profile installation reliability on API 35+ | Partial / future-risk | Full support | More consistent AOT on newer devices |
+| Cold start TTID (with baseline profile) | Already optimized | Same or slightly better reliability | Neutral to +5% consistency |
+| Multi-process scenarios (if any) | Limited | Supported | Better coverage |
+
+### How to measure
+1. Cold start: `adb shell am force-stop com.deutschbilarabi.app && adb shell am start -W -n com.deutschbilarabi.app/.MainActivity` before/after on physical device (API 34+).
+2. Android Studio Profiler or Perfetto for TTID and first-frame time.
+3. Play Console Vitals after release.
+
+Security note: Official AndroidX library upgrade only. No security surface change. Integrity checks, permissions, and ProGuard keeps unchanged.
+
+---
+
 ## 2026-10-28: Memory-Aware LRU Cache (Memory / Battery)
 
 ### Issue
