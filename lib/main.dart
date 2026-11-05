@@ -12,6 +12,7 @@ import 'package:deutsch_bilarabi/core/recovery/session_recovery_manager.dart';
 import 'package:deutsch_bilarabi/core/quality/production_acceptance_gate.dart';
 import 'package:deutsch_bilarabi/core/lifecycle/runtime_lifecycle_registry.dart';
 import 'package:deutsch_bilarabi/core/registry/feature_capability_registry.dart';
+import 'package:deutsch_bilarabi/core/l1_cache.dart';
 
 /// Protects against crash loops that could corrupt local data or leave the app unusable.
 /// Enhances security by detecting repeated failures and forcing safe mode.
@@ -215,7 +216,7 @@ class ResilientAppRoot extends StatefulWidget {
   State<ResilientAppRoot> createState() => _ResilientAppRootState();
 }
 
-class _ResilientAppRootState extends State<ResilientAppRoot> {
+class _ResilientAppRootState extends State<ResilientAppRoot> with WidgetsBindingObserver {
   bool isBootstrapping = true;
   bool isSafeMode = false;
   String? errorMessage;
@@ -223,7 +224,22 @@ class _ResilientAppRootState extends State<ResilientAppRoot> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     bootstrap();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didHaveMemoryPressure() {
+    // Trim in-memory caches under OS memory pressure to reduce RSS, GC pauses, and battery drain.
+    // Does not touch persistent data, security gates, or offline integrity.
+    L1VocabularyCache().trimMemoryPressure();
+    debugPrint('[DBA][MEMORY] Trimmed L1 cache under memory pressure');
   }
 
   Future<void> bootstrap() async {
