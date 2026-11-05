@@ -62,7 +62,7 @@ class IsolatedBootstrapPipeline {
               : BootstrapStepStatus.recoverableFailure,
           message: 'Phase timed out',
         );
-      } catch (_) {
+      } on Exception catch (_) {
         result = BootstrapStepResult(
           stepName: step.name,
           status: step.isCritical
