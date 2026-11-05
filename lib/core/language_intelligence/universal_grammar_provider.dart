@@ -1,6 +1,7 @@
 import 'language_grammar_rule_provider.dart';
 
-abstract class UniversalGrammarProvider implements LanguageGrammarRuleProvider {
+abstract class UniversalGrammarProvider extends LanguageGrammarRuleProvider {
+  @override
   GrammarProfile get profile;
 
   @override
@@ -43,7 +44,7 @@ abstract class UniversalGrammarProvider implements LanguageGrammarRuleProvider {
 
   @override
   GrammaticalNumber? determineNumber(String word) {
-    if (!profile.supports(GrammarCapability.number)) return null;
+    if (!profile.supports(GrammarCapability.number)) return GrammaticalNumber.none;
     return extractNumber(word);
   }
 
@@ -51,7 +52,7 @@ abstract class UniversalGrammarProvider implements LanguageGrammarRuleProvider {
 
   @override
   GrammaticalCase? determineCase(String word, {String? context}) {
-    if (!profile.supports(GrammarCapability.caseSystem)) return null;
+    if (!profile.supports(GrammarCapability.caseSystem)) return GrammaticalCase.none;
     return extractCase(word, context: context);
   }
 
@@ -60,7 +61,7 @@ abstract class UniversalGrammarProvider implements LanguageGrammarRuleProvider {
 
   @override
   GrammaticalPerson? determinePerson(String word) {
-    if (!profile.supports(GrammarCapability.person)) return null;
+    if (!profile.supports(GrammarCapability.person)) return GrammaticalPerson.none;
     return extractPerson(word);
   }
 
@@ -68,7 +69,7 @@ abstract class UniversalGrammarProvider implements LanguageGrammarRuleProvider {
 
   @override
   Tense? determineTense(String word) {
-    if (!profile.supports(GrammarCapability.tense)) return null;
+    if (!profile.supports(GrammarCapability.tense)) return Tense.none;
     return extractTense(word);
   }
 
@@ -76,7 +77,7 @@ abstract class UniversalGrammarProvider implements LanguageGrammarRuleProvider {
 
   @override
   Aspect? determineAspect(String word) {
-    if (!profile.supports(GrammarCapability.aspect)) return null;
+    if (!profile.supports(GrammarCapability.aspect)) return Aspect.none;
     return extractAspect(word);
   }
 
@@ -84,7 +85,7 @@ abstract class UniversalGrammarProvider implements LanguageGrammarRuleProvider {
 
   @override
   Mood? determineMood(String word) {
-    if (!profile.supports(GrammarCapability.mood)) return null;
+    if (!profile.supports(GrammarCapability.mood)) return Mood.none;
     return extractMood(word);
   }
 

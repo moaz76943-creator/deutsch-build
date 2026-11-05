@@ -4,6 +4,7 @@
 enum GrammarCapability {
   gender,
   caseSystem,
+  grammaticalCase, // Added for compatibility
   nounClasses,
   number,
   agreement,
@@ -16,3 +17,5 @@ enum GrammarCapability {
   agglutinative,
   analytic,
 }
+
+typedef GrammarFeature = GrammarCapability;

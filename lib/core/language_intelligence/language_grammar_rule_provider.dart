@@ -116,17 +116,17 @@ class VerifiedGrammarEvidence {
 
 /// Legacy boolean capabilities and declared metadata share one contract.
 class GrammarCapabilityProfile extends GrammarProfile {
-  final bool? _hasGender;
-  final bool? _hasCases;
-  final bool? _hasNumber;
-  final bool? _hasPerson;
-  final bool? _hasTense;
-  final bool? _hasAspect;
-  final bool? _hasMood;
-  final bool? _hasRootPatternMorphology;
-  final bool? _isAgglutinative;
-  final bool? _isAnalytic;
-  final bool? _hasNounClasses;
+  final bool hasGender;
+  final bool hasCases;
+  final bool hasNumber;
+  final bool hasPerson;
+  final bool hasTense;
+  final bool hasAspect;
+  final bool hasMood;
+  final bool hasRootPatternMorphology;
+  final bool isAgglutinative;
+  final bool isAnalytic;
+  final bool hasNounClasses;
 
   const GrammarCapabilityProfile({
     this.hasGender = false,
@@ -140,13 +140,27 @@ class GrammarCapabilityProfile extends GrammarProfile {
     this.isAgglutinative = false,
     this.isAnalytic = false,
     this.hasNounClasses = false,
+    super.supportedGenders = const {},
+    super.supportedNumbers = const {},
+    super.supportedCases = const {},
+    super.morphologyType = MorphologyType.unknown,
+    super.supportsAgreement = false,
+    super.languageCode = '',
+    super.capabilities = const {},
+    super.supportedFeatures = const {},
   });
 }
 
 abstract class LanguageGrammarRuleProvider {
   String get languageCode;
+  VerifiedGrammarEvidence getVerifiedEvidence(String word) => const VerifiedGrammarEvidence.unsupported();
+
+  bool get _usesDeclarativeProfile => profile is! GrammarCapabilityProfile;
 
   /// Returns the grammar capability profile for the specific language
+  GrammarProfile get profile => capabilityProfile;
+  bool supportsFeature(GrammarCapability feature) => profile.supportsFeature(feature);
+
   GrammarCapabilityProfile get capabilityProfile =>
       const GrammarCapabilityProfile();
 
