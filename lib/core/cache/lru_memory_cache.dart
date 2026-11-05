@@ -4,6 +4,7 @@ class LruMemoryCache<K, V> {
   final int maxCapacity;
   final int? maxMemoryBytes;
   final void Function(K)? onEvict;
+  final int Function(K, V)? sizeEstimator;
 
   final LinkedHashMap<K, V> _cache = LinkedHashMap<K, V>();
   final Map<K, int> _sizes = {};
@@ -14,6 +15,7 @@ class LruMemoryCache<K, V> {
     this.maxCapacity = 200,
     this.maxMemoryBytes,
     this.onEvict,
+    this.sizeEstimator,
   });
 
   V? get(K key) {
@@ -23,9 +25,14 @@ class LruMemoryCache<K, V> {
     return value;
   }
 
-  void put(K key, V value, {int itemSizeBytes = 0}) {
-    if (maxMemoryBytes != null && itemSizeBytes > maxMemoryBytes!) {
-      return; // Reject oversized item without caching
+  bool put(K key, V value, {int itemSizeBytes = 0}) {
+    int size = itemSizeBytes;
+    if (sizeEstimator != null) {
+      size = sizeEstimator!(key, value);
+    }
+
+    if (maxMemoryBytes != null && size > maxMemoryBytes!) {
+      return false; // Reject oversized item without caching
     }
 
     if (_cache.containsKey(key)) {
@@ -34,10 +41,11 @@ class LruMemoryCache<K, V> {
     }
 
     _cache[key] = value;
-    _sizes[key] = itemSizeBytes;
-    _currentMemoryBytes += itemSizeBytes;
+    _sizes[key] = size;
+    _currentMemoryBytes += size;
 
     _evictToFit();
+    return true;
   }
 
   void remove(K key) {
@@ -82,8 +90,13 @@ class LruMemoryCache<K, V> {
     }
   }
 
+  void onMemoryPressure() {
+    trimMemoryPressure();
+  }
+
   int get length => _cache.length;
   int get currentMemoryBytes => _currentMemoryBytes;
+  Iterable<K> get keys => _cache.keys;
 
   void clear() {
     final keys = List<K>.from(_cache.keys);
