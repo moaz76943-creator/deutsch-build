@@ -1,5 +1,35 @@
 # Performance Improvements
 
+## 2026-11-05: Memory Pressure Observer for L1 Cache Trim (Memory / Battery)
+
+### Issue
+The L1 vocabulary cache (`L1VocabularyCache` / `LruMemoryCache`) had a `trimMemoryPressure()` method that halves capacity under pressure, but it was never invoked. On low-memory devices or long sessions with many vocabulary items/images, the process could retain more RSS than necessary, increasing GC frequency, frame drops, and battery use from repeated collections.
+
+### Change
+- In `ResilientAppRoot` (`lib/main.dart`), mixed in `WidgetsBindingObserver`.
+- Registered the observer in `initState` and unregistered in `dispose`.
+- Overrode `didHaveMemoryPressure()` to call `L1VocabularyCache().trimMemoryPressure()`.
+- Added a debug log for observability.
+- No changes to persistent storage, security gates (CrashLoopGuard, ProductionAcceptance), permissions, or offline-first behavior.
+
+### Expected Metrics
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| Peak RSS under memory pressure | Full cache retained | Halved on `didHaveMemoryPressure` | 30-50% temporary reduction in cache footprint |
+| GC pauses / frequency during pressure | Higher | Reduced after trim | Smoother UI, lower battery |
+| App survival on low-memory devices | Higher OOM risk | Better chance of continuing | Improved stability |
+| Cache hit rate after pressure | N/A | Lower until refill | Temporary, acceptable tradeoff |
+
+### How to measure
+1. Fill vocabulary cache with 100+ items, then use Android Studio Profiler → Memory → force "Low memory" or use `adb shell am send-trim-memory`.
+2. Observe DevTools Memory tab: RSS drop and reduced GC events after the callback.
+3. Confirm log: `[DBA][MEMORY] Trimmed L1 cache under memory pressure`.
+4. Verify offline vocabulary screens still function (cache refills on next access).
+
+Security note: Only in-memory cache is trimmed. No data loss, no new permissions, no weakening of integrity, encryption, or Play Integrity checks. Observer is standard Flutter lifecycle API.
+
+---
+
 ## 2026-11-05: Resolve Merge Conflict + Isolate-based JSON Decode for Vocabulary List (UI Jank / Startup)
 
 ### Issue
