@@ -4,6 +4,50 @@ import 'package:flutter/material.dart';
 import '../core/text/language_identity.dart';
 
 class AppTypography {
+  static const List<String> fallbackFontFamilies = ['NotoSansArabic'];
+
+  static const TextStyle display = TextStyle(
+    fontSize: 32,
+    fontWeight: FontWeight.w700,
+    height: 1.2,
+    fontFamily: 'Cairo',
+  );
+
+  static const TextStyle h1 = TextStyle(
+    fontSize: 28,
+    fontWeight: FontWeight.w700,
+    height: 1.25,
+    fontFamily: 'Cairo',
+  );
+
+  static const TextStyle h2 = TextStyle(
+    fontSize: 22,
+    fontWeight: FontWeight.w600,
+    height: 1.3,
+    fontFamily: 'Cairo',
+  );
+
+  static const TextStyle title = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    height: 1.35,
+    fontFamily: 'Cairo',
+  );
+
+  static const TextStyle body = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w400,
+    height: 1.45,
+    fontFamily: 'Cairo',
+  );
+
+  static const TextStyle label = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    height: 1.4,
+    fontFamily: 'Cairo',
+  );
+
   /// Returns safe font settings based on the language profile with appropriate fallbacks
   static TextStyle getSafeStyle(LanguageIdentity identity,
       {double fontSize = 16.0, Color? color}) {
@@ -46,7 +90,6 @@ class AppTypography {
       case 'cjk':
         return ['NotoSansSC'];
       default:
-        // No eager loading of fonts - rely on system defaults if not explicitly supported
         return [];
     }
   }
@@ -67,5 +110,4 @@ class AppTypography {
       ),
     );
   }
-
 }
