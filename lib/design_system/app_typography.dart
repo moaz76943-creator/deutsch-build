@@ -28,11 +28,23 @@ class AppTypography {
     );
   }
 
+  static TextStyle get body => const TextStyle(
+        fontFamily: 'Cairo',
+        fontFamilyFallback: [
+          'NotoSansHebrew',
+          'NotoSansDevanagari',
+          'NotoSansEthiopic',
+          'NotoSansGeorgian',
+          'NotoSansArmenian',
+          'NotoSansCJK',
+        ],
+      );
+
   static List<String> _getFallbacksForProfile(String typographyProfile) {
     switch (typographyProfile) {
       case 'cairo':
       case 'arabic':
-        return ['NotoSansArabic'];
+        return ['Cairo'];
       case 'hebrew':
         return ['NotoSansHebrew'];
       case 'devanagari':
