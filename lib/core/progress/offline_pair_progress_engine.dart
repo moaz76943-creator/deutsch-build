@@ -141,7 +141,7 @@ final class OfflinePairProgressEngine {
           variantKey: key.normalizedVariantKey,
           dueAt: reviewedAt,
         );
-    final updated = await scheduler.schedule(
+    final updated = scheduler.schedule(
       current,
       correct: correct,
       hinted: hinted,
