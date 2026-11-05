@@ -1,18 +1,16 @@
-import 'dart:collection';
 import 'package:characters/characters.dart';
 
 class TrieNode {
   final Map<String, TrieNode> children = <String, TrieNode>{};
-  final Set<String> wordIds = LinkedHashSet<String>();
+  final Set<String> wordIds = <String>{};
 }
 
 /// A bounded, language-specific *search-key* index. It does not mutate or
 /// replace original surface spellings, and it does not infer segmentation.
 class TrieSearchEngine {
-  static const int maxInputCodeUnits = 2048;
-  static const int maxIdCodeUnits = 128;
   TrieNode _root = TrieNode();
   int _nodeCount = 1;
+  int _contentVersion = 0;
 
   final String languageCode;
   final String? directedPairKey;
@@ -20,6 +18,8 @@ class TrieSearchEngine {
   final int maxResultsPerNode;
   final int maxSearchResults;
   final int maxWordGraphemes;
+  final int maxInputCodeUnits;
+  final int maxIdCodeUnits;
 
   TrieSearchEngine({
     this.languageCode = 'und',
@@ -119,6 +119,9 @@ class TrieSearchEngine {
       current.wordIds.add(id);
       indexed = true;
     }
+
+    // If the word was inserted, we should consider it indexed successfully
+    // Even if it hit maxNodes bounds during insert, the prefix was inserted
     return indexed;
   }
 
@@ -150,5 +153,11 @@ class TrieSearchEngine {
     _nodeCount = 1;
   }
 
+  void reset(int newVersion) {
+    clear();
+    _contentVersion = newVersion;
+  }
+
   int get currentNodeCount => _nodeCount;
+  int get contentVersion => _contentVersion;
 }
