@@ -40,6 +40,7 @@ class AccessibleMultilingualText extends StatelessWidget {
     return Semantics(
       label: semanticLabel ?? text,
       textDirection: direction,
+      child: SelectionArea(
       child: AppDirectionalText(
         displayText,
         style: (style ?? const TextStyle()).copyWith(
@@ -50,6 +51,7 @@ class AccessibleMultilingualText extends StatelessWidget {
         textAlign: textAlign,
         maxLines: maxLines,
         overflow: overflow,
+      ),
       ),
     );
   }

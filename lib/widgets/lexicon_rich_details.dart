@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:deutsch_bilarabi/design_system/app_typography.dart';
 import 'accessible_multilingual_text.dart';
 
 class LexiconRichDetails extends StatelessWidget {
@@ -25,15 +24,15 @@ class LexiconRichDetails extends StatelessWidget {
     final List<Widget> details = [];
 
     if (partOfSpeech != null && partOfSpeech!.isNotEmpty) {
-      details.add(_buildDetailItem('POS: ', partOfSpeech!));
+      details.add(_buildDetailItem(context, 'POS: ', partOfSpeech!));
     }
 
     if (gender != null && gender!.isNotEmpty) {
-      details.add(_buildDetailItem('Gender: ', gender!));
+      details.add(_buildDetailItem(context, 'Gender: ', gender!));
     }
 
     if (pluralForm != null && pluralForm!.isNotEmpty) {
-      details.add(_buildDetailItem('Plural: ', pluralForm!));
+      details.add(_buildDetailItem(context, 'Plural: ', pluralForm!));
     }
 
     if (ipa != null && ipa!.isNotEmpty) {
@@ -44,7 +43,7 @@ class LexiconRichDetails extends StatelessWidget {
             textDirection: TextDirection.ltr,
             child: Text(
               '/$ipa/',
-              style: AppTypography.caption,
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
         ),
@@ -58,7 +57,7 @@ class LexiconRichDetails extends StatelessWidget {
           child: AccessibleMultilingualText(
             text: explanation!,
             languageCode: explanationLanguageCode,
-            style: AppTypography.body,
+            style: Theme.of(context).textTheme.bodySmall,
           ),
         ),
       );
@@ -73,12 +72,12 @@ class LexiconRichDetails extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailItem(String label, String value) {
+  Widget _buildDetailItem(BuildContext context, String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(top: 2.0),
       child: Text(
         '$label$value',
-        style: AppTypography.caption,
+        style: Theme.of(context).textTheme.bodySmall,
       ),
     );
   }
