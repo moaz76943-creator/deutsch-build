@@ -106,5 +106,38 @@ void main() {
       expect(find.text('Critical DB Integrity Error'), findsOneWidget);
       expect(find.text('إعادة المحاولة / مسح الأخطاء'), findsOneWidget);
     });
+
+    testWidgets(
+        '6. Unhandled exception in bootstrap triggers safe mode recovery and retry succeeds',
+        (WidgetTester tester) async {
+      // Cause SharedPreferences.getInstance() to throw an exception
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        const MethodChannel('plugins.flutter.io/shared_preferences'),
+        (MethodCall methodCall) async {
+          if (methodCall.method == 'getAll') {
+            throw Exception('Simulated error getting SharedPreferences');
+          }
+          return null;
+        },
+      );
+
+      await tester.pumpWidget(const ResilientAppRoot());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SafeModeRecoveryGate), findsOneWidget);
+      expect(find.textContaining('Simulated error'), findsOneWidget);
+
+      // Fix the error and retry
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        const MethodChannel('plugins.flutter.io/shared_preferences'),
+        null,
+      );
+      SharedPreferences.setMockInitialValues({});
+
+      await tester.tap(find.text('إعادة المحاولة / مسح الأخطاء'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DeutschApp), findsOneWidget);
+    });
   });
 }
