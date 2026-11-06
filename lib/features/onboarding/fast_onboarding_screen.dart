@@ -1,11 +1,13 @@
 import '../../screens/main_shell_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/active_language_provider.dart';
 import '../../screens/flashcards_screen.dart';
 import '../../screens/onboarding_screen.dart';
 import '../../services/database_service.dart';
 
 /// مسار الصفر-إلى-واحد: أسرع تجربة وصول لأول بطاقة بدون إنترنت
-class FastOnboardingScreen extends StatefulWidget {
+class FastOnboardingScreen extends ConsumerStatefulWidget {
   const FastOnboardingScreen({super.key, this.readReviewCount});
 
   /// Optional read seam for deterministic widget tests. Production keeps the
@@ -13,13 +15,15 @@ class FastOnboardingScreen extends StatefulWidget {
   final Future<int> Function()? readReviewCount;
 
   @override
-  State<FastOnboardingScreen> createState() => _FastOnboardingScreenState();
+  ConsumerState<FastOnboardingScreen> createState() => _FastOnboardingScreenState();
 }
 
-class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
+class _FastOnboardingScreenState extends ConsumerState<FastOnboardingScreen> {
   bool _routed = false;
   bool _hasError = false;
   bool _isCheckingProgress = false;
+  bool _isMissingContent = false;
+  bool _startNavigating = false;
 
   @override
   void initState() {
@@ -36,7 +40,10 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
 
   void _retry() {
     if (!mounted || _routed || _isCheckingProgress) return;
-    setState(() => _hasError = false);
+    setState(() {
+      _hasError = false;
+      _isMissingContent = false;
+    });
     _checkState();
   }
 
@@ -44,6 +51,21 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
     if (!mounted || _routed || _isCheckingProgress) return;
     _isCheckingProgress = true;
     try {
+      await ref
+          .read(activeLanguageProvider.notifier)
+          .initialize(refreshRemoteCatalog: false);
+
+      if (!mounted) return;
+
+      final activeState = ref.read(activeLanguageProvider);
+      if (activeState.installedCodes.isEmpty) {
+        setState(() {
+          _isMissingContent = true;
+          _hasError = true;
+        });
+        return;
+      }
+
       final count = await (widget.readReviewCount?.call() ??
               _loadReviewCount())
           .timeout(const Duration(seconds: 8));
@@ -60,9 +82,10 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
               // FastOnboardingScreen state is disposed by pushReplacement.
               builder: (onboardingContext) => OnboardingScreen(
                 onStart: () {
-                  if (!onboardingContext.mounted) return;
+                  if (!onboardingContext.mounted || _startNavigating) return;
+                  _startNavigating = true;
                   Navigator.of(onboardingContext).pushReplacement(
-                    MaterialPageRoute(
+                    MaterialPageRoute<void>(
                       builder: (_) => const FlashcardsScreen(),
                     ),
                   );
@@ -70,7 +93,7 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
               ),
             );
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => next),
+        MaterialPageRoute<void>(builder: (_) => next),
       );
     } catch (e) {
       if (!mounted) return;
@@ -92,15 +115,21 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'تعذر فتح سجل التقدّم المحلي.',
+                  Text(
+                    _isMissingContent
+                        ? 'No installed content found.'
+                        : 'تعذر فتح سجل التقدّم المحلي.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.white),
+                    textDirection: TextDirection.rtl,
                   ),
                   const SizedBox(height: 16),
-                  OutlinedButton(
-                    onPressed: _retry,
-                    child: const Text('إعادة المحاولة'),
+                  Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: OutlinedButton(
+                      onPressed: _retry,
+                      child: const Text('إعادة المحاولة'),
+                    ),
                   ),
                 ],
               ),
