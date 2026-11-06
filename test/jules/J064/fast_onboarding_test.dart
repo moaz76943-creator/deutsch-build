@@ -31,7 +31,12 @@ void main() {
 
   testWidgets('Fresh install (no progress) routes to OnboardingScreen', (WidgetTester tester) async {
     await tester.pumpWidget(
-      const ProviderScope(child: MaterialApp(home: FastOnboardingScreen())),
+      ProviderScope(
+        overrides: [
+          activeLanguageProvider.overrideWith((ref) => ActiveLanguageNotifier(ref, ref.watch(languagePackStorageProvider))..updateInstalledList(['de'])),
+        ],
+        child: const MaterialApp(home: FastOnboardingScreen()),
+      ),
     );
 
     // Wait for async checks to complete and navigation to occur
@@ -46,6 +51,42 @@ void main() {
 
   });
 
+  testWidgets('Duplicate navigation prevented on onboarding start', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          activeLanguageProvider.overrideWith((ref) => ActiveLanguageNotifier(ref, ref.watch(languagePackStorageProvider))..updateInstalledList(['de'])),
+        ],
+        child: const MaterialApp(home: FastOnboardingScreen()),
+      ),
+    );
+
+    await tester.pumpAndSettle(const Duration(milliseconds: 500));
+    expect(find.byType(OnboardingScreen), findsOneWidget);
+
+    await tester.tap(find.text('ابدأ التعلم الآن'));
+    await tester.tap(find.text('ابدأ التعلم الآن'));
+    await tester.pump();
+    expect(find.byType(FlashcardsScreen), findsOneWidget);
+  });
+
+  testWidgets('Missing optional content shows clear choices degraded screen', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          activeLanguageProvider.overrideWith((ref) => ActiveLanguageNotifier(ref, ref.watch(languagePackStorageProvider))..updateInstalledList([])),
+        ],
+        child: const MaterialApp(home: FastOnboardingScreen()),
+      ),
+    );
+
+    await tester.pumpAndSettle(const Duration(milliseconds: 500));
+
+    expect(find.text('No installed content found.'), findsOneWidget);
+    expect(find.text('إعادة المحاولة'), findsOneWidget);
+    expect(find.byType(OnboardingScreen), findsNothing);
+  });
+
   testWidgets('Restored learner (progress exists) routes to MainShellScreen', (WidgetTester tester) async {
     final db = await DatabaseService.instance.progressDb;
     await db.insert('srs_progress', {
@@ -57,7 +98,12 @@ void main() {
       'status': 'learning'
     });
 
-    await tester.pumpWidget(const MaterialApp(home: FastOnboardingScreen()));
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        activeLanguageProvider.overrideWith((ref) => ActiveLanguageNotifier(ref, ref.watch(languagePackStorageProvider))..updateInstalledList(['de'])),
+      ],
+      child: const MaterialApp(home: FastOnboardingScreen()),
+    ));
     // The shell keeps a loading ticker while content is absent, so waiting
     // for a fully idle frame never returns. The route itself is the contract.
     await tester.pump();
@@ -71,11 +117,16 @@ void main() {
     final pending = Completer<int>();
     var readCalls = 0;
 
-    await tester.pumpWidget(MaterialApp(
-      home: FastOnboardingScreen(readReviewCount: () {
-        readCalls++;
-        return pending.future;
-      }),
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        activeLanguageProvider.overrideWith((ref) => ActiveLanguageNotifier(ref, ref.watch(languagePackStorageProvider))..updateInstalledList(['de'])),
+      ],
+      child: MaterialApp(
+        home: FastOnboardingScreen(readReviewCount: () {
+          readCalls++;
+          return pending.future;
+        }),
+      ),
     ));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
@@ -95,14 +146,19 @@ void main() {
   testWidgets('Disposing during a pending progress read does not navigate',
       (WidgetTester tester) async {
     final pending = Completer<int>();
-    await tester.pumpWidget(MaterialApp(
-      home: FastOnboardingScreen(readReviewCount: () => pending.future),
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        activeLanguageProvider.overrideWith((ref) => ActiveLanguageNotifier(ref, ref.watch(languagePackStorageProvider))..updateInstalledList(['de'])),
+      ],
+      child: MaterialApp(
+        home: FastOnboardingScreen(readReviewCount: () => pending.future),
+      ),
     ));
     await tester.pump(const Duration(milliseconds: 10));
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
     // Leave the route while the progress read is still awaiting a value.
-    await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+    await tester.pumpWidget(const ProviderScope(child: MaterialApp(home: SizedBox())));
     pending.complete(0);
     await tester.pump();
 
@@ -115,14 +171,19 @@ void main() {
     var reads = 0;
     final retryResult = Completer<int>();
 
-    await tester.pumpWidget(MaterialApp(
-      home: FastOnboardingScreen(readReviewCount: () {
-        reads++;
-        if (reads == 1) {
-          return Future<int>.error(const FormatException('corrupted progress'));
-        }
-        return retryResult.future;
-      }),
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        activeLanguageProvider.overrideWith((ref) => ActiveLanguageNotifier(ref, ref.watch(languagePackStorageProvider))..updateInstalledList(['de'])),
+      ],
+      child: MaterialApp(
+        home: FastOnboardingScreen(readReviewCount: () {
+          reads++;
+          if (reads == 1) {
+            return Future<int>.error(const FormatException('corrupted progress'));
+          }
+          return retryResult.future;
+        }),
+      ),
     ));
     await tester.pump();
     await tester.pump();
@@ -145,14 +206,19 @@ void main() {
   testWidgets('Invalid local progress recovers through the retry button',
       (WidgetTester tester) async {
     var readCalls = 0;
-    await tester.pumpWidget(MaterialApp(
-      home: FastOnboardingScreen(readReviewCount: () async {
-        readCalls++;
-        if (readCalls == 1) {
-          throw const FormatException('invalid progress metadata');
-        }
-        return 0;
-      }),
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        activeLanguageProvider.overrideWith((ref) => ActiveLanguageNotifier(ref, ref.watch(languagePackStorageProvider))..updateInstalledList(['de'])),
+      ],
+      child: MaterialApp(
+        home: FastOnboardingScreen(readReviewCount: () async {
+          readCalls++;
+          if (readCalls == 1) {
+            throw const FormatException('invalid progress metadata');
+          }
+          return 0;
+        }),
+      ),
     ));
     await tester.pump();
     await tester.pump();
