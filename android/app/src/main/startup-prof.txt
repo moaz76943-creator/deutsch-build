@@ -1,0 +1,18 @@
+# Startup Profile for Deutsch بالعربي Flutter app
+# Used at compile time to optimize DEX layout for faster cold startup (TTID).
+# Complements baseline-prof.txt (runtime AOT). Critical paths only for first frame and engine init.
+# R8 and security unchanged.
+
+HSPLcom/deutschbilarabi/app/MainActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLcom/deutschbilarabi/app/MainActivity;->onStart()V
+HSPLcom/deutschbilarabi/app/MainActivity;->onResume()V
+HSPLcom/deutschbilarabi/app/MainActivity;->configureFlutterEngine(Lio/flutter/embedding/engine/FlutterEngine;)V
+HSPLio/flutter/embedding/android/FlutterActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLio/flutter/embedding/engine/FlutterJNI;->init(Landroid/content/Context;[Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;J)V
+HSPLio/flutter/embedding/engine/FlutterJNI;->attachToNative()V
+HSPLio/flutter/embedding/engine/loader/FlutterLoader;->ensureInitializationComplete(Landroid/content/Context;[Ljava/lang/String;)V
+HSPLio/flutter/embedding/engine/dart/DartExecutor;->executeDartEntrypoint(Lio/flutter/embedding/engine/dart/DartExecutor$DartEntrypoint;)V
+HSPLio/flutter/embedding/android/FlutterView;->onDraw(Landroid/graphics/Canvas;)V
+HSPLio/flutter/embedding/android/FlutterView;->onLayout(ZIIII)V
+HSPLio/flutter/widgets/framework/BuildOwner;->buildScope(Lio/flutter/widgets/framework/Element;Lkotlin/jvm/functions/Function0;)V
+HSPLio/flutter/material/MaterialApp;->build(Lio/flutter/widgets/framework/BuildContext;)Lio/flutter/widgets/framework/Widget;
