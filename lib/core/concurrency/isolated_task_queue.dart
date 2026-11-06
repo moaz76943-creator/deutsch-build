@@ -38,6 +38,7 @@ class IsolatedTaskQueue {
 
   int get length => _queue.length;
   int get activeTasksCount => _activeTasks.length;
+  int get availableCapacity => maxConcurrentTasks - _activeTasks.length;
 
   Future<T?> enqueue<T>({
     required String id,
@@ -162,9 +163,7 @@ class IsolatedTaskQueue {
         }).catchError((Object e) {
           if (!completerInternal.isCompleted) {
             timer.cancel();
-            final Object failure =
-                e is Object ? e : StateError('task failed');
-            completerInternal.completeError(failure);
+            completerInternal.completeError(e);
           }
         });
 
