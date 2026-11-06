@@ -1,18 +1,18 @@
-import 'dart:collection';
 import 'package:characters/characters.dart';
 
 class TrieNode {
   final Map<String, TrieNode> children = <String, TrieNode>{};
-  final Set<String> wordIds = LinkedHashSet<String>();
+  final Set<String> wordIds = <String>{};
 }
 
 /// A bounded, language-specific *search-key* index. It does not mutate or
 /// replace original surface spellings, and it does not infer segmentation.
 class TrieSearchEngine {
-  static const int maxInputCodeUnits = 2048;
-  static const int maxIdCodeUnits = 128;
+  final int maxInputCodeUnits;
+  final int maxIdCodeUnits;
   TrieNode _root = TrieNode();
   int _nodeCount = 1;
+  int _contentVersion = 0;
 
   final String languageCode;
   final String? directedPairKey;
@@ -95,6 +95,22 @@ class TrieSearchEngine {
     final units = normalized.characters.toList(growable: false);
     if (units.length > maxWordGraphemes) return false;
 
+    // Pre-calculate if we have enough nodes for the entire word
+    int newNodesNeeded = 0;
+    var checkNode = _root;
+    for (final unit in units) {
+      final next = checkNode.children[unit];
+      if (next == null) {
+        newNodesNeeded++;
+      } else {
+        checkNode = next;
+      }
+    }
+
+    if (_nodeCount + newNodesNeeded > maxNodes) {
+      return false; // Reject entire insertion if it would exceed node bounds
+    }
+
     var current = _root;
     var indexed = false;
     for (final unit in units) {
@@ -106,7 +122,6 @@ class TrieSearchEngine {
         }
         current = existing;
       } else {
-        if (_nodeCount >= maxNodes) break;
         final created = TrieNode();
         current.children[unit] = created;
         _nodeCount++;
@@ -150,5 +165,11 @@ class TrieSearchEngine {
     _nodeCount = 1;
   }
 
+  void reset(int newVersion) {
+    clear();
+    _contentVersion = newVersion;
+  }
+
   int get currentNodeCount => _nodeCount;
+  int get contentVersion => _contentVersion;
 }
