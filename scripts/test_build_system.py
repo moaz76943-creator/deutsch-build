@@ -16,21 +16,21 @@ class TestBuildSystem(unittest.TestCase):
         self.assertIn(b'[ERROR] Test failure', result.stderr)
 
     def test_fatal_compile_exit_code(self):
-        script = 'source scripts/common.sh; fatal $ERR_COMPILE "Test compile"'
+        script = 'source scripts/common.sh; fatal $ERR_COMP "Test compile"'
         result = subprocess.run(['bash', '-c', script], capture_output=True)
-        self.assertEqual(result.returncode, 11)
+        self.assertEqual(result.returncode, 12)
         self.assertIn(b'[ERROR] Test compile', result.stderr)
 
     def test_fatal_signing_exit_code(self):
-        script = 'source scripts/common.sh; fatal $ERR_SIGNING "Test signing"'
+        script = 'source scripts/common.sh; fatal $ERR_SIGN "Test signing"'
         result = subprocess.run(['bash', '-c', script], capture_output=True)
-        self.assertEqual(result.returncode, 12)
+        self.assertEqual(result.returncode, 13)
         self.assertIn(b'[ERROR] Test signing', result.stderr)
 
     def test_fatal_dependency_exit_code(self):
-        script = 'source scripts/common.sh; fatal $ERR_DEPENDENCY "Test dependency"'
+        script = 'source scripts/common.sh; fatal $ERR_DEP "Test dependency"'
         result = subprocess.run(['bash', '-c', script], capture_output=True)
-        self.assertEqual(result.returncode, 13)
+        self.assertEqual(result.returncode, 11)
         self.assertIn(b'[ERROR] Test dependency', result.stderr)
 
     def test_fatal_artifact_exit_code(self):
