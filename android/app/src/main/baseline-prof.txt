@@ -28,12 +28,6 @@ HSPLio/flutter/embedding/engine/dart/DartExecutor;->executeDartEntrypoint(Lio/fl
 HSPLio/flutter/view/FlutterView;->onDraw(Landroid/graphics/Canvas;)V
 HSPLio/flutter/view/FlutterView;->onLayout(ZIIII)V
 HSPLio/flutter/embedding/android/FlutterView;->onDraw(Landroid/graphics/Canvas;)V
-HSPLio/flutter/embedding/android/FlutterView;->onLayout(ZIIII)V
-
-# Common UI / navigation hot paths (first interactions after launch)
-HSPLio/flutter/widgets/framework/RenderObject;->layout(Lio/flutter/rendering/Constraints;Z)V
-HSPLio/flutter/rendering/RenderObject;->performLayout()V
-HSPLio/flutter/widgets/framework/Element;->updateChild(Lio/flutter/widgets/framework/Element;Lio/flutter/widgets/framework/Widget;Ljava/lang/Object;)Lio/flutter/widgets/framework/Element;
 
 # Messaging / plugins (common after first frame)
 HSPLio/flutter/plugin/common/BinaryMessenger;->send(Ljava/lang/String;Ljava/nio/ByteBuffer;)V
@@ -41,4 +35,3 @@ HSPLio/flutter/plugin/common/MethodChannel;->invokeMethod(Ljava/lang/String;Ljav
 
 # Profile installer itself
 HSPLandroidx/profileinstaller/ProfileInstaller;->writeProfile(Landroid/content/Context;)V
-HSPLandroidx/profileinstaller/ProfileInstaller;->installProfile(Landroid/content/Context;)V
