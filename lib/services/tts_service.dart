@@ -59,7 +59,6 @@ class TtsService {
   String? _activeLocale;
   bool _ready = false;
   bool _disposed = false;
-  bool _isSpeaking = false;
   int _requestEpoch = 0;
   Future<bool>? _initialization;
   Future<void> _speechQueue = Future<void>.value();
@@ -108,23 +107,6 @@ class TtsService {
   Future<bool> _initialize() async {
     _emit(TtsStatus.initializing);
     try {
-      _engine.setStartHandler(() {
-        if (_isSpeaking) _emit(TtsStatus.speaking, locale: _activeLocale);
-      });
-      _engine.setCompletionHandler(() {
-        if (!_isSpeaking) return;
-        _isSpeaking = false;
-        _emit(TtsStatus.completed, locale: _activeLocale);
-      });
-      _engine.setCancelHandler(() {
-        _isSpeaking = false;
-        _emit(TtsStatus.stopped, locale: _activeLocale);
-      });
-      _engine.setErrorHandler((message) {
-        _isSpeaking = false;
-        _emit(TtsStatus.error,
-            locale: _activeLocale, message: message.toString());
-      });
       await _engine.awaitSpeakCompletion(false);
       await _applyParameters();
       if (_disposed) return false;
@@ -182,7 +164,7 @@ class TtsService {
             locale: locale, message: 'TTS locale is unavailable on device');
         return false;
       }
-      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      if (!kIsWeb) {
         final installed = await _engine.isLanguageInstalled(locale);
         if (installed != true && installed != 1) {
           _emit(TtsStatus.voiceMissing,
@@ -278,29 +260,25 @@ class TtsService {
       await _applyParameters();
       if (!_isCurrent(epoch)) return false;
       _activeLocale = locale;
-      _isSpeaking = true;
       _emit(TtsStatus.speaking, locale: locale);
 
       final result = await OfflineAudioDispatcher.speakText(
         text: text,
         bcp47Locale: locale,
-        speechRate: _speechRate,
+        speechRate: _speechRate * 2.0,
       );
 
       if (!_isCurrent(epoch)) return false;
 
       if (result) {
-        _isSpeaking = false;
         _emit(TtsStatus.completed, locale: locale);
         return true;
       } else {
-        _isSpeaking = false;
         _emit(TtsStatus.error,
             locale: locale, message: 'Audio dispatcher rejected or failed');
         return false;
       }
     } catch (error) {
-      _isSpeaking = false;
       _emit(TtsStatus.error, locale: locale, message: error.toString());
       return false;
     }
@@ -315,7 +293,6 @@ class TtsService {
     } catch (error) {
       _emit(TtsStatus.error, locale: _activeLocale, message: error.toString());
     } finally {
-      _isSpeaking = false;
       _emit(TtsStatus.stopped, locale: _activeLocale);
     }
   }
@@ -325,7 +302,6 @@ class TtsService {
     _disposed = true;
     ++_requestEpoch;
     onStatus = null;
-    _isSpeaking = false;
     try {
       OfflineAudioDispatcher.stopCurrentAudio();
       if (_tts != null) await _engine.stop();
