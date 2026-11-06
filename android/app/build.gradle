@@ -63,7 +63,7 @@ android {
     defaultConfig {
         applicationId "com.deutschbilarabi.app"
         minSdkVersion flutter.minSdkVersion
-        targetSdk 34
+        targetSdk 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
