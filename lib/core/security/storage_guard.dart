@@ -12,9 +12,9 @@ class StorageGuard {
     }
   }
 
-  static bool isLocalReadPermitted() => true;
+  static bool isLocalReadPermitted() => OfflineGate.isOperationPermitted(OperationType.localRead);
 
-  static bool isLocalWritePermitted() => true;
+  static bool isLocalWritePermitted() => OfflineGate.isOperationPermitted(OperationType.localWrite);
 
   static bool validateJsonIntegrity(String rawJson) {
     try {
