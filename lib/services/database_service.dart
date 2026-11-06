@@ -368,7 +368,7 @@ class DatabaseService {
     }
 
     Future<void> requireColumns(String table, Set<String> required) async {
-      final rows = await db.rawQuery('PRAGMA table_info($table)');
+      final rows = await db.rawQuery('SELECT name FROM pragma_table_info(?)', <Object?>[table]);
       final actual = rows.map((row) => row['name']).whereType<String>().toSet();
       if (!actual.containsAll(required)) {
         throw StateError('Content database $code lacks $table columns');
