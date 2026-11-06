@@ -36,11 +36,8 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
   }
 
   Future<void> _loadEntry() async {
-    // Attempt to load an entry for Arabic to German or some default pair. We will just load ar-SA to de-DE for now as it doesn't receive language inputs.
+    // Load an entry for the specified pair. Do not use test fallbacks here.
     List<LexicalEntry> entries = LexicalRepository.getEntriesForPair(sourceLocale: widget.sourceLocale, targetLocale: widget.targetLocale);
-    if (entries.isEmpty) {
-        entries = LexicalRepository.getEntriesForPair(sourceLocale: 'ar-SA', targetLocale: 'de-DE'); // Fallback for tests
-    }
 
     if (entries.isEmpty) {
       // Fallback if empty
@@ -103,7 +100,8 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
   // Basic unicode normalization for answer comparison
   String _normalizeString(String input) {
     // Basic normalization: trim and lowercase and remove extra spaces
-    // For arabic, we might need to remove tashkeel for testing
+    // Preserve base scripts but remove standard Arabic diacritics (tashkeel)
+    // using the existing regex pattern for robust spelling verification.
     input = input.replaceAll(RegExp(r'[ً-ٰٟ]'), '');
     return input.toLowerCase().trim().replaceAll(RegExp(r'\s+'), ' ');
   }

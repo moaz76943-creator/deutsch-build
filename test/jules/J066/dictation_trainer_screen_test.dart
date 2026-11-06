@@ -1,19 +1,28 @@
+import "package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart";
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/screens/dictation_trainer_screen.dart';
 import 'package:deutsch_bilarabi/core/lexical_repository.dart';
 
-
 import 'package:flutter/services.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-  const MethodChannel('com.deutschbilarabi.app/offline_voice_capability').setMockMethodCallHandler((MethodCall methodCall) async {
-    if (methodCall.method == 'getOfflineVoices') {
-      return ['de-DE-language', 'ar-SA-language'];
-    }
-    return null;
+  setUpAll(() {
+    try {
+      SrsCompatBridge.instance.bindCanonicalWriter((_) async {});
+    } catch (_) {}
   });
+
+  TestWidgetsFlutterBinding.ensureInitialized();
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    const MethodChannel('com.deutschbilarabi.app/offline_voice_capability'),
+    (MethodCall methodCall) async {
+      if (methodCall.method == 'getOfflineVoices') {
+        return ['de-DE-language', 'ar-SA-language'];
+      }
+      return null;
+    },
+  );
 
   setUp(() {
     LexicalRepository.initializeStore([
@@ -132,7 +141,7 @@ void main() {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
+                  MaterialPageRoute<void>(
                     builder: (context) => const DictationTrainerScreen(sourceLocale: 'ar', targetLocale: 'de'),
                   ),
                 );
