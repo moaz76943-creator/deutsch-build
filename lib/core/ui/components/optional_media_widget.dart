@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:typed_data';
-import '../../../design_system/design_system.dart';
 import 'resilient_async_builder.dart';
-import 'content_cancellation_token.dart';
 
 class OptionalMediaWidget extends StatelessWidget {
   final Future<Uint8List?> Function() fetcher;
@@ -72,7 +70,7 @@ class OptionalMediaWidget extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Text(
                   semanticLabel,
-                  style: AppTypography.caption,
+                  style: Theme.of(context).textTheme.bodySmall,
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
