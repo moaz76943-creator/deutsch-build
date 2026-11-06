@@ -18,13 +18,12 @@ class FastOnboardingScreen extends StatefulWidget {
 
 class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
   bool _routed = false;
-  bool _hasError = false;
-  bool _isCheckingProgress = false;
+  Future<void>? _initFuture;
 
   @override
   void initState() {
     super.initState();
-    _checkState();
+    _initFuture = _checkState();
   }
 
   Future<int> _loadReviewCount() async {
@@ -35,85 +34,82 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
   }
 
   void _retry() {
-    if (!mounted || _routed || _isCheckingProgress) return;
-    setState(() => _hasError = false);
-    _checkState();
+    if (!mounted || _routed) return;
+    setState(() {
+      _initFuture = _checkState();
+    });
   }
 
   Future<void> _checkState() async {
-    if (!mounted || _routed || _isCheckingProgress) return;
-    _isCheckingProgress = true;
-    try {
-      final count = await (widget.readReviewCount?.call() ??
-              _loadReviewCount())
-          .timeout(const Duration(seconds: 8));
+    if (!mounted || _routed) return;
+    final count = await (widget.readReviewCount?.call() ?? _loadReviewCount())
+        .timeout(const Duration(seconds: 8));
 
-      if (!mounted || _routed) return;
-      _routed = true;
+    if (!mounted || _routed) return;
+    _routed = true;
 
-      // A missing content pack must not block the first-run explanation.
-      // Learners with saved review rows return to the shell.
-      final Widget next = count > 0
-          ? const MainShellScreen()
-          : Builder(
-              // This context belongs to the new onboarding route. The
-              // FastOnboardingScreen state is disposed by pushReplacement.
-              builder: (onboardingContext) => OnboardingScreen(
-                onStart: () {
-                  if (!onboardingContext.mounted) return;
-                  Navigator.of(onboardingContext).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (_) => const FlashcardsScreen(),
-                    ),
-                  );
-                },
-              ),
-            );
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => next),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _hasError = true);
-    } finally {
-      _isCheckingProgress = false;
-    }
+    // A missing content pack must not block the first-run explanation.
+    // Learners with saved review rows return to the shell.
+    final Widget next = count > 0
+        ? const MainShellScreen()
+        : Builder(
+            // This context belongs to the new onboarding route. The
+            // FastOnboardingScreen state is disposed by pushReplacement.
+            builder: (onboardingContext) => OnboardingScreen(
+              onStart: () {
+                if (!onboardingContext.mounted) return;
+                Navigator.of(onboardingContext).pushReplacement(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const FlashcardsScreen(),
+                  ),
+                );
+              },
+            ),
+          );
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(builder: (_) => next),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_hasError) {
-      return Scaffold(
-        backgroundColor: const Color(0xFF0F172A),
-        body: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'تعذر فتح سجل التقدّم المحلي.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white),
+    return FutureBuilder<void>(
+      future: _initFuture,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(
+            backgroundColor: const Color(0xFF0F172A),
+            body: SafeArea(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'تعذر فتح سجل التقدّم المحلي.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      const SizedBox(height: 16),
+                      OutlinedButton(
+                        onPressed: _retry,
+                        child: const Text('إعادة المحاولة'),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  OutlinedButton(
-                    onPressed: _retry,
-                    child: const Text('إعادة المحاولة'),
-                  ),
-                ],
+                ),
               ),
             ),
+          );
+        }
+        return const Scaffold(
+          backgroundColor: Color(0xFF0F172A),
+          body: Center(
+            child: CircularProgressIndicator(color: Colors.blueAccent),
           ),
-        ),
-      );
-    }
-    return const Scaffold(
-      backgroundColor: Color(0xFF0F172A),
-      body: Center(
-        child: CircularProgressIndicator(color: Colors.blueAccent),
-      ),
+        );
+      },
     );
   }
 }
