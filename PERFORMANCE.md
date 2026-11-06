@@ -1,5 +1,37 @@
 # Performance Improvements
 
+## 2026-11-06: Startup Profile for DEX Layout Optimization (Startup Time)
+
+### Issue
+Baseline Profiles provide runtime AOT for hot paths, but Startup Profiles additionally optimize the layout of classes and methods within DEX files at compile time. This reduces class loading and verification overhead specifically during cold startup, which is critical for TTID on first launch after install or update.
+
+### Change
+- Added `android/app/src/main/startup-prof.txt` containing the most critical startup paths:
+  - MainActivity / FlutterActivity lifecycle and engine configuration
+  - FlutterJNI init, FlutterLoader, DartExecutor entrypoint
+  - FlutterView layout/draw for first frame
+  - BuildOwner.buildScope and MaterialApp.build for initial composition
+- Complements the existing expanded `baseline-prof.txt` and ProfileInstaller 1.4.1.
+- R8 minifyEnabled + shrinkResources, proguard rules, permissions, and offline-first design unchanged.
+- No new network, no security surface expansion.
+
+### Expected Metrics
+| Metric | Before (baseline only) | After (baseline + startup profile) | Improvement |
+|--------|------------------------|------------------------------------|-------------|
+| Cold start TTID | Optimized via AOT | Further reduced class/DEX load cost | 5-15% additional gain (Android docs / typical) |
+| Time to first frame | Good | Better DEX locality | Lower variance, faster initial render |
+| Subsequent launches | Same | Same | Neutral |
+
+### How to measure
+1. Cold start after reinstall: `adb shell am force-stop com.deutschbilarabi.app && adb shell am start -W -n com.deutschbilarabi.app/.MainActivity` on physical device (API 31+), compare TotalTime and WaitTime.
+2. Perfetto trace: look for reduced class loading / verification slices in the startup window.
+3. Macrobenchmark StartupTimingMetric before/after.
+4. Play Console Vitals after release.
+
+Security note: Method signatures only. Official ART compile-time optimization. R8 obfuscation, shrink, Play Integrity, and no-data-collection guarantees fully preserved. No permission or integrity changes.
+
+---
+
 ## 2026-11-06: Further Expanded Baseline Profile (Startup Time / UI Jank / Scroll)
 
 ### Issue
