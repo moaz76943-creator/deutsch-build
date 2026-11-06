@@ -69,6 +69,9 @@ class DatabaseService {
 
   // User progress remains physically and logically isolated from content packs.
   Future<Database> get progressDb async {
+    if (_progressDb != null && !_progressDb!.isOpen) {
+      _progressDb = null;
+    }
     if (_progressDb != null) return _progressDb!;
     if (_progressDbInitFuture != null) return await _progressDbInitFuture!;
     _progressDbInitFuture = _initProgressDb('user_progress_v2.db');
@@ -118,6 +121,7 @@ class DatabaseService {
     return await openDatabase(
       filePath,
       version: 1,
+      readOnly: true,
       onOpen: (db) async {
         await db.execute('PRAGMA journal_mode = WAL;');
         await db.execute('PRAGMA synchronous = NORMAL;');
@@ -438,6 +442,17 @@ class DatabaseService {
 
   Future<void> closeAllContentDbs() => _contentPool.closeAll();
 
+  Future<void> close() async {
+    await closeAllContentDbs();
+    if (_progressDb != null) {
+      if (_progressDb!.isOpen) {
+        await _progressDb!.close();
+      }
+      _progressDb = null;
+    }
+    _progressDbInitFuture = null;
+  }
+
   /// Close only idle SQLite content connections under memory pressure.
   /// Retained as a compatibility API; active leases are never interrupted.
   Future<int> trimUnleasedContentConnections() =>
@@ -458,6 +473,10 @@ class DatabaseService {
     return await openDatabase(
       databasePath,
       version: 2,
+      onOpen: (db) async {
+        await db.execute('PRAGMA journal_mode = WAL;');
+        await db.execute('PRAGMA busy_timeout = 5000;');
+      },
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE IF NOT EXISTS srs_progress (
@@ -848,32 +867,43 @@ class DatabaseService {
     required String status,
     String languageCode = 'de',
   }) async {
-    try {
-      final normalizedCode = _normalizeLanguageCode(languageCode);
-      if (await _progressVault.isOperationalActive) {
-        await _progressVault.incrementOperationalSrs(
-            lexemeId: lexemeId, languageCode: normalizedCode, status: status);
-        return;
+    int attempts = 0;
+    while (true) {
+      attempts++;
+      try {
+        final normalizedCode = _normalizeLanguageCode(languageCode);
+        if (await _progressVault.isOperationalActive) {
+          await _progressVault.incrementOperationalSrs(
+              lexemeId: lexemeId, languageCode: normalizedCode, status: status);
+          return;
+        }
+        final db = await progressDb;
+        await db.transaction((txn) async {
+          await txn.rawInsert('''
+            INSERT INTO srs_progress (
+              lexeme_id, target_language_code, repetition_count, status
+            )
+            VALUES (?, ?, 1, ?)
+            ON CONFLICT(lexeme_id, target_language_code) DO UPDATE SET
+              repetition_count = srs_progress.repetition_count + 1,
+              status = excluded.status
+          ''', <Object?>[lexemeId, normalizedCode, status]);
+        });
+        break;
+      } catch (error) {
+        if (error is DatabaseException &&
+            error.toString().toLowerCase().contains('closed') &&
+            attempts < 2) {
+          _progressDb = null;
+          continue;
+        }
+        await DiagnosticLedgerService.instance.record(
+          category: 'sqlite_write',
+          languageCode: languageCode,
+          error: error,
+        );
+        rethrow;
       }
-      final db = await progressDb;
-      await db.transaction((txn) async {
-        await txn.rawInsert('''
-          INSERT INTO srs_progress (
-            lexeme_id, target_language_code, repetition_count, status
-          )
-          VALUES (?, ?, 1, ?)
-          ON CONFLICT(lexeme_id, target_language_code) DO UPDATE SET
-            repetition_count = srs_progress.repetition_count + 1,
-            status = excluded.status
-        ''', <Object?>[lexemeId, normalizedCode, status]);
-      });
-    } catch (error) {
-      await DiagnosticLedgerService.instance.record(
-        category: 'sqlite_write',
-        languageCode: languageCode,
-        error: error,
-      );
-      rethrow;
     }
   }
 
