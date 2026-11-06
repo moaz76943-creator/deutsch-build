@@ -20,11 +20,10 @@ class StreakFreezeLedger {
 
   StreakFreezeLedger recordUsage(
     String reason, {
-    DateTime? now,
     DateTime? timestamp,
   }) {
     if (!canConsume) return this;
-    final currentTime = timestamp ?? now ?? DateTime.now();
+    final currentTime = timestamp ?? DateTime.now();
 
     // Validate freeze consumption and prevent duplicate freezes
     for (final record in usageHistory) {
