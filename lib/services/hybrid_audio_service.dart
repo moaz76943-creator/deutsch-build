@@ -77,7 +77,7 @@ class HybridAudioService {
     _busy = true;
     try {
       final probe = _voiceProbe ?? _tts.isVoiceAvailable;
-      final available = await probe(tag)
+      final available = await probe(languageCode)
           .timeout(voiceTimeout, onTimeout: () => false)
           .catchError((Object _) => false);
       if (!available) {
@@ -87,7 +87,7 @@ class HybridAudioService {
       final speaker = _speechPlayback ??
           (String value, String locale) =>
               _tts.speak(value, languageCode: locale);
-      final success = await speaker(text, tag)
+      final success = await speaker(text, languageCode)
           .timeout(playbackTimeout, onTimeout: () => false)
           .catchError((Object _) => false);
       if (!success) unavailable();
