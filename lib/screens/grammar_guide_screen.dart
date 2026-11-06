@@ -49,15 +49,12 @@ class GrammarGuideScreen extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       r['title']!,
-                      style: AppTypography.title.copyWith(
-                          color: const Color(0xFF38BDF8), fontSize: 17),
+                      style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 17, fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       r['desc']!,
-                      style: AppTypography.body.copyWith(
-                          color: Colors.white.withValues(alpha: 0.85),
-                          fontSize: 13),
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
                     ),
                     const SizedBox(height: 12),
                     Container(
