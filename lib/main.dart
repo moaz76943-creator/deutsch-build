@@ -125,6 +125,13 @@ class SafeModeRecoveryGate extends StatelessWidget {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Tune ImageCache for vocabulary/image-heavy sessions: lower peak memory,
+  // fewer GC pauses, modest battery savings. Defaults are 1000 images / 100 MB.
+  // Values chosen for typical phone screens + offline image packs without
+  // impacting perceived quality (CachedNetworkImage already size-constrained).
+  PaintingBinding.instance.imageCache.maximumSize = 250;
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 48 * 1024 * 1024; // 48 MB
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
