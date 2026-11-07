@@ -36,7 +36,7 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
     },
     {
       "symbol": "ğ",
-      "ipa": "[ː]",
+      "ipa": "[ɰ]",
       "desc": "الحرف الصامت أو الناعم في اللغة التركية",
       "lang": "التركية",
       "langCode": "tr-TR",
@@ -182,7 +182,7 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
                                 const SizedBox(height: 4),
                                 Text(
                                   item['desc'] as String,
-                                  style: AppTypography.body.copyWith(
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                       color: Colors.white, fontSize: 14),
                                 ),
                               ],

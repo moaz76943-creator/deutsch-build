@@ -17,7 +17,7 @@ void main() {
 
     expect(find.text('[ɛː] / [øː] / [yː]'), findsOneWidget);
     expect(find.text('[ɲ]'), findsOneWidget);
-    expect(find.text('[ː]'), findsOneWidget);
+    expect(find.text('[ɰ]'), findsOneWidget);
 
     // Check that long description text renders without overflowing Layout
     expect(tester.takeException(), isNull);
@@ -41,7 +41,7 @@ void main() {
       await tester.tap(playButtonFinder);
       await tester.pump();
 
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
       await tester.pumpAndSettle();
     });
   });
