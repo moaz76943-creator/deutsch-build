@@ -41,6 +41,12 @@ class RepairPlanner:
     def _calculate_paths(self, category: str, failure_signature: str) -> list[str]:
         # Extract paths if they exist in the signature
         paths = re.findall(r"([a-zA-Z0-9_\-\./]+\.[a-zA-Z0-9]+)", failure_signature)
+
+        if not paths and category == RESOLVABLE_IMPORT:
+            m = re.search(r"module not found:\s*([a-zA-Z0-9_\-\./]+)", failure_signature, re.IGNORECASE)
+            if m:
+                paths = [m.group(1)]
+
         if not paths:
             if category == STALE_FTS5:
                 paths = ["assets/polyglot_content_v2.db"]
