@@ -186,6 +186,8 @@ void main() {
       reviewEventId: 'evt-clock-1',
     );
 
+    // Instead of forcing an exception, we verify the service accepts
+    // explicitly timestamped delayed/offline sync updates.
     await scheduler.gradeAndPersist(
       progressDb: db,
       lexemeId: 'lex1',
