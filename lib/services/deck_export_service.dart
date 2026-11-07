@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:archive/archive.dart';
+import 'package:archive/archive_io.dart';
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -16,6 +16,9 @@ class DeckExportWord {
     required this.front,
     required this.back,
     required this.tag,
+    this.example,
+    this.cefr,
+    this.grammar,
   });
 
   final String lexemeId;
@@ -23,6 +26,9 @@ class DeckExportWord {
   final String front;
   final String back;
   final String tag;
+  final String? example;
+  final String? cefr;
+  final String? grammar;
 }
 
 /// Local-only personal taxonomy and Anki 2.1 legacy package exporter.
@@ -183,12 +189,26 @@ class DeckExportService {
           }
           final back = (fields['translation_ar'] ?? fields['translation'] ?? '')
               .toString();
+
+          String? example;
+          String? cefr;
+          String? grammar;
+
+          if (fields['isCefrVerified'] == true) {
+            example = (fields['example_ar'] ?? fields['example'])?.toString();
+            cefr = fields['cefr']?.toString();
+            grammar = fields['grammar']?.toString();
+          }
+
           words.add(DeckExportWord(
             lexemeId: row['id'].toString(),
             languageCode: item.key,
             front: front,
             back: back,
             tag: name.replaceAll(RegExp(r'\s+'), '_'),
+            example: example,
+            cefr: cefr,
+            grammar: grammar,
           ));
         }
       }
@@ -214,8 +234,21 @@ class DeckExportService {
     }
     final directory = await _downloadsDirectory();
     await directory.create(recursive: true);
-    final file = File(p.join(directory.path, '${_fileStem(deckName)}.csv'));
-    return file.writeAsString(buffer.toString(), encoding: utf8, flush: true);
+
+    final finalFileName = '${_fileStem(deckName)}.csv';
+    final file = File(p.join(directory.path, finalFileName));
+    final tempFile = File(p.join(directory.path, '$finalFileName.tmp'));
+
+    try {
+      await tempFile.writeAsString(buffer.toString(), encoding: utf8, flush: true);
+      return await tempFile.rename(file.path);
+    } finally {
+      if (await tempFile.exists()) {
+        try {
+          await tempFile.delete();
+        } catch (_) {}
+      }
+    }
   }
 
   /// Produces a standard zip APKG with a real Anki v11 SQLite collection.
@@ -347,17 +380,61 @@ class DeckExportService {
       });
       await db.close();
       db = null;
-      final sqliteBytes = await collectionFile.readAsBytes();
-      final mediaBytes = utf8.encode('{}');
-      final archive = Archive()
-        ..addFile(
-            ArchiveFile('collection.anki2', sqliteBytes.length, sqliteBytes))
-        ..addFile(ArchiveFile('media', mediaBytes.length, mediaBytes));
-      final encoded = ZipEncoder().encode(archive);
+
       final directory = await _downloadsDirectory();
       await directory.create(recursive: true);
-      final output = File(p.join(directory.path, '${_fileStem(name)}.apkg'));
-      return output.writeAsBytes(encoded, flush: true);
+
+      final finalFileName = '${_fileStem(name)}.apkg';
+      final outputFile = File(p.join(directory.path, finalFileName));
+      final tempOutputFile = File(p.join(directory.path, '$finalFileName.tmp'));
+
+      int contentVersion = DateTime.now().millisecondsSinceEpoch;
+      if (words.isNotEmpty) {
+        try {
+          final contentDb = await _contentDb(words.first.languageCode);
+          final pragmaResult = await contentDb.rawQuery('PRAGMA user_version');
+          if (pragmaResult.isNotEmpty) {
+            contentVersion = pragmaResult.first.values.first as int;
+          }
+        } catch (_) {
+          // Fallback to timestamp if fetching user_version fails
+        }
+      }
+
+      final hash = await sha256.bind(collectionFile.openRead()).first;
+      final checksumStr = hash.toString();
+
+      final manifestJson = jsonEncode({
+        'version': 1,
+        'checksum': checksumStr,
+        'contentVersion': contentVersion,
+      });
+
+      final mediaBytes = utf8.encode('{}');
+
+      try {
+        final encoder = ZipFileEncoder();
+        encoder.create(tempOutputFile.path);
+        encoder.addFile(collectionFile);
+
+        final mediaFile = File(p.join(scratch.path, 'media'));
+        await mediaFile.writeAsBytes(mediaBytes, flush: true);
+        encoder.addFile(mediaFile);
+
+        final manifestFile = File(p.join(scratch.path, 'manifest.json'));
+        await manifestFile.writeAsString(manifestJson, flush: true);
+        encoder.addFile(manifestFile);
+
+        encoder.close();
+
+        return await tempOutputFile.rename(outputFile.path);
+      } finally {
+        if (await tempOutputFile.exists()) {
+          try {
+            await tempOutputFile.delete();
+          } catch (_) {}
+        }
+      }
     } finally {
       if (db != null && db.isOpen) await db.close();
       if (await scratch.exists()) await scratch.delete(recursive: true);
