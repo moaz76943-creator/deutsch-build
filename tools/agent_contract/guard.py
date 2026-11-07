@@ -8,6 +8,7 @@ import time
 import fcntl
 import tempfile
 from pathlib import Path, PurePosixPath
+LOCK_TTL_SECONDS = 3600
 
 ALLOWED_PATHS = [
     "AGENTS.md",
@@ -25,6 +26,7 @@ VALID_TRANSITIONS = {
 
 REPO_ROOT = str(Path(__file__).resolve().parents[2])
 LOCK_TTL_SECONDS = 3600
+
 
 
 def default_state_dir():
@@ -101,10 +103,9 @@ def check_overlapping_claims(ledger, task_id, requested_paths, now, recover_from
         if other_task == task_id or other_task == "_metadata":
             continue
         if data.get("state") in ["CLAIM", "ACTIVE"]:
-            # Age alone does not prove the original process stopped writing.
-            # Keep overlapping ownership until explicit cancellation/completion;
-            # unrelated paths remain runnable even when another claim is stale.
             expired = now - data.get("timestamp", 0) > LOCK_TTL_SECONDS
+            if recover_from and other_task == recover_from and owner_evidence:
+                continue
             other_paths = data.get("paths", [])
             for p in requested_paths:
                 for op in other_paths:
@@ -240,6 +241,8 @@ def main(args=None):
     parser.add_argument("--depends-on", nargs="*", help="List of task IDs this task depends on")
     parser.add_argument("--ledger", default=str(default_state_dir() / "task_ledger.json"))
     parser.add_argument("--report", default=str(default_state_dir() / "evidence_report.json"))
+    parser.add_argument("--recover-from", help="Task ID to recover from")
+    parser.add_argument("--owner-evidence", help="Evidence of owner failure for recovery")
 
     parsed = parser.parse_args(args)
 
@@ -252,10 +255,10 @@ def main(args=None):
         try:
             if ledger_path.exists():
                 with ledger_path.open("r", encoding="utf-8") as current:
-                    result_code, report, updated_ledger = process_ledger(parsed, current)
+                    result_code, report, updated_ledger = process_ledger(parsed, current.read())
             else:
                 import io
-                result_code, report, updated_ledger = process_ledger(parsed, io.StringIO(""))
+                result_code, report, updated_ledger = process_ledger(parsed, "")
         except (json.JSONDecodeError, ValueError, TypeError, AttributeError):
             result_code = 1
             report = {"task_id": parsed.task_id, "base_sha": parsed.base_sha,
