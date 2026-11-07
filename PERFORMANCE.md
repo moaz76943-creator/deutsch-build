@@ -1,5 +1,35 @@
 # Performance Improvements
 
+## 2026-11-07: ImageCache Size Limits (Memory / Battery / UI Jank)
+
+### Issue
+Flutter's default `ImageCache` allows up to 1000 images or 100 MB. In a vocabulary app with many card images, zoom views, and offline packs, the cache can grow large enough to increase RSS, trigger more frequent GC pauses, and raise battery use during long review or journal sessions. Existing `CachedNetworkImage` size constraints help per-image decode, but the global cache still benefits from tighter bounds.
+
+### Change
+- In `lib/main.dart` after `WidgetsFlutterBinding.ensureInitialized()`:
+  - `PaintingBinding.instance.imageCache.maximumSize = 250` (default 1000)
+  - `PaintingBinding.instance.imageCache.maximumSizeBytes = 48 * 1024 * 1024` (48 MB, default 100 MB)
+- Values chosen for typical phone screens + existing per-widget memCacheWidth/Height constraints. No change to image sources, offline behavior, or decoding quality for visible cards.
+- R8, baseline/startup profiles, proguard rules, permissions, and integrity checks unchanged.
+
+### Expected Metrics
+| Metric | Before (defaults) | After (tuned limits) | Improvement |
+|--------|-------------------|----------------------|-------------|
+| Peak image cache size | Up to 100 MB / 1000 images | Capped at 48 MB / 250 images | Lower RSS under image load |
+| GC frequency during long vocab sessions | Higher | Reduced | Fewer pauses, smoother scroll |
+| Battery (image-heavy session) | Higher from GC/CPU | Modestly lower | Savings on extended use |
+| Perceived image quality / hit rate | Full | Nearly identical for typical use | Neutral (eviction only under pressure) |
+
+### How to measure
+1. Load 100+ vocabulary items with images, scroll journal + open several zooms while watching DevTools Memory tab (image cache size, RSS, GC events).
+2. Android Studio Profiler Memory: compare before/after on same device/session length.
+3. Perfetto for GC slices during scroll.
+4. Optional: Battery Historian or Play Console after release.
+
+Security note: Pure client-side Flutter engine configuration. No network, permissions, data persistence, or integrity changes. Eviction is LRU and does not expose data.
+
+---
+
 ## 2026-11-06: Startup Profile for DEX Layout Optimization (Startup Time)
 
 ### Issue
