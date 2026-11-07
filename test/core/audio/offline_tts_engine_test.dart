@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'package:test/test.dart';
-import 'package:deutsch_app/core/audio/offline_tts_engine.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/core/audio/offline_tts_engine.dart';
 
 void main() {
   group('OfflineTtsEngine Tiered Fallback Tests', () {

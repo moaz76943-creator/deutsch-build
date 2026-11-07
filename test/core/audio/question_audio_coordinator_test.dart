@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:test/test.dart';
-import 'package:deutsch_app/core/audio/question_audio_coordinator.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/core/audio/question_audio_coordinator.dart';
 
 class MockAudioPlayerClient implements AudioPlayerClient {
   String? currentlyPlayingUri;
