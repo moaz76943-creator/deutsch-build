@@ -162,8 +162,8 @@ class IsolatedTaskQueue {
         }).catchError((Object e) {
           if (!completerInternal.isCompleted) {
             timer.cancel();
-            final Object failure =
-                e is Object ? e : StateError('task failed');
+            final Object failure = e;
+
             completerInternal.completeError(failure);
           }
         });
