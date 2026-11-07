@@ -1,5 +1,35 @@
 # Performance Improvements
 
+## 2026-11-07: Expanded Baseline Profile for List/Scroll and Rendering Paths (UI Jank / Startup)
+
+### Issue
+Existing baseline profile covered core startup, first-frame, and basic ListView/Scrollable paths. Additional hot methods for ListView.builder, SliverMultiBoxAdaptorElement updates, Element.rebuild, RenderObject.paint, and ScrollableState.setState were still interpreted on cold starts or first scrolls. This contributed to residual jank in vocabulary journal horizontal scrolling, dashboard lists, and early UI interactions after launch.
+
+### Change
+- Expanded `android/app/src/main/baseline-prof.txt` with:
+  - `ListView$builder.build` and `SliverMultiBoxAdaptorElement.updateChild` (efficient list building and recycling)
+  - `Element.rebuild`, `RenderObject.paint`, `ScrollableState.setState` (common rebuild/paint/scroll state paths)
+- Complements existing Startup Profile, ProfileInstaller 1.4.1, R8 minifyEnabled + shrinkResources.
+- No new permissions, no network, no proguard rule or security changes. Offline-first design preserved.
+
+### Expected Metrics
+| Metric | Before (prior expansion) | After (this expansion) | Improvement |
+|--------|---------------------------|------------------------|-------------|
+| Vocabulary journal / list scroll FPS | Good | Better (builder + sliver paths AOT) | Smoother scrolling, fewer frame drops |
+| Early UI rebuild / paint cost | Some interpretation | Reduced | Lower jank on first interactions |
+| Cold start TTID variance | Low | Slightly lower | More consistent first-frame composition |
+| Memory / battery | Neutral | Neutral | No regression |
+
+### How to measure
+1. Cold start: `adb shell am force-stop com.deutschbilarabi.app && adb shell am start -W -n com.deutschbilarabi.app/.MainActivity` on physical device (API 31+), compare TotalTime and first-frame.
+2. Open vocabulary journal or any list-heavy screen, scroll while capturing Perfetto / Android Studio Profiler for main-thread frame times and method interpretation.
+3. DevTools Timeline for rebuild/paint slices.
+4. Play Console Vitals after release.
+
+Security note: Method signatures only. Official ProfileInstaller + ART AOT. R8 obfuscation, shrink, Play Integrity, and no-data-collection guarantees fully preserved. No permission or integrity changes.
+
+---
+
 ## 2026-11-06: Startup Profile for DEX Layout Optimization (Startup Time)
 
 ### Issue
