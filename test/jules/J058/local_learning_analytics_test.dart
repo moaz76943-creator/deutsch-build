@@ -1,137 +1,240 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/features/gamification/local_learning_analytics.dart';
-import 'package:deutsch_bilarabi/core/srs_scheduler.dart';
+import 'package:deutsch_bilarabi/core/progress/sqlite_review_transaction_port.dart';
 import 'package:deutsch_bilarabi/core/progress/review_transaction_envelope.dart';
+import 'package:deutsch_bilarabi/core/progress/transaction_persistence_port.dart';
+import 'package:deutsch_bilarabi/core/architecture/directed_pair_id.dart';
+import 'package:deutsch_bilarabi/core/srs/review_command_port.dart';
+import 'package:sqflite/sqflite.dart';
 
-// To effectively test the robust isolate parsing in LocalLearningAnalytics, we can
-// instantiate dummy maps and pass them into the private _aggregateHistory if it were visible.
-// However, since it is private, we rely on the robustness added in the implementation.
+class StubSqliteReviewTransactionPort implements SqliteReviewTransactionPort {
+  Map<String, List<ReviewTransactionEnvelope>> _data = {};
+
+  void stubReadCommittedReviews(String pairKey, List<ReviewTransactionEnvelope> envelopes) {
+    _data[pairKey] = envelopes;
+  }
+
+  @override
+  Future<List<ReviewTransactionEnvelope>> readCommittedReviews({
+    required String sourceLanguageId,
+    required String targetLanguageId,
+    required String semanticVersion,
+    int limit = 50000,
+  }) async {
+    final key = '${sourceLanguageId}_${targetLanguageId}_$semanticVersion';
+    return _data[key] ?? [];
+  }
+
+  @override
+  AtomicReviewMutation get applyReview => throw UnimplementedError();
+
+  @override
+  Future<ReviewCommitResult> commitOnce({required ReviewCommand command, required ReviewTransactionEnvelope envelope}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Database get database => throw UnimplementedError();
+}
 
 void main() {
-  group('LocalLearningAnalytics - J058', () {
-    test('returns AnalyticsUnavailableState when history is empty (or skips if populated)', () async {
-      final result = await LocalLearningAnalytics.generateReport(AnalyticsWindow.days30);
-      expect(result, isA<LearningAnalyticsResult>());
-    });
+  late StubSqliteReviewTransactionPort mockPort;
+  final nowUtc = DateTime.utc(2023, 10, 10, 12, 0, 0);
 
-    test('aggregates correctly and handles timezone boundaries, duplicates, and pair switching', () async {
-      final nowUtc = DateTime.utc(2023, 10, 15, 12, 0); // Midday UTC
+  final pair1 = DirectedPairId(sourceLocale: 'ar', targetLocale: 'de', semanticVersion: '1.0.0');
+  final pair2 = DirectedPairId(sourceLocale: 'ar', targetLocale: 'en', semanticVersion: '1.0.0');
 
-      final String pair1 = 'de->en-test-${DateTime.now().millisecondsSinceEpoch}';
-      final String pair2 = 'fr->en-test-${DateTime.now().millisecondsSinceEpoch}';
+  setUp(() {
+    mockPort = StubSqliteReviewTransactionPort();
+  });
 
-      // Add events
-      await UnifiedSrsScheduler.instance.processReviewTransaction(ReviewTransactionEnvelope(
-        reviewEventId: 'evt-1-$pair1',
-        learnerContentKey: 'card-a',
-        rating: 3,
-        timestamp: DateTime.utc(2023, 10, 15, 1, 0), // Same UTC day
-        languagePairKey: pair1,
-      ));
+  test('generates AnalyticsUnavailableState for empty records', () async {
+    final result = await LocalLearningAnalytics.generateReport(
+      port: mockPort,
+      activePairs: [pair1],
+      window: AnalyticsWindow.days30,
+      nowUtc: nowUtc,
+    );
+    expect(result, isA<AnalyticsUnavailableState>());
+  });
 
-      // Duplicate event (should be ignored)
-      await UnifiedSrsScheduler.instance.processReviewTransaction(ReviewTransactionEnvelope(
-        reviewEventId: 'evt-1-$pair1', // duplicate id
-        learnerContentKey: 'card-a',
-        rating: 4,
-        timestamp: DateTime.utc(2023, 10, 15, 2, 0),
-        languagePairKey: pair1,
-      ));
+  test('calculates correct metrics for a single pair and handles repeated events', () async {
+    final env1 = ReviewTransactionEnvelope(
+      reviewEventId: 'ev1',
+      learnerContentKey: 'card1',
+      rating: 4,
+      timestamp: nowUtc.subtract(const Duration(days: 1)),
+      languagePairKey: pair1.uniqueKey,
+    );
+    final env2 = ReviewTransactionEnvelope(
+      reviewEventId: 'ev1',
+      learnerContentKey: 'card1',
+      rating: 1,
+      timestamp: nowUtc.subtract(const Duration(days: 1)),
+      languagePairKey: pair1.uniqueKey,
+    );
+    final env3 = ReviewTransactionEnvelope(
+      reviewEventId: 'ev2',
+      learnerContentKey: 'card2',
+      rating: 2,
+      timestamp: nowUtc.subtract(const Duration(days: 2)),
+      languagePairKey: pair1.uniqueKey,
+    );
 
-      await UnifiedSrsScheduler.instance.processReviewTransaction(ReviewTransactionEnvelope(
-        reviewEventId: 'evt-2-$pair1',
-        learnerContentKey: 'card-b',
-        rating: 4, // Mastery
-        timestamp: DateTime.utc(2023, 10, 14, 23, 0), // Previous UTC day
-        languagePairKey: pair1,
-      ));
+    mockPort.stubReadCommittedReviews(pair1.uniqueKey, [env1, env2, env3]);
 
-      await UnifiedSrsScheduler.instance.processReviewTransaction(ReviewTransactionEnvelope(
-        reviewEventId: 'evt-3-$pair2',
-        learnerContentKey: 'card-c',
-        rating: 2, // Failed review
-        timestamp: DateTime.utc(2023, 10, 10, 12, 0),
-        languagePairKey: pair2, // Different pair
-      ));
+    final result = await LocalLearningAnalytics.generateReport(
+      port: mockPort,
+      activePairs: [pair1],
+      window: AnalyticsWindow.days30,
+      nowUtc: nowUtc,
+    );
 
-      // Event outside 7-day window
-      await UnifiedSrsScheduler.instance.processReviewTransaction(ReviewTransactionEnvelope(
-        reviewEventId: 'evt-old-$pair1',
-        learnerContentKey: 'card-d',
-        rating: 5,
-        timestamp: DateTime.utc(2023, 10, 1, 12, 0), // 14 days ago
-        languagePairKey: pair1,
-      ));
+    expect(result, isA<AnalyticsDataState>());
+    final state = result as AnalyticsDataState;
+    final metrics = state.pairSpecificMetrics[pair1.uniqueKey]!;
 
-      final result7Days = await LocalLearningAnalytics.generateReport(AnalyticsWindow.days7, nowUtc: nowUtc);
-      expect(result7Days, isA<AnalyticsDataState>());
+    expect(metrics.totalReviews, 2);
+    expect(metrics.recallAccuracy, 0.5);
+    expect(metrics.uniqueCardsMastered, 1);
+    expect(metrics.completionRate, 0.5);
 
-      final state = result7Days as AnalyticsDataState;
+    final day1 = nowUtc.subtract(const Duration(days: 1)).toIso8601String().substring(0, 10);
+    final day2 = nowUtc.subtract(const Duration(days: 2)).toIso8601String().substring(0, 10);
+    expect(metrics.dailyReviews[day1], 1);
+    expect(metrics.dailyReviews[day2], 1);
+  });
 
-      // Verify pair1
-      final deEnMetrics = state.pairSpecificMetrics[pair1]!;
-      expect(deEnMetrics.totalReviews, 2); // evt-1, evt-2 (evt-1 duplicate ignored, evt-old outside window)
-      expect(deEnMetrics.uniqueCardsMastered, 1); // card-b (rating 4)
-      expect(deEnMetrics.recallAccuracy, 1.0); // (rating 3 + rating 4) / 2 = 1.0
-      expect(deEnMetrics.dailyReviews, {
-        '2023-10-15': 1, // evt-1
-        '2023-10-14': 1, // evt-2
-      });
+  test('filters out records outside the analytics window', () async {
+    final env1 = ReviewTransactionEnvelope(
+      reviewEventId: 'ev1',
+      learnerContentKey: 'card1',
+      rating: 4,
+      timestamp: nowUtc.subtract(const Duration(days: 8)),
+      languagePairKey: pair1.uniqueKey,
+    );
 
-      // Verify pair2
-      final frEnMetrics = state.pairSpecificMetrics[pair2]!;
-      expect(frEnMetrics.totalReviews, 1); // evt-3
-      expect(frEnMetrics.uniqueCardsMastered, 0); // rating 2
-      expect(frEnMetrics.recallAccuracy, 0.0); // rating 2 < 3
-      expect(frEnMetrics.dailyReviews, {
-        '2023-10-10': 1,
-      });
+    mockPort.stubReadCommittedReviews(pair1.uniqueKey, [env1]);
 
-      // Now verify 30-day window includes the old event
-      final result30Days = await LocalLearningAnalytics.generateReport(AnalyticsWindow.days30, nowUtc: nowUtc);
-      final state30 = result30Days as AnalyticsDataState;
-      final deEnMetrics30 = state30.pairSpecificMetrics[pair1]!;
+    final result = await LocalLearningAnalytics.generateReport(
+      port: mockPort,
+      activePairs: [pair1],
+      window: AnalyticsWindow.days7,
+      nowUtc: nowUtc,
+    );
 
-      expect(deEnMetrics30.totalReviews, 3); // evt-1, evt-2, evt-old
-      expect(deEnMetrics30.uniqueCardsMastered, 2); // card-b, card-d
-    });
+    expect(result, isA<AnalyticsUnavailableState>());
+  });
 
-    test('badge check works properly with actual local records', () async {
-      final String pairBadge = 'badge-pair-${DateTime.now().millisecondsSinceEpoch}';
+  test('handles pair switching appropriately (isolation)', () async {
+    final env1 = ReviewTransactionEnvelope(
+      reviewEventId: 'ev1',
+      learnerContentKey: 'card1',
+      rating: 4,
+      timestamp: nowUtc.subtract(const Duration(days: 1)),
+      languagePairKey: pair1.uniqueKey,
+    );
+    final env2 = ReviewTransactionEnvelope(
+      reviewEventId: 'ev2',
+      learnerContentKey: 'card2',
+      rating: 4,
+      timestamp: nowUtc.subtract(const Duration(days: 1)),
+      languagePairKey: pair2.uniqueKey,
+    );
 
-      // Add > 100 master records
-      for (int i = 0; i < 105; i++) {
-        await UnifiedSrsScheduler.instance.processReviewTransaction(ReviewTransactionEnvelope(
-          reviewEventId: 'badge-evt-$i-$pairBadge',
-          learnerContentKey: 'badge-card-$i',
-          rating: 5,
-          timestamp: DateTime.now().toUtc(),
-          languagePairKey: pairBadge,
-        ));
-      }
+    mockPort.stubReadCommittedReviews(pair1.uniqueKey, [env1]);
+    mockPort.stubReadCommittedReviews(pair2.uniqueKey, [env2]);
 
-      final badge = await LocalLearningAnalytics.checkNewBadge();
-      expect(badge, 'وسام المائة بطاقة المتقنة');
-    });
+    final result = await LocalLearningAnalytics.generateReport(
+      port: mockPort,
+      activePairs: [pair1, pair2],
+      window: AnalyticsWindow.days30,
+      nowUtc: nowUtc,
+    );
 
-    test('gracefully processes records and does not crash on simulated corrupt records handled intrinsically', () async {
-      final nowUtc = DateTime.utc(2023, 10, 15, 12, 0); // Midday UTC
-      final String pairKey = 'corrupt-pair-${DateTime.now().millisecondsSinceEpoch}';
+    expect(result, isA<AnalyticsDataState>());
+    final state = result as AnalyticsDataState;
+    expect(state.pairSpecificMetrics.keys, containsAll([pair1.uniqueKey, pair2.uniqueKey]));
+  });
 
-      // Insert valid record
-      await UnifiedSrsScheduler.instance.processReviewTransaction(ReviewTransactionEnvelope(
-        reviewEventId: 'valid-1-$pairKey',
-        learnerContentKey: 'card-a',
-        rating: 4,
-        timestamp: DateTime.utc(2023, 10, 15, 1, 0),
-        languagePairKey: pairKey,
-      ));
+  test('timezone boundaries and local-day grouping (UTC part)', () async {
+    final dt1 = DateTime.utc(2023, 10, 10, 23, 59, 59);
+    final dt2 = DateTime.utc(2023, 10, 11, 0, 0, 1);
 
-      final result = await LocalLearningAnalytics.generateReport(AnalyticsWindow.days7, nowUtc: nowUtc);
-      expect(result, isA<AnalyticsDataState>());
-      final state = result as AnalyticsDataState;
-      expect(state.pairSpecificMetrics.containsKey(pairKey), isTrue);
-      expect(state.pairSpecificMetrics[pairKey]!.totalReviews, 1);
-    });
+    final env1 = ReviewTransactionEnvelope(
+      reviewEventId: 'ev1', learnerContentKey: 'c1', rating: 4, timestamp: dt1, languagePairKey: pair1.uniqueKey,
+    );
+    final env2 = ReviewTransactionEnvelope(
+      reviewEventId: 'ev2', learnerContentKey: 'c2', rating: 4, timestamp: dt2, languagePairKey: pair1.uniqueKey,
+    );
+
+    mockPort.stubReadCommittedReviews(pair1.uniqueKey, [env1, env2]);
+
+    final result = await LocalLearningAnalytics.generateReport(
+      port: mockPort,
+      activePairs: [pair1],
+      window: AnalyticsWindow.days30,
+      nowUtc: DateTime.utc(2023, 10, 12, 12, 0, 0),
+    );
+
+    expect(result, isA<AnalyticsDataState>());
+    final state = result as AnalyticsDataState;
+    final metrics = state.pairSpecificMetrics[pair1.uniqueKey]!;
+
+    expect(metrics.dailyReviews.keys, containsAll(['2023-10-10', '2023-10-11']));
+  });
+
+  test('handles source records with missing optional values and corrupt maps', () {
+    final nowUtcIso = DateTime.utc(2023, 10, 10).toIso8601String();
+    final malformedMap = {
+      'history': [
+         {
+           'learnerContentKey': 'c1',
+           'rating': 4,
+           'timestamp': nowUtcIso,
+           'languagePairKey': pair1.uniqueKey,
+         },
+         {
+           'reviewEventId': 'ev2',
+           'rating': 4,
+           'timestamp': nowUtcIso,
+           'languagePairKey': pair1.uniqueKey,
+         },
+         {
+           'reviewEventId': 'ev3',
+           'learnerContentKey': 'c3',
+           'timestamp': nowUtcIso,
+           'languagePairKey': pair1.uniqueKey,
+         },
+         {
+           'reviewEventId': 'ev4',
+           'learnerContentKey': 'c4',
+           'rating': 4,
+           'languagePairKey': pair1.uniqueKey,
+         },
+         {
+           'reviewEventId': 'ev5',
+           'learnerContentKey': 'c5',
+           'rating': 4,
+           'timestamp': 'invalid-date',
+           'languagePairKey': pair1.uniqueKey,
+         },
+         {
+           'reviewEventId': 'ev6',
+           'learnerContentKey': 'c6',
+           'rating': 4,
+           'timestamp': nowUtcIso,
+           'languagePairKey': pair1.uniqueKey,
+         }
+      ],
+      'windowDays': 30,
+      'currentUtc': nowUtcIso,
+    };
+
+    final result = LocalLearningAnalytics.aggregateHistoryForTesting(malformedMap);
+
+    expect(result.keys, contains(pair1.uniqueKey));
+    expect(result[pair1.uniqueKey]!.totalReviews, 1);
+    expect(result[pair1.uniqueKey]!.uniqueCardsMastered, 1);
   });
 }

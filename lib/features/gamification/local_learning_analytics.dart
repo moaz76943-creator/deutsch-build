@@ -1,5 +1,9 @@
 import 'package:flutter/foundation.dart';
-import '../../core/srs_scheduler.dart';
+
+import '../../core/progress/sqlite_review_transaction_port.dart';
+import '../../core/architecture/directed_pair_id.dart';
+import '../../core/progress/review_transaction_envelope.dart';
+
 
 enum AnalyticsWindow { days7, days30, days90 }
 
@@ -31,9 +35,26 @@ class AnalyticsUnavailableState extends LearningAnalyticsResult {}
 
 /// محرك تقارير النمو وتحليل بيانات التعلم المحلية
 class LocalLearningAnalytics {
-  static Future<LearningAnalyticsResult> generateReport(AnalyticsWindow window,
-      {DateTime? nowUtc}) async {
-    final history = UnifiedSrsScheduler.instance.history;
+  static Future<LearningAnalyticsResult> generateReport({
+    required SqliteReviewTransactionPort port,
+    required Iterable<DirectedPairId> activePairs,
+    required AnalyticsWindow window,
+    DateTime? nowUtc,
+  }) async {
+    final List<ReviewTransactionEnvelope> history = [];
+    for (final pair in activePairs) {
+      try {
+        final records = await port.readCommittedReviews(
+          sourceLanguageId: pair.sourceLocale,
+          targetLanguageId: pair.targetLocale,
+          semanticVersion: pair.semanticVersion,
+        );
+        history.addAll(records);
+      } catch (e) {
+        debugPrint("Error reading pair history: $e");
+      }
+    }
+
     if (history.isEmpty) {
       return AnalyticsUnavailableState();
     }
@@ -53,7 +74,7 @@ class LocalLearningAnalytics {
 
     final currentUtc = nowUtc ?? DateTime.now().toUtc();
     final input = <String, dynamic>{
-      'history': history.map((e) => e.toMap()).toList(),
+      'history': history,
       'windowDays': windowDays,
       'currentUtc': currentUtc.toIso8601String(),
     };
@@ -69,6 +90,9 @@ class LocalLearningAnalytics {
       return AnalyticsUnavailableState();
     }
   }
+
+  @visibleForTesting
+  static Map<String, PairMetrics> aggregateHistoryForTesting(Map<String, dynamic> input) => _aggregateHistory(input);
 
   static Map<String, PairMetrics> _aggregateHistory(
       Map<String, dynamic> input) {
@@ -86,14 +110,29 @@ class LocalLearningAnalytics {
 
     // Deduplicate by reviewEventId and safely parse
     final deduplicated = <String, Map<String, dynamic>>{};
-    for (var envMap in historyMaps) {
-      if (envMap is! Map) continue;
+    for (var item in historyMaps) {
+      String? eventId;
+      Map<String, dynamic> envMap;
+      if (item is ReviewTransactionEnvelope) {
+        eventId = item.reviewEventId;
+        envMap = {
+          'reviewEventId': item.reviewEventId,
+          'learnerContentKey': item.learnerContentKey,
+          'rating': item.rating,
+          'timestamp': item.timestamp.toIso8601String(),
+          'languagePairKey': item.languagePairKey,
+        };
+      } else if (item is Map) {
+        eventId = item['reviewEventId']?.toString();
+        envMap = Map<String, dynamic>.from(item);
+      } else {
+        continue;
+      }
 
-      final eventId = envMap['reviewEventId'];
-      if (eventId == null || eventId is! String || eventId.isEmpty) continue;
+      if (eventId == null || eventId.isEmpty) continue;
 
       if (!deduplicated.containsKey(eventId)) {
-        deduplicated[eventId] = Map<String, dynamic>.from(envMap);
+        deduplicated[eventId] = envMap;
       }
     }
 
@@ -178,8 +217,15 @@ class LocalLearningAnalytics {
   }
 
   /// التحقق من استحقاق المستخدم لوسام جديد
-  static Future<String?> checkNewBadge() async {
-    final result = await generateReport(AnalyticsWindow.days30);
+  static Future<String?> checkNewBadge({
+    required SqliteReviewTransactionPort port,
+    required Iterable<DirectedPairId> activePairs,
+  }) async {
+    final result = await generateReport(
+      port: port,
+      activePairs: activePairs,
+      window: AnalyticsWindow.days30,
+    );
     if (result is AnalyticsDataState) {
       int totalMastered = 0;
       for (var pm in result.pairSpecificMetrics.values) {
