@@ -71,6 +71,13 @@ class PooledDatabaseManager {
         }
       });
 
+  void _wakeUpNextWaiterLocked() {
+    if (_slotWaiters.isNotEmpty) {
+      final next = _slotWaiters.removeAt(0);
+      if (!next.isCompleted) next.complete();
+    }
+  }
+
   Future<Database?> _tryOpenLocked(String code) async {
     final existing = _connections.remove(code);
     if (existing != null && existing.isOpen) {
@@ -95,6 +102,7 @@ class PooledDatabaseManager {
       opened = await _openConnection(code);
     } catch (e) {
       // If opening fails, do not add to connections, let the error propagate
+      _wakeUpNextWaiterLocked();
       rethrow;
     }
 
@@ -143,10 +151,7 @@ class PooledDatabaseManager {
           } else {
             _leases[code] = count;
           }
-          if (_slotWaiters.isNotEmpty) {
-            final next = _slotWaiters.removeAt(0);
-            if (!next.isCompleted) next.complete();
-          }
+          _wakeUpNextWaiterLocked();
         });
       }
     }
@@ -176,6 +181,7 @@ class PooledDatabaseManager {
       }
       await db.close();
     }
+    _wakeUpNextWaiterLocked();
   }
 
   /// Closes all open connections that are not currently leased by active operations.
