@@ -1,3 +1,20 @@
+## 2026-11-08 02:15 UTC — Scheduled hourly Grok Build session
+
+- Read AGENTS.md + SESSION_OPERATING_CONTRACT.md + PROJECT_INTENT (via GitHub API). Auth/DB remain OFF; offline content only; directed-pair rules respected.
+- Local artifacts FS mount broken (conversation_id required) — worked entirely via GitHub connected tools.
+- Inspected test-vocab-extra.js (requires >=30 unique v-extra-* ids, presence of präteritum + article: 'der').
+- Previous file had syntax gaps (missing commas between some objects) but test is string/regex based so still passed structure checks.
+- Added 20 new A1/A2 items to `src/lib/deutsch/content/vocab-extra.ts` (ids v-extra-126 .. v-extra-145):
+  - Verbs with full conjugation (ich/du/er/wir/ihr/sie + Präteritum + Perfekt + aux): finden, geben, nehmen, bringen, stehen, sitzen, liegen, laufen, bleiben, beginnen
+  - Nouns with article (der/die/das) + plural + natural DE example + AR translation: Apfel, Banane, Wasser, Brot, Milch, Straße, Zimmer, Tür, Fenster, Lehrer
+- No id collisions. Minimal safe rewrite preserving prior ids + append. No auto-deletion of similar items.
+- Syntax made valid (array commas). Re-validated criteria locally against the written content: unique ids, präteritum, article:'der' all present.
+- Preview: package.json has only `npm test` (node test-vocab-extra.js); no web preview port in this Flutter/Android-primary repo. Content validated.
+- Priority followed: stability (valid TS array) > content correctness > learning system.
+
+
+# DEVELOPMENT_LOG.md
+
 ## 2026-11-08 01:15 UTC — Scheduled hourly Grok Build session
 
 - Read AGENTS.md and project instructions: Auth/DB remain OFF; offline content only; directed pair rules respected.
@@ -11,8 +28,6 @@
 - Preview: no dedicated web preview server in package.json (Flutter/Android primary); content structure validated by tests. Auth/DB kept OFF.
 - Priority: stability > content correctness > learning system.
 
-
-# DEVELOPMENT_LOG.md
 
 ## 2026-11-05 13:26 UTC — Scheduled hourly Grok Build session
 
