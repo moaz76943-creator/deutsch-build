@@ -3,16 +3,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/features/semantic_color_tagging/semantic_color_tagging.dart';
 import 'package:deutsch_bilarabi/core/language_intelligence/language_grammar_rule_provider.dart';
 
-class MockGrammarProvider extends LanguageGrammarRuleProvider {
+class MockRuleProvider extends LanguageGrammarRuleProvider {
   @override
-  final String languageCode;
+  String get languageCode => 'de';
 
-  final GrammaticalGender Function(String word, {String? article}) determineGenderMock;
+  final Map<String, GrammaticalGender> wordGenders;
 
-  MockGrammarProvider({
-    required this.languageCode,
-    required this.determineGenderMock,
-  });
+  MockRuleProvider(this.wordGenders);
+
+  @override
+  GrammaticalGender determineGender(String word, {String? article}) {
+    return wordGenders[word] ?? GrammaticalGender.none;
+  }
 
   @override
   GrammaticalCategory determineCategory(String word, {String? article}) {
@@ -20,66 +22,46 @@ class MockGrammarProvider extends LanguageGrammarRuleProvider {
   }
 
   @override
-  GrammaticalGender determineGender(String word, {String? article}) {
-    return determineGenderMock(word, article: article);
-  }
-
-  @override
   bool isValidArticle(String word, String article) {
-    return false;
+    return true;
   }
 }
 
 void main() {
-  group('SemanticColorTagging Tests', () {
-    test('getColorForWord returns Colors.blue.shade600 for masculine gender', () {
-      final mockProvider = MockGrammarProvider(
-        languageCode: 'test',
-        determineGenderMock: (word, {article}) => GrammaticalGender.masculine,
-      );
-      final tagging = SemanticColorTagging(ruleProvider: mockProvider);
+  group('SemanticColorTagging', () {
+    late MockRuleProvider mockRuleProvider;
+    late SemanticColorTagging semanticColorTagging;
 
-      expect(tagging.getColorForWord('testWord'), Colors.blue.shade600);
+    setUp(() {
+      mockRuleProvider = MockRuleProvider({
+        'der': GrammaticalGender.masculine,
+        'die': GrammaticalGender.feminine,
+        'das': GrammaticalGender.neuter,
+        'common': GrammaticalGender.common,
+        'none': GrammaticalGender.none,
+      });
+      // ignore: deprecated_member_use_from_same_package
+      semanticColorTagging = SemanticColorTagging(ruleProvider: mockRuleProvider);
     });
 
-    test('getColorForWord returns Colors.red.shade600 for feminine gender', () {
-      final mockProvider = MockGrammarProvider(
-        languageCode: 'test',
-        determineGenderMock: (word, {article}) => GrammaticalGender.feminine,
-      );
-      final tagging = SemanticColorTagging(ruleProvider: mockProvider);
-
-      expect(tagging.getColorForWord('testWord'), Colors.red.shade600);
+    test('getColorForWord returns blue for masculine', () {
+      expect(semanticColorTagging.getColorForWord('der'), Colors.blue.shade600);
     });
 
-    test('getColorForWord returns Colors.green.shade600 for neuter gender', () {
-      final mockProvider = MockGrammarProvider(
-        languageCode: 'test',
-        determineGenderMock: (word, {article}) => GrammaticalGender.neuter,
-      );
-      final tagging = SemanticColorTagging(ruleProvider: mockProvider);
-
-      expect(tagging.getColorForWord('testWord'), Colors.green.shade600);
+    test('getColorForWord returns red for feminine', () {
+      expect(semanticColorTagging.getColorForWord('die'), Colors.red.shade600);
     });
 
-    test('getColorForWord returns Colors.grey.shade700 for common gender', () {
-      final mockProvider = MockGrammarProvider(
-        languageCode: 'test',
-        determineGenderMock: (word, {article}) => GrammaticalGender.common,
-      );
-      final tagging = SemanticColorTagging(ruleProvider: mockProvider);
-
-      expect(tagging.getColorForWord('testWord'), Colors.grey.shade700);
+    test('getColorForWord returns green for neuter', () {
+      expect(semanticColorTagging.getColorForWord('das'), Colors.green.shade600);
     });
 
-    test('getColorForWord returns Colors.grey.shade700 for none gender', () {
-      final mockProvider = MockGrammarProvider(
-        languageCode: 'test',
-        determineGenderMock: (word, {article}) => GrammaticalGender.none,
-      );
-      final tagging = SemanticColorTagging(ruleProvider: mockProvider);
+    test('getColorForWord returns grey for common', () {
+      expect(semanticColorTagging.getColorForWord('common'), Colors.grey.shade700);
+    });
 
-      expect(tagging.getColorForWord('testWord'), Colors.grey.shade700);
+    test('getColorForWord returns grey for none', () {
+      expect(semanticColorTagging.getColorForWord('none'), Colors.grey.shade700);
     });
   });
 }
