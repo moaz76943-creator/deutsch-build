@@ -753,5 +753,324 @@ export const vocabExtra = [
     plural: 'Fenster',
     exampleDe: 'Das Fenster ist offen.',
     exampleAr: 'النافذة مفتوحة.'
+  },
+{
+    id: 'v-extra-106',
+    type: 'verb',
+    level: 'A1',
+    de: 'kaufen',
+    ar: 'يشتري',
+    conjugations: {
+      ich: 'kaufe',
+      du: 'kaufst',
+      er: 'kauft',
+      wir: 'kaufen',
+      ihr: 'kauft',
+      sie: 'kaufen',
+      präteritum: 'kaufte',
+      perfekt: 'gekauft',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich kaufe Brot im Supermarkt.',
+    exampleAr: 'أشتري الخبز من السوبرماركت.'
+  },
+  {
+    id: 'v-extra-107',
+    type: 'noun',
+    level: 'A1',
+    de: 'Schule',
+    ar: 'مدرسة',
+    article: 'die',
+    plural: 'Schulen',
+    exampleDe: 'Die Schule beginnt um acht Uhr.',
+    exampleAr: 'تبدأ المدرسة في الساعة الثامنة.'
+  },
+  {
+    id: 'v-extra-108',
+    type: 'verb',
+    level: 'A1',
+    de: 'wohnen',
+    ar: 'يسكن',
+    conjugations: {
+      ich: 'wohne',
+      du: 'wohnst',
+      er: 'wohnt',
+      wir: 'wohnen',
+      ihr: 'wohnt',
+      sie: 'wohnen',
+      präteritum: 'wohnte',
+      perfekt: 'gewohnt',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir wohnen in Berlin.',
+    exampleAr: 'نحن نسكن في برلين.'
+  },
+  {
+    id: 'v-extra-109',
+    type: 'noun',
+    level: 'A1',
+    de: 'Freund',
+    ar: 'صديق',
+    article: 'der',
+    plural: 'Freunde',
+    exampleDe: 'Mein Freund kommt aus Syrien.',
+    exampleAr: 'صديقي يأتي من سوريا.'
+  },
+  {
+    id: 'v-extra-110',
+    type: 'verb',
+    level: 'A1',
+    de: 'spielen',
+    ar: 'يلعب',
+    conjugations: {
+      ich: 'spiele',
+      du: 'spielst',
+      er: 'spielt',
+      wir: 'spielen',
+      ihr: 'spielt',
+      sie: 'spielen',
+      präteritum: 'spielte',
+      perfekt: 'gespielt',
+      aux: 'haben'
+    },
+    exampleDe: 'Die Kinder spielen im Park.',
+    exampleAr: 'الأطفال يلعبون في الحديقة.'
+  },
+  {
+    id: 'v-extra-111',
+    type: 'noun',
+    level: 'A1',
+    de: 'Mutter',
+    ar: 'أم',
+    article: 'die',
+    plural: 'Mütter',
+    exampleDe: 'Meine Mutter kocht gut.',
+    exampleAr: 'أمي تطبخ جيداً.'
+  },
+  {
+    id: 'v-extra-112',
+    type: 'verb',
+    level: 'A1',
+    de: 'lernen',
+    ar: 'يتعلم',
+    conjugations: {
+      ich: 'lerne',
+      du: 'lernst',
+      er: 'lernt',
+      wir: 'lernen',
+      ihr: 'lernt',
+      sie: 'lernen',
+      präteritum: 'lernte',
+      perfekt: 'gelernt',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich lerne jeden Tag Deutsch.',
+    exampleAr: 'أتعلم الألمانية كل يوم.'
+  },
+  {
+    id: 'v-extra-113',
+    type: 'noun',
+    level: 'A1',
+    de: 'Wasser',
+    ar: 'ماء',
+    article: 'das',
+    plural: 'Wasser',
+    exampleDe: 'Ich trinke gerne kaltes Wasser.',
+    exampleAr: 'أحب شرب الماء البارد.'
+  },
+  {
+    id: 'v-extra-114',
+    type: 'verb',
+    level: 'A1',
+    de: 'schlafen',
+    ar: 'ينام',
+    conjugations: {
+      ich: 'schlafe',
+      du: 'schläfst',
+      er: 'schläft',
+      wir: 'schlafen',
+      ihr: 'schlaft',
+      sie: 'schlafen',
+      präteritum: 'schlief',
+      perfekt: 'geschlafen',
+      aux: 'haben'
+    },
+    exampleDe: 'Sie schläft noch.',
+    exampleAr: 'هي لا تزال نائمة.'
+  },
+  {
+    id: 'v-extra-115',
+    type: 'noun',
+    level: 'A1',
+    de: 'Brot',
+    ar: 'خبز',
+    article: 'das',
+    plural: 'Brote',
+    exampleDe: 'Das Brot ist frisch.',
+    exampleAr: 'الخبز طازج.'
+  },
+  {
+    id: 'v-extra-116',
+    type: 'verb',
+    level: 'A1',
+    de: 'lesen',
+    ar: 'يقرأ',
+    conjugations: {
+      ich: 'lese',
+      du: 'liest',
+      er: 'liest',
+      wir: 'lesen',
+      ihr: 'lest',
+      sie: 'lesen',
+      präteritum: 'las',
+      perfekt: 'gelesen',
+      aux: 'haben'
+    },
+    exampleDe: 'Er liest ein interessantes Buch.',
+    exampleAr: 'هو يقرأ كتاباً مثيراً للاهتمام.'
+  },
+  {
+    id: 'v-extra-117',
+    type: 'noun',
+    level: 'A1',
+    de: 'Straße',
+    ar: 'شارع',
+    article: 'die',
+    plural: 'Straßen',
+    exampleDe: 'Die Straße ist sehr laut.',
+    exampleAr: 'الشارع صاخب جداً.'
+  },
+  {
+    id: 'v-extra-118',
+    type: 'verb',
+    level: 'A2',
+    de: 'schreiben',
+    ar: 'يكتب',
+    conjugations: {
+      ich: 'schreibe',
+      du: 'schreibst',
+      er: 'schreibt',
+      wir: 'schreiben',
+      ihr: 'schreibt',
+      sie: 'schreiben',
+      präteritum: 'schrieb',
+      perfekt: 'geschrieben',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich schreibe eine E-Mail.',
+    exampleAr: 'أكتب بريداً إلكترونياً.'
+  },
+  {
+    id: 'v-extra-119',
+    type: 'noun',
+    level: 'A1',
+    de: 'Zimmer',
+    ar: 'غرفة',
+    article: 'das',
+    plural: 'Zimmer',
+    exampleDe: 'Mein Zimmer ist klein aber gemütlich.',
+    exampleAr: 'غرفتي صغيرة لكنها مريحة.'
+  },
+  {
+    id: 'v-extra-120',
+    type: 'verb',
+    level: 'A2',
+    de: 'warten',
+    ar: 'ينتظر',
+    conjugations: {
+      ich: 'warte',
+      du: 'wartest',
+      er: 'wartet',
+      wir: 'warten',
+      ihr: 'wartet',
+      sie: 'warten',
+      präteritum: 'wartete',
+      perfekt: 'gewartet',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir warten auf den Bus.',
+    exampleAr: 'نحن ننتظر الحافلة.'
+  },
+  {
+    id: 'v-extra-121',
+    type: 'noun',
+    level: 'A1',
+    de: 'Tür',
+    ar: 'باب',
+    article: 'die',
+    plural: 'Türen',
+    exampleDe: 'Die Tür ist geschlossen.',
+    exampleAr: 'الباب مغلق.'
+  },
+  {
+    id: 'v-extra-122',
+    type: 'verb',
+    level: 'A1',
+    de: 'fragen',
+    ar: 'يسأل',
+    conjugations: {
+      ich: 'frage',
+      du: 'fragst',
+      er: 'fragt',
+      wir: 'fragen',
+      ihr: 'fragt',
+      sie: 'fragen',
+      präteritum: 'fragte',
+      perfekt: 'gefragt',
+      aux: 'haben'
+    },
+    exampleDe: 'Darf ich dich etwas fragen?',
+    exampleAr: 'هل يمكنني أن أسألك شيئاً؟'
+  },
+  {
+    id: 'v-extra-123',
+    type: 'verb',
+    level: 'A2',
+    de: 'öffnen',
+    ar: 'يفتح',
+    conjugations: {
+      ich: 'öffne',
+      du: 'öffnest',
+      er: 'öffnet',
+      wir: 'öffnen',
+      ihr: 'öffnet',
+      sie: 'öffnen',
+      präteritum: 'öffnete',
+      perfekt: 'geöffnet',
+      aux: 'haben'
+    },
+    exampleDe: 'Kannst du bitte das Fenster öffnen?',
+    exampleAr: 'هل يمكنك فتح النافذة من فضلك؟'
+  },
+  {
+    id: 'v-extra-124',
+    type: 'noun',
+    level: 'A1',
+    de: 'Vater',
+    ar: 'أب',
+    article: 'der',
+    plural: 'Väter',
+    exampleDe: 'Mein Vater arbeitet im Büro.',
+    exampleAr: 'أبي يعمل في المكتب.'
+  },
+  {
+    id: 'v-extra-125',
+    type: 'verb',
+    level: 'A1',
+    de: 'suchen',
+    ar: 'يبحث',
+    conjugations: {
+      ich: 'suche',
+      du: 'suchst',
+      er: 'sucht',
+      wir: 'suchen',
+      ihr: 'sucht',
+      sie: 'suchen',
+      präteritum: 'suchte',
+      perfekt: 'gesucht',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich suche meinen Schlüssel.',
+    exampleAr: 'أبحث عن مفتاحي.'
   }
 ];
