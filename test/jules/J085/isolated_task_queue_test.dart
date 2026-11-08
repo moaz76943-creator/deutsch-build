@@ -213,5 +213,94 @@ void main() {
 
       expect(executed, isFalse);
     });
+
+    test('Deduplication ignores identical tasks with mismatched epochs', () async {
+      final queue = IsolatedTaskQueue(maxConcurrentTasks: 1);
+      int executions = 0;
+
+      queue.pause();
+      final f1 = queue.enqueue(
+        id: 'same_task',
+        currentEpoch: 1,
+        priority: TaskPriority.normal,
+        action: () async { executions++; return 1; }
+      );
+
+      queue.cancelStaleTasks(2);
+
+      final f2 = queue.enqueue(
+        id: 'same_task',
+        currentEpoch: 2,
+        priority: TaskPriority.normal,
+        action: () async { executions++; return 2; }
+      );
+
+      queue.resume();
+
+      final results = await Future.wait([f1 as Future<dynamic>, f2 as Future<dynamic>]);
+
+      expect(executions, 1, reason: 'First task was cancelled by cancelStaleTasks before it ran');
+      expect(results[0], isNull);
+      expect(results[1], 2);
+    });
+
+    test('Queue saturation allows high-priority tasks to evict normal-priority tasks', () async {
+      final queue = IsolatedTaskQueue(maxQueueSize: 1, maxConcurrentTasks: 1);
+      final executed = <String>[];
+
+      // First task takes up the single concurrent slot
+      queue.enqueue(
+        id: 'running',
+        currentEpoch: 1,
+        priority: TaskPriority.normal,
+        action: () async {
+          await Future.delayed(const Duration(milliseconds: 100));
+          executed.add('running');
+          return 'running';
+        }
+      );
+
+      // Second task takes up the single queue slot
+      final fNormal = queue.enqueue(
+        id: 'queued_normal',
+        currentEpoch: 1,
+        priority: TaskPriority.normal,
+        action: () async { executed.add('normal'); return 'normal'; }
+      );
+
+      // Third task (high priority) should evict the normal priority task from the queue
+      final fHigh = queue.enqueue(
+        id: 'queued_high',
+        currentEpoch: 1,
+        priority: TaskPriority.high,
+        action: () async { executed.add('high'); return 'high'; }
+      );
+
+      final resNormal = await fNormal;
+      final resHigh = await fHigh;
+
+      expect(resNormal, isNull, reason: 'Normal priority task should have been evicted');
+      expect(resHigh, 'high', reason: 'High priority task should have executed');
+      expect(executed, ['running', 'high']);
+    });
+
+    test('dispose() safely tears down queue and prevents new tasks', () async {
+      final queue = IsolatedTaskQueue(maxConcurrentTasks: 1);
+      bool executed = false;
+
+      queue.dispose();
+
+      final future = queue.enqueue(
+        id: 'post_dispose',
+        currentEpoch: 1,
+        priority: TaskPriority.normal,
+        action: () async { executed = true; return true; }
+      );
+
+      final result = await future;
+
+      expect(result, isNull);
+      expect(executed, isFalse);
+    });
   });
 }

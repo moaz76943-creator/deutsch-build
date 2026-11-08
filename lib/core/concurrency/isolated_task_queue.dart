@@ -29,6 +29,7 @@ class IsolatedTaskQueue {
   final List<PrioritizedTask<dynamic>> _queue = [];
   final Map<String, PrioritizedTask<dynamic>> _activeTasks = {};
   bool _isPaused = false;
+  bool _isDisposed = false;
   int _lastActiveEpoch = 0;
 
   IsolatedTaskQueue({
@@ -47,15 +48,18 @@ class IsolatedTaskQueue {
     CancellationToken? token,
     required Future<T> Function() action,
   }) {
+    if (_isDisposed) {
+      return Future.value(null);
+    }
     // تحديث الجلسة النشطة
     _lastActiveEpoch = currentEpoch;
 
     // Deduplication - check active and pending
-    if (_activeTasks.containsKey(id)) {
+    if (_activeTasks.containsKey(id) && _activeTasks[id]!.sessionEpoch == currentEpoch) {
       return _activeTasks[id]!.completer.future as Future<T?>;
     }
     for (final t in _queue) {
-      if (t.id == id) {
+      if (t.id == id && t.sessionEpoch == currentEpoch) {
         return t.completer.future as Future<T?>;
       }
     }
@@ -69,6 +73,14 @@ class IsolatedTaskQueue {
         }
         return false;
       });
+      if (_queue.length >= maxQueueSize && priority == TaskPriority.high) {
+        final normalTaskIndex = _queue.lastIndexWhere((t) => t.priority == TaskPriority.normal);
+        if (normalTaskIndex != -1) {
+          final t = _queue.removeAt(normalTaskIndex);
+          t.cancellationToken?.cancel();
+          t.completer.complete(null);
+        }
+      }
       if (_queue.length >= maxQueueSize) {
         return Future.value(null);
       }
@@ -109,14 +121,17 @@ class IsolatedTaskQueue {
     required TaskPriority priority,
     CancellationToken? token,
   }) {
+    if (_isDisposed) {
+      return Future.value(null);
+    }
     _lastActiveEpoch = currentEpoch;
 
     // Deduplication - check active and pending
-    if (_activeTasks.containsKey(task.taskId)) {
+    if (_activeTasks.containsKey(task.taskId) && _activeTasks[task.taskId]!.sessionEpoch == currentEpoch) {
       return _activeTasks[task.taskId]!.completer.future as Future<T?>;
     }
     for (final t in _queue) {
-      if (t.id == task.taskId) {
+      if (t.id == task.taskId && t.sessionEpoch == currentEpoch) {
         return t.completer.future as Future<T?>;
       }
     }
@@ -130,6 +145,14 @@ class IsolatedTaskQueue {
         }
         return false;
       });
+      if (_queue.length >= maxQueueSize && priority == TaskPriority.high) {
+        final normalTaskIndex = _queue.lastIndexWhere((t) => t.priority == TaskPriority.normal);
+        if (normalTaskIndex != -1) {
+          final t = _queue.removeAt(normalTaskIndex);
+          t.cancellationToken?.cancel();
+          t.completer.complete(null);
+        }
+      }
       if (_queue.length >= maxQueueSize) {
         return Future.value(null);
       }
@@ -207,6 +230,12 @@ class IsolatedTaskQueue {
     }
   }
 
+  void dispose() {
+    _isDisposed = true;
+    clear();
+    pause();
+  }
+
   void pause() {
     _isPaused = true;
   }
@@ -218,7 +247,8 @@ class IsolatedTaskQueue {
   }
 
   Future<void> _processNext() async {
-    if (_isPaused ||
+    if (_isDisposed ||
+        _isPaused ||
         _queue.isEmpty ||
         _activeTasks.length >= maxConcurrentTasks) {
       return;
@@ -282,7 +312,9 @@ class IsolatedTaskQueue {
         }
       }
     } finally {
-      _activeTasks.remove(currentTask.id);
+      if (_activeTasks[currentTask.id] == currentTask) {
+        _activeTasks.remove(currentTask.id);
+      }
       _processNext();
     }
   }
