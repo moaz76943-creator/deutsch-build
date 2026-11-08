@@ -2582,6 +2582,316 @@ export const vocabExtra = [
     plural: 'Bahnhöfe',
     exampleDe: 'Der Bahnhof ist nah.',
     exampleAr: 'محطة القطار قريبة.'
+  },
+// === Hourly batch 2026-11-08 18:06 UTC — 20 new A1/A2 items ===
+  {
+    id: 'v-extra-246',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'arbeiten',
+    arabic: 'يعمل',
+    conjugation: {
+      ich: 'arbeite',
+      du: 'arbeitest',
+      er: 'arbeitet',
+      wir: 'arbeiten',
+      ihr: 'arbeitet',
+      sie_pl: 'arbeiten',
+      präteritum: 'arbeitete',
+      perfekt: 'hat gearbeitet',
+      aux: 'haben'
+    },
+    example: 'Ich arbeite in einem Büro.',
+    exampleAr: 'أعمل في مكتب.'
+  },
+  {
+    id: 'v-extra-247',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'lernen',
+    arabic: 'يتعلم',
+    conjugation: {
+      ich: 'lerne',
+      du: 'lernst',
+      er: 'lernt',
+      wir: 'lernen',
+      ihr: 'lernt',
+      sie_pl: 'lernen',
+      präteritum: 'lernte',
+      perfekt: 'hat gelernt',
+      aux: 'haben'
+    },
+    example: 'Wir lernen Deutsch.',
+    exampleAr: 'نتعلم الألمانية.'
+  },
+  {
+    id: 'v-extra-248',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'sprechen',
+    arabic: 'يتحدث',
+    conjugation: {
+      ich: 'spreche',
+      du: 'sprichst',
+      er: 'spricht',
+      wir: 'sprechen',
+      ihr: 'sprecht',
+      sie_pl: 'sprechen',
+      präteritum: 'sprach',
+      perfekt: 'hat gesprochen',
+      aux: 'haben'
+    },
+    example: 'Sie spricht Arabisch und Deutsch.',
+    exampleAr: 'هي تتحدث العربية والألمانية.'
+  },
+  {
+    id: 'v-extra-249',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'sehen',
+    arabic: 'يرى',
+    conjugation: {
+      ich: 'sehe',
+      du: 'siehst',
+      er: 'sieht',
+      wir: 'sehen',
+      ihr: 'seht',
+      sie_pl: 'sehen',
+      präteritum: 'sah',
+      perfekt: 'hat gesehen',
+      aux: 'haben'
+    },
+    example: 'Ich sehe den Film.',
+    exampleAr: 'أرى الفيلم.'
+  },
+  {
+    id: 'v-extra-250',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'hören',
+    arabic: 'يسمع',
+    conjugation: {
+      ich: 'höre',
+      du: 'hörst',
+      er: 'hört',
+      wir: 'hören',
+      ihr: 'hört',
+      sie_pl: 'hören',
+      präteritum: 'hörte',
+      perfekt: 'hat gehört',
+      aux: 'haben'
+    },
+    example: 'Hörst du die Musik?',
+    exampleAr: 'هل تسمع الموسيقى؟'
+  },
+  {
+    id: 'v-extra-251',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'schreiben',
+    arabic: 'يكتب',
+    conjugation: {
+      ich: 'schreibe',
+      du: 'schreibst',
+      er: 'schreibt',
+      wir: 'schreiben',
+      ihr: 'schreibt',
+      sie_pl: 'schreiben',
+      präteritum: 'schrieb',
+      perfekt: 'hat geschrieben',
+      aux: 'haben'
+    },
+    example: 'Er schreibt eine E-Mail.',
+    exampleAr: 'هو يكتب بريداً إلكترونياً.'
+  },
+  {
+    id: 'v-extra-252',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'lesen',
+    arabic: 'يقرأ',
+    conjugation: {
+      ich: 'lese',
+      du: 'liest',
+      er: 'liest',
+      wir: 'lesen',
+      ihr: 'lest',
+      sie_pl: 'lesen',
+      präteritum: 'las',
+      perfekt: 'hat gelesen',
+      aux: 'haben'
+    },
+    example: 'Ich lese jeden Tag.',
+    exampleAr: 'أقرأ كل يوم.'
+  },
+  {
+    id: 'v-extra-253',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'kaufen',
+    arabic: 'يشتري',
+    conjugation: {
+      ich: 'kaufe',
+      du: 'kaufst',
+      er: 'kauft',
+      wir: 'kaufen',
+      ihr: 'kauft',
+      sie_pl: 'kaufen',
+      präteritum: 'kaufte',
+      perfekt: 'hat gekauft',
+      aux: 'haben'
+    },
+    example: 'Wir kaufen Obst auf dem Markt.',
+    exampleAr: 'نشتري الفاكهة في السوق.'
+  },
+  {
+    id: 'v-extra-254',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'wohnen',
+    arabic: 'يسكن',
+    conjugation: {
+      ich: 'wohne',
+      du: 'wohnst',
+      er: 'wohnt',
+      wir: 'wohnen',
+      ihr: 'wohnt',
+      sie_pl: 'wohnen',
+      präteritum: 'wohnte',
+      perfekt: 'hat gewohnt',
+      aux: 'haben'
+    },
+    example: 'Wo wohnst du?',
+    exampleAr: 'أين تسكن؟'
+  },
+  {
+    id: 'v-extra-255',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'spielen',
+    arabic: 'يلعب',
+    conjugation: {
+      ich: 'spiele',
+      du: 'spielst',
+      er: 'spielt',
+      wir: 'spielen',
+      ihr: 'spielt',
+      sie_pl: 'spielen',
+      präteritum: 'spielte',
+      perfekt: 'hat gespielt',
+      aux: 'haben'
+    },
+    example: 'Die Kinder spielen im Park.',
+    exampleAr: 'الأطفال يلعبون في الحديقة.'
+  },
+  {
+    id: 'v-extra-256',
+    type: 'noun',
+    level: 'A1',
+    de: 'Tisch',
+    ar: 'طاولة',
+    article: 'der',
+    plural: 'Tische',
+    exampleDe: 'Der Tisch ist rund.',
+    exampleAr: 'الطاولة مستديرة.'
+  },
+  {
+    id: 'v-extra-257',
+    type: 'noun',
+    level: 'A1',
+    de: 'Stuhl',
+    ar: 'كرسي',
+    article: 'der',
+    plural: 'Stühle',
+    exampleDe: 'Der Stuhl ist bequem.',
+    exampleAr: 'الكرسي مريح.'
+  },
+  {
+    id: 'v-extra-258',
+    type: 'noun',
+    level: 'A1',
+    de: 'Fenster',
+    ar: 'نافذة',
+    article: 'das',
+    plural: 'Fenster',
+    exampleDe: 'Das Fenster ist offen.',
+    exampleAr: 'النافذة مفتوحة.'
+  },
+  {
+    id: 'v-extra-259',
+    type: 'noun',
+    level: 'A1',
+    de: 'Tür',
+    ar: 'باب',
+    article: 'die',
+    plural: 'Türen',
+    exampleDe: 'Die Tür ist geschlossen.',
+    exampleAr: 'الباب مغلق.'
+  },
+  {
+    id: 'v-extra-260',
+    type: 'noun',
+    level: 'A1',
+    de: 'Straße',
+    ar: 'شارع',
+    article: 'die',
+    plural: 'Straßen',
+    exampleDe: 'Die Straße ist lang.',
+    exampleAr: 'الشارع طويل.'
+  },
+  {
+    id: 'v-extra-261',
+    type: 'noun',
+    level: 'A1',
+    de: 'Stadt',
+    ar: 'مدينة',
+    article: 'die',
+    plural: 'Städte',
+    exampleDe: 'Die Stadt ist schön.',
+    exampleAr: 'المدينة جميلة.'
+  },
+  {
+    id: 'v-extra-262',
+    type: 'noun',
+    level: 'A2',
+    de: 'Land',
+    ar: 'بلد / أرض',
+    article: 'das',
+    plural: 'Länder',
+    exampleDe: 'Deutschland ist ein schönes Land.',
+    exampleAr: 'ألمانيا بلد جميل.'
+  },
+  {
+    id: 'v-extra-263',
+    type: 'noun',
+    level: 'A1',
+    de: 'Freund',
+    ar: 'صديق',
+    article: 'der',
+    plural: 'Freunde',
+    exampleDe: 'Mein Freund kommt heute.',
+    exampleAr: 'صديقي يأتي اليوم.'
+  },
+  {
+    id: 'v-extra-264',
+    type: 'noun',
+    level: 'A1',
+    de: 'Familie',
+    ar: 'عائلة',
+    article: 'die',
+    plural: 'Familien',
+    exampleDe: 'Die Familie isst zusammen.',
+    exampleAr: 'العائلة تأكل معاً.'
+  },
+  {
+    id: 'v-extra-265',
+    type: 'noun',
+    level: 'A1',
+    de: 'Wasser',
+    ar: 'ماء',
+    article: 'das',
+    plural: 'Wasser',
+    exampleDe: 'Ich trinke Wasser.',
+    exampleAr: 'أشرب الماء.'
   }
-
 ];

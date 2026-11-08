@@ -1,3 +1,17 @@
+## 2026-11-08 18:07 UTC — Scheduled hourly Grok Build session
+
+- Read AGENTS.md. Auth/DB remain OFF; offline content only; directed-pair rules and German grammatical metadata respected.
+- Cloned moaz76943-creator/deutsch-build. Ran `npm test` (test-vocab-extra.js): PASS (166 unique IDs).
+- No FAIL tests. No crash bugs found in content validation.
+- Added 20 new A1/A2 items to `src/lib/deutsch/content/vocab-extra.ts` (ids v-extra-246 .. v-extra-265):
+  - Verbs with full conjugation (ich/du/er/wir/ihr/sie_pl + Präteritum + Perfekt + aux): arbeiten, lernen, sprechen, sehen, hören, schreiben, lesen, kaufen, wohnen, spielen
+  - Nouns with article (der/die/das) + plural + natural DE example + AR translation: Tisch, Stuhl, Fenster, Tür, Straße, Stadt, Land, Freund, Familie, Wasser
+- No id collisions. No auto-deletion of similar items. Matched recent item schema.
+- Re-ran tests: PASS (186 unique IDs, präteritum and article:'der' present).
+- Preview: package.json exposes only npm test; Flutter/Android primary; no dedicated web preview port. Auth/DB kept OFF.
+- Priority: stability (no unsafe changes) > content correctness > learning system.
+- Changes local to clone; ready for commit/push if credentials allow.
+
 ## 2026-11-08 16:09 UTC — Scheduled hourly Grok Build session
 
 - Read AGENTS.md. Auth/DB remain OFF; offline content only; directed-pair rules and German grammatical metadata respected.
