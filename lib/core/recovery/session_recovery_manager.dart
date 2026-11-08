@@ -12,6 +12,7 @@ class SessionState {
   final int recoveryAttempts;
   final String sourceLocale;
   final String targetLocale;
+  final String? semanticVersion;
 
   SessionState({
     this.version = 1,
@@ -20,11 +21,16 @@ class SessionState {
     required this.lastItemIndex,
     required this.timestamp,
     this.languagePairKey,
-    this.committedReviewIds = const [],
+    List<String> committedReviewIds = const [],
     this.recoveryAttempts = 0,
     this.sourceLocale = '',
     this.targetLocale = '',
-  });
+    this.semanticVersion,
+  }) : committedReviewIds = List.unmodifiable(committedReviewIds) {
+    if (this.committedReviewIds.toSet().length != this.committedReviewIds.length) {
+      throw ArgumentError('Duplicate review IDs are not allowed');
+    }
+  }
 
   SessionState copyWith({
     int? version,
@@ -37,6 +43,7 @@ class SessionState {
     int? recoveryAttempts,
     String? sourceLocale,
     String? targetLocale,
+    String? semanticVersion,
   }) {
     return SessionState(
       version: version ?? this.version,
@@ -49,6 +56,7 @@ class SessionState {
       recoveryAttempts: recoveryAttempts ?? this.recoveryAttempts,
       sourceLocale: sourceLocale ?? this.sourceLocale,
       targetLocale: targetLocale ?? this.targetLocale,
+      semanticVersion: semanticVersion ?? this.semanticVersion,
     );
   }
 
@@ -63,6 +71,7 @@ class SessionState {
         'recovery_attempts': recoveryAttempts,
         'source_locale': sourceLocale,
         'target_locale': targetLocale,
+        if (semanticVersion != null) 'semantic_version': semanticVersion,
       };
 
   factory SessionState.fromMap(Map<String, dynamic> map) {
@@ -94,14 +103,21 @@ class SessionState {
         recoveryAttempts: map['recovery_attempts'] as int? ?? 0,
         sourceLocale: sourceLoc,
         targetLocale: targetLoc,
+        semanticVersion: map['semantic_version'] as String?,
       );
+  }
 }
 
 class SessionRecoveryManager {
   static const String _storageKey = 'deutsch_active_session_recovery_v1';
+  static const int checkpointVersion = 2;
+
   final SharedPreferences _prefs;
   final int Function()? clock;
   final int maxRecoveryAttempts;
+
+  SessionState? _activeRestoredSession;
+  bool _isRestoring = false;
 
   SessionRecoveryManager(
     this._prefs, {
@@ -110,7 +126,11 @@ class SessionRecoveryManager {
   });
 
   Future<void> persistSession(SessionState state) async {
-    final rawJson = jsonEncode(state.toMap());
+    final rawJson = jsonEncode({
+      'version': checkpointVersion,
+      'state': state.toMap(),
+      'recovery_attempts': state.recoveryAttempts,
+    });
     await _prefs.setString(_storageKey, rawJson);
   }
 
@@ -128,7 +148,19 @@ class SessionRecoveryManager {
     if (rawJson == null || rawJson.isEmpty) return null;
     try {
       final decoded = jsonDecode(rawJson) as Map<String, dynamic>;
-      final state = SessionState.fromMap(decoded);
+      final int v = decoded['version'] as int? ?? 1;
+
+      SessionState state;
+      int recoveryAttempts = 0;
+      if (v == checkpointVersion && decoded.containsKey('state')) {
+        final stateMap = decoded['state'] as Map<String, dynamic>;
+        recoveryAttempts = decoded['recovery_attempts'] as int? ?? 0;
+        stateMap['recovery_attempts'] = recoveryAttempts;
+        state = SessionState.fromMap(stateMap);
+      } else {
+        state = SessionState.fromMap(decoded);
+        recoveryAttempts = state.recoveryAttempts;
+      }
 
       // Validation
       final resolvedClock = clock?.call() ?? currentTimestampSec ?? currentTimestamp ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000);
@@ -140,7 +172,7 @@ class SessionRecoveryManager {
       }
 
       // 2. Check recovery attempts limit
-      if (state.recoveryAttempts >= maxRecoveryAttempts) {
+      if (recoveryAttempts >= maxRecoveryAttempts) {
         clearSession();
         return null;
       }
@@ -182,8 +214,13 @@ class SessionRecoveryManager {
 
       // Increment recovery attempts to prevent crash loops
       final updatedState =
-          state.copyWith(recoveryAttempts: state.recoveryAttempts + 1);
-      persistSession(updatedState); // Async call, fire and forget
+          state.copyWith(recoveryAttempts: recoveryAttempts + 1);
+
+      if (v == checkpointVersion) {
+        persistSession(updatedState); // Async call, fire and forget
+      } else {
+        _prefs.setString(_storageKey, jsonEncode(updatedState.toMap()));
+      }
 
       return updatedState;
     } catch (_) {
@@ -192,7 +229,118 @@ class SessionRecoveryManager {
     }
   }
 
+  Future<SessionState?> restoreForPair({
+    required String expectedSourceLocale,
+    required String expectedTargetLocale,
+    required String expectedSemanticVersion,
+    required bool Function(String route) isValidRoute,
+  }) async {
+    if (_isRestoring) return null;
+    if (_activeRestoredSession != null) return null;
+    _isRestoring = true;
+    try {
+      final rawJson = _prefs.getString(_storageKey);
+      if (rawJson == null || rawJson.isEmpty) return null;
+
+      final decoded = jsonDecode(rawJson) as Map<String, dynamic>;
+      final int v = decoded['version'] as int? ?? 1;
+
+      if (v != checkpointVersion) {
+         return null; // Reject legacy snapshots for activation
+      }
+
+      final stateMap = decoded['state'] as Map<String, dynamic>?;
+      if (stateMap == null) return null;
+
+      final recoveryAttempts = decoded['recovery_attempts'] as int? ?? 0;
+      stateMap['recovery_attempts'] = recoveryAttempts;
+
+      final state = SessionState.fromMap(stateMap);
+
+      final resolvedClock = clock?.call() ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000);
+
+      if (state.timestamp > resolvedClock) {
+         await clearSession();
+         return null;
+      }
+
+      if (resolvedClock - state.timestamp > 86400) {
+         await clearSession();
+         return null;
+      }
+
+      if (recoveryAttempts >= maxRecoveryAttempts) {
+         await clearSession();
+         return null;
+      }
+
+      if (state.sourceLocale != expectedSourceLocale || state.targetLocale != expectedTargetLocale) {
+         await clearSession();
+         return null;
+      }
+
+      if (state.semanticVersion != expectedSemanticVersion) {
+         await clearSession();
+         return null;
+      }
+
+      if (!isValidRoute(state.currentRoute)) {
+         await clearSession();
+         return null;
+      }
+
+      final updatedState = state.copyWith(recoveryAttempts: recoveryAttempts + 1);
+      await persistSession(updatedState);
+
+      _activeRestoredSession = updatedState;
+      return updatedState;
+    } catch (_) {
+      await clearSession();
+      return null;
+    } finally {
+      _isRestoring = false;
+    }
+  }
+
+  Future<bool> markRestoreStable(String sessionId) async {
+    if (_activeRestoredSession == null) return false;
+    if (_activeRestoredSession!.sessionId != sessionId) return false;
+
+    final rawJson = _prefs.getString(_storageKey);
+    if (rawJson == null || rawJson.isEmpty) return false;
+
+    try {
+      final decoded = jsonDecode(rawJson) as Map<String, dynamic>;
+      final int v = decoded['version'] as int? ?? 1;
+
+      Map<String, dynamic> stateMap;
+      if (v == checkpointVersion && decoded.containsKey('state')) {
+        stateMap = decoded['state'] as Map<String, dynamic>;
+      } else {
+        return false;
+      }
+
+      final state = SessionState.fromMap(stateMap);
+
+      if (state.sessionId != sessionId) return false;
+      if (state.sourceLocale != _activeRestoredSession!.sourceLocale || state.targetLocale != _activeRestoredSession!.targetLocale) {
+        return false;
+      }
+
+      final updatedState = state.copyWith(recoveryAttempts: 0);
+      await persistSession(updatedState);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> clearSession() async {
+    _activeRestoredSession = null;
     await _prefs.remove(_storageKey);
+  }
+
+  bool isReviewCommitted(SessionState state, String reviewId) {
+    return state.committedReviewIds.contains(reviewId);
   }
 }
