@@ -19,6 +19,7 @@ class MilestoneBadgesPage extends StatefulWidget {
 class _MilestoneBadgesPageState extends State<MilestoneBadgesPage> {
   Set<String> unlockedBadges = {};
   bool loading = true;
+  late final List<_BadgeListItem> _items;
 
   @override
   void initState() {
@@ -32,9 +33,20 @@ class _MilestoneBadgesPageState extends State<MilestoneBadgesPage> {
     if (mounted) {
       setState(() {
         unlockedBadges = unlocked;
+        _items = _buildItems();
         loading = false;
       });
     }
+  }
+
+  List<_BadgeListItem> _buildItems() {
+    final items = <_BadgeListItem>[];
+    items.add(const _HeaderItem());
+    items.add(const _TitleItem());
+    for (final badge in StreakMilestonesEngine.availableBadges) {
+      items.add(_BadgeItem(badge));
+    }
+    return items;
   }
 
   @override
@@ -45,42 +57,48 @@ class _MilestoneBadgesPageState extends State<MilestoneBadgesPage> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('إنجازات الاستمرارية')),
-      body: ListView(
+      body: ListView.builder(
         padding: const EdgeInsets.all(18),
-        children: [
-          Card(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  const Icon(
-                    Icons.local_fire_department,
-                    size: 48,
-                    color: Colors.orange,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'الاستمرارية الحالية: ${widget.currentStreak} أيام',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleLarge
-                        ?.copyWith(fontWeight: FontWeight.w900),
-                  ),
-                ],
+        itemCount: _items.length,
+        itemBuilder: (context, index) {
+          final item = _items[index];
+          if (item is _HeaderItem) {
+            return Card(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    const Icon(
+                      Icons.local_fire_department,
+                      size: 48,
+                      color: Colors.orange,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'الاستمرارية الحالية: ${widget.currentStreak} أيام',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(fontWeight: FontWeight.w900),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'الشارات',
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 10),
-          ...StreakMilestonesEngine.availableBadges.map((badge) {
+            );
+          } else if (item is _TitleItem) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 20, bottom: 10),
+              child: Text(
+                'الشارات',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w800),
+              ),
+            );
+          } else if (item is _BadgeItem) {
+            final badge = item.badge;
             final isUnlocked = unlockedBadges.contains(badge.id);
             return Card(
               color: isUnlocked
@@ -109,9 +127,25 @@ class _MilestoneBadgesPageState extends State<MilestoneBadgesPage> {
                     : null,
               ),
             );
-          }),
-        ],
+          }
+          return const SizedBox.shrink();
+        },
       ),
     );
   }
+}
+
+abstract class _BadgeListItem {}
+
+class _HeaderItem extends _BadgeListItem {
+  const _HeaderItem();
+}
+
+class _TitleItem extends _BadgeListItem {
+  const _TitleItem();
+}
+
+class _BadgeItem extends _BadgeListItem {
+  final dynamic badge; // Adjust type if Badge model is known; kept flexible
+  const _BadgeItem(this.badge);
 }
