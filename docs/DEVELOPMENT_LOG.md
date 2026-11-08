@@ -1,3 +1,17 @@
+## 2026-11-08 11:10 UTC — Scheduled hourly Grok Build session
+
+- Read AGENTS.md. Auth/DB remain OFF; offline content only; directed-pair rules and German grammatical metadata respected.
+- Cloned moaz76943-creator/deutsch-build (depth 1) to /tmp. Ran `npm test` (test-vocab-extra.js): PASS (86 unique IDs).
+- Fixed bug: double closing `];` at end of vocab-extra.ts (syntax error, though string-only test passed). Minimal safe fix.
+- Added 20 new A1/A2 items to `src/lib/deutsch/content/vocab-extra.ts` (ids v-extra-166 .. v-extra-185):
+  - Verbs with full conjugation (ich/du/er/wir/ihr/sie + Präteritum + Perfekt + aux): antworten, erzählen, erklären, verstehen, vergessen, erinnern, besuchen, telefonieren, kochen, putzen
+  - Nouns with article (der/die/das) + plural + natural DE example + AR translation: Bleistift, Heft, Tasche, Schlüssel, Handy, Computer, Arzt, Krankenhaus, Apotheke, Bahnhof
+- No id collisions. No auto-deletion of similar items. Matched recent item schema (de/ar, conjugations, exampleDe).
+- Re-ran tests: PASS (106 unique IDs, präteritum and article:'der' present).
+- Preview: package.json exposes only npm test; Flutter/Android primary; no dedicated web preview port. Auth/DB kept OFF.
+- Priority: stability (fix syntax, no unsafe rewrite) > content correctness > learning system.
+- Changes local to clone; ready for commit/push if credentials allow.
+
 ## 2026-11-08 08:15 UTC — Scheduled hourly Grok Build session
 
 - Read AGENTS.md (via GitHub API). Auth/DB remain OFF; offline content only; directed-pair rules and German grammatical metadata respected.

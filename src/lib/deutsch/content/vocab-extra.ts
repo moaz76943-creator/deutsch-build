@@ -1339,6 +1339,317 @@ export const vocabExtra = [
     exampleDe: 'Die Mutter kocht das Abendessen.',
     exampleAr: 'الأم تطبخ العشاء.'
   }
-];
+
+  // === Batch 2026-11-08 hourly: v-extra-166 .. v-extra-185 ===
+  {
+    id: 'v-extra-166',
+    type: 'verb',
+    level: 'A1',
+    de: 'antworten',
+    ar: 'يجيب',
+    conjugations: {
+      ich: 'antworte',
+      du: 'antwortest',
+      er: 'antwortet',
+      wir: 'antworten',
+      ihr: 'antwortet',
+      sie: 'antworten',
+      präteritum: 'antwortete',
+      perfekt: 'geantwortet',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich antworte auf die Frage.',
+    exampleAr: 'أجيب على السؤال.'
+  },
+  {
+    id: 'v-extra-167',
+    type: 'verb',
+    level: 'A2',
+    de: 'erzählen',
+    ar: 'يروي / يحكي',
+    conjugations: {
+      ich: 'erzähle',
+      du: 'erzählst',
+      er: 'erzählt',
+      wir: 'erzählen',
+      ihr: 'erzählt',
+      sie: 'erzählen',
+      präteritum: 'erzählte',
+      perfekt: 'erzählt',
+      aux: 'haben'
+    },
+    exampleDe: 'Sie erzählt eine interessante Geschichte.',
+    exampleAr: 'هي تروي قصة مثيرة للاهتمام.'
+  },
+  {
+    id: 'v-extra-168',
+    type: 'verb',
+    level: 'A2',
+    de: 'erklären',
+    ar: 'يشرح',
+    conjugations: {
+      ich: 'erkläre',
+      du: 'erklärst',
+      er: 'erklärt',
+      wir: 'erklären',
+      ihr: 'erklärt',
+      sie: 'erklären',
+      präteritum: 'erklärte',
+      perfekt: 'erklärt',
+      aux: 'haben'
+    },
+    exampleDe: 'Kannst du mir das erklären?',
+    exampleAr: 'هل يمكنك أن تشرح لي ذلك؟'
+  },
+  {
+    id: 'v-extra-169',
+    type: 'verb',
+    level: 'A1',
+    de: 'verstehen',
+    ar: 'يفهم',
+    conjugations: {
+      ich: 'verstehe',
+      du: 'verstehst',
+      er: 'versteht',
+      wir: 'verstehen',
+      ihr: 'versteht',
+      sie: 'verstehen',
+      präteritum: 'verstand',
+      perfekt: 'verstanden',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich verstehe kein Wort.',
+    exampleAr: 'لا أفهم كلمة واحدة.'
+  },
+  {
+    id: 'v-extra-170',
+    type: 'verb',
+    level: 'A2',
+    de: 'vergessen',
+    ar: 'ينسى',
+    conjugations: {
+      ich: 'vergesse',
+      du: 'vergisst',
+      er: 'vergisst',
+      wir: 'vergessen',
+      ihr: 'vergesst',
+      sie: 'vergessen',
+      präteritum: 'vergaß',
+      perfekt: 'vergessen',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich habe meinen Schlüssel vergessen.',
+    exampleAr: 'لقد نسيت مفتاحي.'
+  },
+  {
+    id: 'v-extra-171',
+    type: 'verb',
+    level: 'A2',
+    de: 'erinnern',
+    ar: 'يتذكر',
+    conjugations: {
+      ich: 'erinnere',
+      du: 'erinnerst',
+      er: 'erinnert',
+      wir: 'erinnern',
+      ihr: 'erinnert',
+      sie: 'erinnern',
+      präteritum: 'erinnerte',
+      perfekt: 'erinnert',
+      aux: 'haben'
+    },
+    exampleDe: 'Erinnerst du dich an den Namen?',
+    exampleAr: 'هل تتذكر الاسم؟'
+  },
+  {
+    id: 'v-extra-172',
+    type: 'verb',
+    level: 'A1',
+    de: 'besuchen',
+    ar: 'يزور',
+    conjugations: {
+      ich: 'besuche',
+      du: 'besuchst',
+      er: 'besucht',
+      wir: 'besuchen',
+      ihr: 'besucht',
+      sie: 'besuchen',
+      präteritum: 'besuchte',
+      perfekt: 'besucht',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir besuchen unsere Großeltern.',
+    exampleAr: 'نزور جدّينا.'
+  },
+  {
+    id: 'v-extra-173',
+    type: 'verb',
+    level: 'A1',
+    de: 'telefonieren',
+    ar: 'يتصل بالهاتف',
+    conjugations: {
+      ich: 'telefoniere',
+      du: 'telefonierst',
+      er: 'telefoniert',
+      wir: 'telefonieren',
+      ihr: 'telefoniert',
+      sie: 'telefonieren',
+      präteritum: 'telefonierte',
+      perfekt: 'telefoniert',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich telefoniere mit meiner Mutter.',
+    exampleAr: 'أتصل بأمي بالهاتف.'
+  },
+  {
+    id: 'v-extra-174',
+    type: 'verb',
+    level: 'A1',
+    de: 'kochen',
+    ar: 'يطبخ',
+    conjugations: {
+      ich: 'koche',
+      du: 'kochst',
+      er: 'kocht',
+      wir: 'kochen',
+      ihr: 'kocht',
+      sie: 'kochen',
+      präteritum: 'kochte',
+      perfekt: 'gekocht',
+      aux: 'haben'
+    },
+    exampleDe: 'Heute koche ich Pasta.',
+    exampleAr: 'اليوم أطبخ المعكرونة.'
+  },
+  {
+    id: 'v-extra-175',
+    type: 'verb',
+    level: 'A1',
+    de: 'putzen',
+    ar: 'ينظف',
+    conjugations: {
+      ich: 'putze',
+      du: 'putzt',
+      er: 'putzt',
+      wir: 'putzen',
+      ihr: 'putzt',
+      sie: 'putzen',
+      präteritum: 'putzte',
+      perfekt: 'geputzt',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir putzen das Zimmer.',
+    exampleAr: 'ننظف الغرفة.'
+  },
+  {
+    id: 'v-extra-176',
+    type: 'noun',
+    level: 'A1',
+    de: 'Bleistift',
+    ar: 'قلم رصاص',
+    article: 'der',
+    plural: 'Bleistifte',
+    exampleDe: 'Der Bleistift liegt auf dem Tisch.',
+    exampleAr: 'قلم الرصاص على الطاولة.'
+  },
+  {
+    id: 'v-extra-177',
+    type: 'noun',
+    level: 'A1',
+    de: 'Heft',
+    ar: 'دفتر',
+    article: 'das',
+    plural: 'Hefte',
+    exampleDe: 'Das Heft ist voll.',
+    exampleAr: 'الدفتر ممتلئ.'
+  },
+  {
+    id: 'v-extra-178',
+    type: 'noun',
+    level: 'A1',
+    de: 'Tasche',
+    ar: 'حقيبة',
+    article: 'die',
+    plural: 'Taschen',
+    exampleDe: 'Die Tasche ist schwer.',
+    exampleAr: 'الحقيبة ثقيلة.'
+  },
+  {
+    id: 'v-extra-179',
+    type: 'noun',
+    level: 'A1',
+    de: 'Schlüssel',
+    ar: 'مفتاح',
+    article: 'der',
+    plural: 'Schlüssel',
+    exampleDe: 'Wo ist der Schlüssel?',
+    exampleAr: 'أين المفتاح؟'
+  },
+  {
+    id: 'v-extra-180',
+    type: 'noun',
+    level: 'A1',
+    de: 'Handy',
+    ar: 'هاتف محمول',
+    article: 'das',
+    plural: 'Handys',
+    exampleDe: 'Mein Handy ist leer.',
+    exampleAr: 'هاتفي فارغ.'
+  },
+  {
+    id: 'v-extra-181',
+    type: 'noun',
+    level: 'A2',
+    de: 'Computer',
+    ar: 'حاسوب',
+    article: 'der',
+    plural: 'Computer',
+    exampleDe: 'Der Computer ist an.',
+    exampleAr: 'الحاسوب يعمل.'
+  },
+  {
+    id: 'v-extra-182',
+    type: 'noun',
+    level: 'A2',
+    de: 'Arzt',
+    ar: 'طبيب',
+    article: 'der',
+    plural: 'Ärzte',
+    exampleDe: 'Der Arzt ist freundlich.',
+    exampleAr: 'الطبيب لطيف.'
+  },
+  {
+    id: 'v-extra-183',
+    type: 'noun',
+    level: 'A2',
+    de: 'Krankenhaus',
+    ar: 'مستشفى',
+    article: 'das',
+    plural: 'Krankenhäuser',
+    exampleDe: 'Das Krankenhaus ist groß.',
+    exampleAr: 'المستشفى كبير.'
+  },
+  {
+    id: 'v-extra-184',
+    type: 'noun',
+    level: 'A2',
+    de: 'Apotheke',
+    ar: 'صيدلية',
+    article: 'die',
+    plural: 'Apotheken',
+    exampleDe: 'Die Apotheke ist um die Ecke.',
+    exampleAr: 'الصيدلية عند الزاوية.'
+  },
+  {
+    id: 'v-extra-185',
+    type: 'noun',
+    level: 'A1',
+    de: 'Bahnhof',
+    ar: 'محطة القطار',
+    article: 'der',
+    plural: 'Bahnhöfe',
+    exampleDe: 'Der Bahnhof ist in der Nähe.',
+    exampleAr: 'محطة القطار قريبة.'
+  }
 
 ];
