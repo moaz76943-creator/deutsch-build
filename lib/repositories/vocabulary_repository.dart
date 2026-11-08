@@ -1,9 +1,24 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show compute;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:deutsch_bilarabi/services/database_service.dart';
 import 'package:sqflite/sqflite.dart';
+
+// Top-level function for isolate: decode list of JSON strings
+List<Map<String, dynamic>> _decodeVocabularyRecords(List<String> jsonStrings) {
+  return jsonStrings.map((jsonStr) {
+    final decoded = jsonDecode(jsonStr);
+    return Map<String, dynamic>.from(decoded as Map);
+  }).toList();
+}
+
+// Top-level for seed JSON
+List<Map<String, dynamic>> _parseVocabularyJson(String jsonString) {
+  final decoded = jsonDecode(jsonString);
+  if (decoded is! List) return [];
+  return decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+}
 
 class VocabularyRepository {
   static const String _key = 'vocabulary_list';
@@ -64,9 +79,7 @@ class VocabularyRepository {
       if (jsonStrings.length > 50) {
         results = await compute(_decodeVocabularyRecords, jsonStrings);
       } else {
-        results = jsonStrings.map((jsonStr) {
-          return Map<String, dynamic>.from(jsonDecode(jsonStr) as Map);
-        }).toList();
+        results = _decodeVocabularyRecords(jsonStrings);
       }
 
       _offlineCache = results;
@@ -261,12 +274,8 @@ class VocabularyRepository {
 
   Future<bool> importBackupJson(String jsonString) async {
     try {
-      final decoded = jsonDecode(jsonString);
-      if (decoded is! List) return false;
-      final List<dynamic> decodedList = decoded;
-      final items = decodedList
-          .map((e) => Map<String, dynamic>.from(e as Map))
-          .toList();
+      final items = await compute(_parseVocabularyJson, jsonString);
+      if (items.isEmpty) return false;
       return await saveVocabularyList(items);
     } catch (_) {
       return false;
@@ -289,22 +298,5 @@ class VocabularyRepository {
       'status': 'متصل ومفهرس بالكامل (10/10 Architecture)',
       'langCounts': langCounts,
     };
-  }
-}
-
-// Top-level for isolate compute (must be top-level or static)
-List<Map<String, dynamic>> _decodeVocabularyRecords(List<String> jsonStrings) {
-  return jsonStrings.map((jsonStr) {
-    return Map<String, dynamic>.from(jsonDecode(jsonStr) as Map);
-  }).toList();
-}
-
-List<Map<String, dynamic>> _parseVocabularyJson(String jsonString) {
-  try {
-    final decoded = jsonDecode(jsonString);
-    if (decoded is! List) return [];
-    return decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
-  } catch (_) {
-    return [];
   }
 }

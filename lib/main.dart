@@ -5,12 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'features/onboarding/fast_onboarding_screen.dart';
+import 'design_system/app_theme.dart';
 // Core imports for resilient bootstrap (keep for security)
 import 'package:deutsch_bilarabi/core/bootstrap/isolated_bootstrap_pipeline.dart';
 import 'package:deutsch_bilarabi/core/recovery/session_recovery_manager.dart';
 import 'package:deutsch_bilarabi/core/quality/production_acceptance_gate.dart';
 import 'package:deutsch_bilarabi/core/lifecycle/runtime_lifecycle_registry.dart';
 import 'package:deutsch_bilarabi/core/registry/feature_capability_registry.dart';
+import 'package:deutsch_bilarabi/core/l1_cache.dart';
 
 /// Protects against crash loops that could corrupt local data or leave the app unusable.
 /// Enhances security by detecting repeated failures and forcing safe mode.
@@ -68,6 +70,9 @@ class SafeModeRecoveryGate extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.system,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
       home: Scaffold(
         backgroundColor: const Color(0xFF0F172A),
         body: SafeArea(
@@ -181,30 +186,25 @@ class DeutschApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Deutsch بالعربي',
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('ar'),
-        Locale('en'),
-        Locale('de'),
-      ],
-      theme: ThemeData(
-        useMaterial3: true,
-        primarySwatch: Colors.blue,
-        fontFamily: 'Cairo',
-        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF3B82F6),
-          brightness: Brightness.light,
-        ),
+    return AppTheme.withDynamicColor(
+      builder: (light, dark) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Deutsch بالعربي',
+        themeMode: ThemeMode.system,
+        theme: light,
+        darkTheme: dark,
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('ar'),
+          Locale('en'),
+          Locale('de'),
+        ],
+        home: const FastOnboardingScreen(),
       ),
-      home: const FastOnboardingScreen(),
     );
   }
 }
@@ -216,7 +216,7 @@ class ResilientAppRoot extends StatefulWidget {
   State<ResilientAppRoot> createState() => _ResilientAppRootState();
 }
 
-class _ResilientAppRootState extends State<ResilientAppRoot> {
+class _ResilientAppRootState extends State<ResilientAppRoot> with WidgetsBindingObserver {
   bool isBootstrapping = true;
   bool isSafeMode = false;
   String? errorMessage;
@@ -224,7 +224,22 @@ class _ResilientAppRootState extends State<ResilientAppRoot> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     bootstrap();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didHaveMemoryPressure() {
+    // Trim in-memory caches under OS memory pressure to reduce RSS, GC pauses, and battery drain.
+    // Does not touch persistent data, security gates, or offline integrity.
+    L1VocabularyCache().trimMemoryPressure();
+    debugPrint('[DBA][MEMORY] Trimmed L1 cache under memory pressure');
   }
 
   Future<void> bootstrap() async {
@@ -296,23 +311,25 @@ class _ResilientAppRootState extends State<ResilientAppRoot> {
   @override
   Widget build(BuildContext context) {
     if (isBootstrapping) {
-      return const MaterialApp(
-        debugShowCheckedModeBanner: false,
-        themeMode: ThemeMode.system,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('ar'),
-          Locale('en'),
-          Locale('de'),
-        ],
-        home: hostProductionShell(
-          child: const FastOnboardingScreen(),
+      return AppTheme.withDynamicColor(
+        builder: (light, dark) => MaterialApp(
+          debugShowCheckedModeBanner: false,
+          themeMode: ThemeMode.system,
+          theme: light,
+          darkTheme: dark,
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('ar'),
+            Locale('en'),
+            Locale('de'),
+          ],
+          home: hostProductionShell(
+            child: const FastOnboardingScreen(),
+          ),
         ),
       );
     }
