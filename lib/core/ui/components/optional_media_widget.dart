@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:typed_data';
 import '../../../design_system/design_system.dart';
 import 'resilient_async_builder.dart';
-import 'content_cancellation_token.dart';
 
 class OptionalMediaWidget extends StatelessWidget {
   final Future<Uint8List?> Function() fetcher;
