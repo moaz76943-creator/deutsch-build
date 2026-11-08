@@ -145,7 +145,7 @@ class GamificationProjectionEngine {
             // Provide a timestamp that falls on the missed day
             final missedDay = lastDay.add(const Duration(days: 1));
             currentLedger = currentLedger.recordUsage('streak_recovery',
-                now: missedDay);
+                timestamp: missedDay);
             currentStreak++;
             gapsToFill--;
             lastDay = missedDay;
@@ -177,7 +177,7 @@ class GamificationProjectionEngine {
         if (currentLedger.canConsume) {
           final missedDay = lastDay.add(const Duration(days: 1));
           currentLedger = currentLedger.recordUsage('streak_recovery',
-              now: missedDay);
+              timestamp: missedDay);
           gapsToFill--;
           lastDay = missedDay;
         } else {
