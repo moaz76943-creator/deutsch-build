@@ -201,7 +201,10 @@ class _ResilientAppRootState extends State<ResilientAppRoot> with WidgetsBinding
     // Trim in-memory caches under OS memory pressure to reduce RSS, GC pauses, and battery drain.
     // Does not touch persistent data, security gates, or offline integrity.
     L1VocabularyCache().trimMemoryPressure();
-    debugPrint('[DBA][MEMORY] Trimmed L1 cache under memory pressure');
+    // Also clear Flutter's image cache to free additional memory on low-end devices
+    // without affecting offline integrity or security.
+    PaintingBinding.instance.imageCache.clear();
+    debugPrint('[DBA][MEMORY] Trimmed L1 cache and cleared image cache under memory pressure');
   }
 
   Future<void> bootstrap() async {
