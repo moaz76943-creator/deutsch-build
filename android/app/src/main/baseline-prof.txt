@@ -70,3 +70,9 @@ HSPLio/flutter/widgets/scroll_view/GridView;->build(Lio/flutter/widgets/framewor
 HSPLio/flutter/widgets/scroll_view/GridView$builder;->build(Lio/flutter/widgets/framework/BuildContext;)Lio/flutter/widgets/framework/Widget;
 HSPLio/flutter/gestures/GestureBinding;->handleEvent(Landroid/view/MotionEvent;Lio/flutter/gestures/HitTestResult;)V
 HSPLio/flutter/widgets/framework/RenderObject;->hitTest(Lio/flutter/rendering/BoxHitTestResult;Landroid/graphics/Offset;)Z
+
+# ExpansionTile and image decode for vocabulary cards (2026-11-08 this run)
+HSPLio/flutter/material/ExpansionTile;->build(Lio/flutter/widgets/framework/BuildContext;)Lio/flutter/widgets/framework/Widget;
+HSPLio/flutter/painting/ImageStreamCompleter;->addListener(Lio/flutter/painting/ImageStreamListener;)V
+HSPLio/flutter/painting/ImageStreamCompleter;->removeListener(Lio/flutter/painting/ImageStreamListener;)V
+HSPLio/flutter/rendering/RenderImage;->paint(Landroid/graphics/Canvas;Landroid/graphics/Offset;)V
