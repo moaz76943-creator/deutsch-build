@@ -1,5 +1,6 @@
 {
-  "last_completed_task": 3380,
-  "volume": 62,
-  "status": "SEALED"
+  "last_completed_task": 3440,
+  "volume": 64,
+  "status": "SEALED",
+  "verified_subsystems": 640
 }
