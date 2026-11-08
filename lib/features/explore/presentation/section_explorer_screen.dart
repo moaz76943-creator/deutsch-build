@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../../core/services/pack_manager.dart';
 import '../../../core/services/audio_tts_service.dart';
+import '../../../services/fts_search_service.dart';
+import '../../../core/catalog/language_readiness_matrix.dart';
 
 /// Exact metadata display only. Nonempty fields are not proof that a pack
 /// has passed the legal/source-evidence acceptance process.
@@ -115,6 +117,16 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
       loadingMessage = 'جاري إعداد حزمة اللغة...';
     });
 
+    if (LanguageReadinessMatrix.getTier(currentLanguage) !=
+        LanguageReadinessTier.productionReady) {
+      setState(() {
+        items = [];
+        isLoading = false;
+        loadError = 'اللغة غير متاحة حالياً';
+      });
+      return;
+    }
+
     try {
       await PackManager.initLanguagePack(
         currentLanguage,
@@ -155,6 +167,15 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
 
     if (!mounted) return;
 
+    if (LanguageReadinessMatrix.getTier(currentLanguage) !=
+        LanguageReadinessTier.productionReady) {
+      setState(() {
+        isSearching = false;
+        searchResults = [];
+      });
+      return;
+    }
+
     if (normalized.isEmpty) {
       setState(() {
         isSearching = false;
@@ -167,10 +188,12 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
 
     _searchDebounce = Timer(const Duration(milliseconds: 250), () async {
       try {
-        final results = await PackManager.searchInstant(normalized);
+        final fts = FtsSearchService();
+        final results = await fts.searchDictionaryWithFeedback(
+            normalized, currentLanguage, limit: 50);
         if (!mounted || gen != _searchGeneration) return;
         setState(() {
-          searchResults = results;
+          searchResults = results.results;
         });
       } catch (e) {
         if (!mounted || gen != _searchGeneration) return;
@@ -196,7 +219,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
     if (!mounted || currentLanguage != requestedLanguage) return;
     final attribution = DatasetAttribution.fromMetadata(metadata);
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('معلومات المصدر والترخيص ⚖️'),
@@ -233,9 +256,9 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
               TextButton(
                   onPressed: () => Navigator.pop(ctx),
                   child: const Text('إغلاق')),
-              const ElevatedButton.icon(
-                icon: Icon(Icons.download, size: 18),
-                label: Text('تصدير JSON (غير متاح)'),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.download, size: 18),
+                label: const Text('تصدير JSON (غير متاح)'),
                 onPressed: null,
               ),
             ],
@@ -260,7 +283,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
       ...distractors.map((e) => e.toString())
     ]..shuffle();
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(ex['prompt'] as String? ?? 'اختر الإجابة الصحيحة'),
@@ -485,10 +508,35 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                                 fontSize: 17, fontWeight: FontWeight.w600),
                             softWrap: true,
                           ),
-                          subtitle: Text(
-                            isSearching
-                                ? 'المعرف: ${item['concept_id']}'
-                                : 'المستوى في الذاكرة: صندوق $boxLevel',
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (isSearching && item['translation_ar'] != null)
+                                Directionality(
+                                  textDirection: TextDirection.rtl,
+                                  child: Text(
+                                    '${item['translation_ar']}',
+                                    style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black87),
+                                  ),
+                                ),
+                              if (isSearching && item['plural'] != null)
+                                Text(
+                                  'الجمع: ${item['plural']}',
+                                  style: const TextStyle(fontSize: 13),
+                                ),
+                              if (isSearching && item['sentence'] != null)
+                                Text(
+                                  'مثال: ${item['sentence']}',
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontStyle: FontStyle.italic),
+                                ),
+                              if (!isSearching)
+                                Text('المستوى في الذاكرة: صندوق $boxLevel'),
+                            ],
                           ),
                           trailing: Wrap(
                             spacing: 0,
