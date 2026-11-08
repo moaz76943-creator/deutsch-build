@@ -39,7 +39,7 @@ class RuntimeLifecycleRegistry {
     String owner = 'global',
   }) {
     if (isOwnerDisposed(owner)) {
-      safeCleanup(cleanup);
+      _safeCleanup(cleanup);
       return;
     }
     _cleanups.putIfAbsent(owner, () => []).add(cleanup);
