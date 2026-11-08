@@ -148,36 +148,33 @@ class _StreakCalendarScreenState extends State<StreakCalendarScreen> {
                               final isCompleted = day <= currentDay &&
                                   day > (currentDay - _currentStreak);
 
-                              return RepaintBoundary(
-                                key: ValueKey('streak_day_$day'),
-                                child: Container(
-                                  decoration: BoxDecoration(
+                              return Container(
+                                decoration: BoxDecoration(
+                                  color: isCompleted
+                                      ? (isToday
+                                          ? const Color(0xFFF39C6B)
+                                          : const Color(0xFF2563EB)
+                                              .withValues(alpha: 0.6))
+                                      : Colors.white.withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: isToday
+                                      ? Border.all(
+                                          color: Colors.white,
+                                          width: 1.5,
+                                        )
+                                      : null,
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  '$day',
+                                  style: TextStyle(
                                     color: isCompleted
-                                        ? (isToday
-                                            ? const Color(0xFFF39C6B)
-                                            : const Color(0xFF2563EB)
-                                                .withValues(alpha: 0.6))
-                                        : Colors.white.withValues(alpha: 0.05),
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: isToday
-                                        ? Border.all(
-                                            color: Colors.white,
-                                            width: 1.5,
-                                          )
-                                        : null,
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    '$day',
-                                    style: TextStyle(
-                                      color: isCompleted
-                                          ? Colors.white
-                                          : Colors.white30,
-                                      fontWeight: isCompleted
-                                          ? FontWeight.bold
-                                          : FontWeight.normal,
-                                      fontSize: 12,
-                                    ),
+                                        ? Colors.white
+                                        : Colors.white30,
+                                    fontWeight: isCompleted
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    fontSize: 12,
                                   ),
                                 ),
                               );

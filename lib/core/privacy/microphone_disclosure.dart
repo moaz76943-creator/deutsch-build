@@ -6,7 +6,7 @@ const String kPrivacyPolicyUrl =
     'https://moaz76943-creator.github.io/deutsch-bilarabi-privacy/privacy.html';
 
 const String kMicrophoneDisclosureText =
-    'Deutsch بالعربي needs access to your microphone to analyze your pronunciation on-device for practice. Audio never leaves your device and is not stored or shared.\n\nيُستخدم الميكروفون فقط لتدريب النطق على هذا الجهاز. لا يُرفع التسجيل إلى خادم. يمكنك الرفض، ولن يظهر إذن النظام قبل موافقتك هنا.';
+    'يُستخدم الميكروفون فقط لتدريب النطق على هذا الجهاز. لا يُرفع التسجيل إلى خادم. يمكنك الرفض، ولن يظهر إذن النظام قبل موافقتك هنا.';
 
 /// In-app explanation that must be accepted before the OS microphone dialog.
 Future<bool> showMicrophoneDisclosure(BuildContext context) async {

@@ -54,7 +54,7 @@ Exact answers for the Play Console Data safety form (must match this policy):
 - **Data shared:** None.
 - **Is all of the user data collected by your app encrypted in transit?** N/A (no data collected; no network traffic from the app).
 - **Do you provide a way for users to request that their data is deleted?** Yes — see the dedicated section below. Uninstalling the app removes all local data. No server-side data exists.
-- **Security practices:** Local data protected by Android sandbox and encryption where used. App uses Google Play App Signing. Release builds enforce minification, resource shrinking, and signing. Native libraries (including SQLite via sqlite3_flutter_libs) are built with NDK r28+ for 16 KB page size alignment, meeting Google Play's page size compatibility requirements for apps targeting API 35+. Full enforcement of the 16 KB requirement for updates begins February 1, 2027; the app is already prepared.
+- **Security practices:** Local data protected by Android sandbox and encryption where used. App uses Google Play App Signing. Release builds enforce minification, resource shrinking, and signing.
 
 ## Your Rights and Data Deletion
 
@@ -78,7 +78,6 @@ Because the app stores data only locally on your device and does not create user
 
 - Distributed via Google Play App Signing (upload key separate from the signing key managed by Google).
 - Targets Android 16 (API level 36), meeting the August 31, 2026 requirement for new apps and updates. Existing apps need at least API 35 to remain available to new users on newer devices.
-- Native code is compiled with NDK 28.2+ ensuring 16 KB memory page size alignment (required for updates targeting API 35+; full enforcement from February 1, 2027).
 - allowBackup="false"; usesCleartextTraffic="false"; data extraction rules configured; R8/ProGuard minification and resource shrinking enabled in release.
 - Prominent disclosure is shown in-app before any sensitive permission request (e.g., microphone). See recommended text above.
 - FLAG_SECURE is set to prevent screenshots of sensitive learning content in the app switcher (disabled only in debug builds).
@@ -98,4 +97,4 @@ For questions about this privacy policy or data practices, contact the developer
 
 ---
 
-**Compliance notes:** Link the public URL in Play Console App content (Privacy policy). Complete Data safety form accurately matching the answers above (no collection/sharing). Provide in-app link and prominent disclosure before RECORD_AUDIO. Ensure GitHub Pages is enabled for the public URL. Target SDK 36, signing, 16 KB page size support for native libs, and offline permissions are in place for production readiness.
+**Compliance notes:** Link the public URL in Play Console App content (Privacy policy). Complete Data safety form accurately matching the answers above (no collection/sharing). Provide in-app link and prominent disclosure before RECORD_AUDIO. Ensure GitHub Pages is enabled for the public URL. Target SDK 36, signing, and offline permissions are in place for production readiness.

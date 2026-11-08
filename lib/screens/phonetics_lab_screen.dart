@@ -15,6 +15,7 @@ class PhoneticsLabScreen extends StatefulWidget {
 class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
   int? _currentlyPlayingIndex;
   bool _isPlaying = false;
+  bool _isAudioLoading = false;
   double _speechRate = 0.9;
 
   final List<Map<String, dynamic>> _sounds = [
@@ -59,6 +60,8 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
   }
 
   Future<void> _playAudio(int index) async {
+    if (_isAudioLoading) return;
+
     if (_isPlaying) {
       OfflineAudioPool().stop();
       if (_currentlyPlayingIndex == index) {
@@ -72,23 +75,27 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
 
     setState(() {
       _isPlaying = true;
+      _isAudioLoading = true;
       _currentlyPlayingIndex = index;
     });
 
     final item = _sounds[index];
-    await OfflineAudioDispatcher.speakText(
-      text: item['symbol'] as String,
-      bcp47Locale: item['langCode'] as String,
-      speechRate: _speechRate,
-    );
-
-    if (mounted) {
-      setState(() {
-        if (_currentlyPlayingIndex == index) {
-          _isPlaying = false;
-          _currentlyPlayingIndex = null;
-        }
-      });
+    try {
+      await OfflineAudioDispatcher.speakText(
+        text: item['symbol'] as String,
+        bcp47Locale: item['langCode'] as String,
+        speechRate: _speechRate,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAudioLoading = false;
+          if (_currentlyPlayingIndex == index) {
+            _isPlaying = false;
+            _currentlyPlayingIndex = null;
+          }
+        });
+      }
     }
   }
 
@@ -195,6 +202,7 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
                             onPressed: () => _playAudio(index),
                             semanticLabel: 'استمع للفظ الصحيح',
                             isActive: isCurrentPlaying,
+                            isBusy: _isAudioLoading && _currentlyPlayingIndex == index,
                             icon: isCurrentPlaying
                                 ? FontAwesomeIcons.stop
                                 : FontAwesomeIcons.volumeHigh,

@@ -25,10 +25,12 @@ dependencies:
   sqflite_common_ffi: '>=2.3.0 <2.4.0'
   sqlite3: '>=2.3.0 <3.0.0'
   crypto: ^3.0.7
+  http: ^1.6.0
 
   archive: ^4.5.2
   flutter_animate: ^4.5.2
   font_awesome_flutter: ^11.0.0
+  cached_network_image: ^3.4.1
   dynamic_color: ^1.7.0
 
   synchronized: ^3.3.0
