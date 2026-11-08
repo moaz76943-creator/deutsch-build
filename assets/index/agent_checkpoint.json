@@ -1,7 +1,6 @@
 {
-  "last_completed_task": 4370,
-  "volume": 95,
-  "status": "VERIFIED_AND_SEALED_4370",
-  "verified_subsystems": 950,
-  "offline_integrity": "100%_REAL_ZERO_LEAKAGE"
+  "last_completed_task": 4400,
+  "volume": 96,
+  "status": "LANDMARK_4400_SEALED",
+  "verified_subsystems": 960
 }
