@@ -1,7 +1,7 @@
 {
-  "last_completed_task": 4670,
-  "volume": 105,
-  "status": "SEALED",
-  "verified_subsystems": 1050,
-  "milestone": "4670_TASKS_ACROSS_105_VOLUMES"
+  "last_completed_task": 4700,
+  "volume": 106,
+  "status": "LANDMARK_4700_SEALED",
+  "verified_subsystems": 1060,
+  "milestone": "4700_TASKS_ACROSS_106_VOLUMES"
 }
