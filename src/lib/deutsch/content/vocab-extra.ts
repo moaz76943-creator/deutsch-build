@@ -1650,6 +1650,316 @@ export const vocabExtra = [
     plural: 'Bahnhöfe',
     exampleDe: 'Der Bahnhof ist in der Nähe.',
     exampleAr: 'محطة القطار قريبة.'
+  },
+// === Hourly batch 2026-11-08 15:09 +03 (Grok Build) ===
+  {
+    id: 'v-extra-186',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'sprechen',
+    arabic: 'يتكلم',
+    conjugation: {
+      ich: 'spreche',
+      du: 'sprichst',
+      er: 'spricht',
+      wir: 'sprechen',
+      ihr: 'sprecht',
+      sie_pl: 'sprechen',
+      präteritum: 'sprach',
+      perfekt: 'hat gesprochen',
+      aux: 'haben'
+    },
+    example: 'Ich spreche Deutsch.',
+    exampleAr: 'أنا أتكلم الألمانية.'
+  },
+  {
+    id: 'v-extra-187',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'hören',
+    arabic: 'يسمع',
+    conjugation: {
+      ich: 'höre',
+      du: 'hörst',
+      er: 'hört',
+      wir: 'hören',
+      ihr: 'hört',
+      sie_pl: 'hören',
+      präteritum: 'hörte',
+      perfekt: 'hat gehört',
+      aux: 'haben'
+    },
+    example: 'Hörst du die Musik?',
+    exampleAr: 'هل تسمع الموسيقى؟'
+  },
+  {
+    id: 'v-extra-188',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'sehen',
+    arabic: 'يرى',
+    conjugation: {
+      ich: 'sehe',
+      du: 'siehst',
+      er: 'sieht',
+      wir: 'sehen',
+      ihr: 'seht',
+      sie_pl: 'sehen',
+      präteritum: 'sah',
+      perfekt: 'hat gesehen',
+      aux: 'haben'
+    },
+    example: 'Ich sehe den Film.',
+    exampleAr: 'أرى الفيلم.'
+  },
+  {
+    id: 'v-extra-189',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'lesen',
+    arabic: 'يقرأ',
+    conjugation: {
+      ich: 'lese',
+      du: 'liest',
+      er: 'liest',
+      wir: 'lesen',
+      ihr: 'lest',
+      sie_pl: 'lesen',
+      präteritum: 'las',
+      perfekt: 'hat gelesen',
+      aux: 'haben'
+    },
+    example: 'Sie liest ein Buch.',
+    exampleAr: 'هي تقرأ كتاباً.'
+  },
+  {
+    id: 'v-extra-190',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'schreiben',
+    arabic: 'يكتب',
+    conjugation: {
+      ich: 'schreibe',
+      du: 'schreibst',
+      er: 'schreibt',
+      wir: 'schreiben',
+      ihr: 'schreibt',
+      sie_pl: 'schreiben',
+      präteritum: 'schrieb',
+      perfekt: 'hat geschrieben',
+      aux: 'haben'
+    },
+    example: 'Ich schreibe einen Brief.',
+    exampleAr: 'أكتب رسالة.'
+  },
+  {
+    id: 'v-extra-191',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'lernen',
+    arabic: 'يتعلم',
+    conjugation: {
+      ich: 'lerne',
+      du: 'lernst',
+      er: 'lernt',
+      wir: 'lernen',
+      ihr: 'lernt',
+      sie_pl: 'lernen',
+      präteritum: 'lernte',
+      perfekt: 'hat gelernt',
+      aux: 'haben'
+    },
+    example: 'Wir lernen Deutsch.',
+    exampleAr: 'نتعلم الألمانية.'
+  },
+  {
+    id: 'v-extra-192',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'arbeiten',
+    arabic: 'يعمل',
+    conjugation: {
+      ich: 'arbeite',
+      du: 'arbeitest',
+      er: 'arbeitet',
+      wir: 'arbeiten',
+      ihr: 'arbeitet',
+      sie_pl: 'arbeiten',
+      präteritum: 'arbeitete',
+      perfekt: 'hat gearbeitet',
+      aux: 'haben'
+    },
+    example: 'Er arbeitet im Büro.',
+    exampleAr: 'هو يعمل في المكتب.'
+  },
+  {
+    id: 'v-extra-193',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'wohnen',
+    arabic: 'يسكن',
+    conjugation: {
+      ich: 'wohne',
+      du: 'wohnst',
+      er: 'wohnt',
+      wir: 'wohnen',
+      ihr: 'wohnt',
+      sie_pl: 'wohnen',
+      präteritum: 'wohnte',
+      perfekt: 'hat gewohnt',
+      aux: 'haben'
+    },
+    example: 'Ich wohne in Berlin.',
+    exampleAr: 'أسكن في برلين.'
+  },
+  {
+    id: 'v-extra-194',
+    type: 'verb',
+    level: 'A2',
+    infinitive: 'kaufen',
+    arabic: 'يشتري',
+    conjugation: {
+      ich: 'kaufe',
+      du: 'kaufst',
+      er: 'kauft',
+      wir: 'kaufen',
+      ihr: 'kauft',
+      sie_pl: 'kaufen',
+      präteritum: 'kaufte',
+      perfekt: 'hat gekauft',
+      aux: 'haben'
+    },
+    example: 'Sie kauft Brot.',
+    exampleAr: 'هي تشتري الخبز.'
+  },
+  {
+    id: 'v-extra-195',
+    type: 'verb',
+    level: 'A2',
+    infinitive: 'brauchen',
+    arabic: 'يحتاج',
+    conjugation: {
+      ich: 'brauche',
+      du: 'brauchst',
+      er: 'braucht',
+      wir: 'brauchen',
+      ihr: 'braucht',
+      sie_pl: 'brauchen',
+      präteritum: 'brauchte',
+      perfekt: 'hat gebraucht',
+      aux: 'haben'
+    },
+    example: 'Ich brauche Hilfe.',
+    exampleAr: 'أحتاج مساعدة.'
+  },
+  {
+    id: 'v-extra-196',
+    type: 'noun',
+    level: 'A1',
+    de: 'Tisch',
+    ar: 'طاولة',
+    article: 'der',
+    plural: 'Tische',
+    exampleDe: 'Der Tisch ist rund.',
+    exampleAr: 'الطاولة مستديرة.'
+  },
+  {
+    id: 'v-extra-197',
+    type: 'noun',
+    level: 'A1',
+    de: 'Tür',
+    ar: 'باب',
+    article: 'die',
+    plural: 'Türen',
+    exampleDe: 'Die Tür ist offen.',
+    exampleAr: 'الباب مفتوح.'
+  },
+  {
+    id: 'v-extra-198',
+    type: 'noun',
+    level: 'A1',
+    de: 'Fenster',
+    ar: 'نافذة',
+    article: 'das',
+    plural: 'Fenster',
+    exampleDe: 'Das Fenster ist groß.',
+    exampleAr: 'النافذة كبيرة.'
+  },
+  {
+    id: 'v-extra-199',
+    type: 'noun',
+    level: 'A1',
+    de: 'Stuhl',
+    ar: 'كرسي',
+    article: 'der',
+    plural: 'Stühle',
+    exampleDe: 'Der Stuhl ist bequem.',
+    exampleAr: 'الكرسي مريح.'
+  },
+  {
+    id: 'v-extra-200',
+    type: 'noun',
+    level: 'A1',
+    de: 'Lampe',
+    ar: 'مصباح',
+    article: 'die',
+    plural: 'Lampen',
+    exampleDe: 'Die Lampe leuchtet.',
+    exampleAr: 'المصباح يضيء.'
+  },
+  {
+    id: 'v-extra-201',
+    type: 'noun',
+    level: 'A1',
+    de: 'Buch',
+    ar: 'كتاب',
+    article: 'das',
+    plural: 'Bücher',
+    exampleDe: 'Das Buch ist interessant.',
+    exampleAr: 'الكتاب مثير للاهتمام.'
+  },
+  {
+    id: 'v-extra-202',
+    type: 'noun',
+    level: 'A2',
+    de: 'Kaffee',
+    ar: 'قهوة',
+    article: 'der',
+    plural: 'Kaffees',
+    exampleDe: 'Der Kaffee ist heiß.',
+    exampleAr: 'القهوة ساخنة.'
+  },
+  {
+    id: 'v-extra-203',
+    type: 'noun',
+    level: 'A1',
+    de: 'Milch',
+    ar: 'حليب',
+    article: 'die',
+    plural: 'Milchen',
+    exampleDe: 'Die Milch ist frisch.',
+    exampleAr: 'الحليب طازج.'
+  },
+  {
+    id: 'v-extra-204',
+    type: 'noun',
+    level: 'A1',
+    de: 'Wasser',
+    ar: 'ماء',
+    article: 'das',
+    plural: 'Wässer',
+    exampleDe: 'Das Wasser ist kalt.',
+    exampleAr: 'الماء بارد.'
+  },
+  {
+    id: 'v-extra-205',
+    type: 'noun',
+    level: 'A1',
+    de: 'Tag',
+    ar: 'يوم',
+    article: 'der',
+    plural: 'Tage',
+    exampleDe: 'Heute ist ein schöner Tag.',
+    exampleAr: 'اليوم يوم جميل.'
   }
-
 ];

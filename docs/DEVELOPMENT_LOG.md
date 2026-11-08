@@ -100,3 +100,16 @@
 - Commit: f333439c24cbe1ce10fad4193d2afc752d954621
 - Priority: stability > content correctness > learning system.
 - Preview / local test deferred due to FS mount; content verified by structure.
+
+## 2026-11-08 12:09 UTC — Scheduled hourly Grok Build session
+
+- Read AGENTS.md. Auth/DB remain OFF; offline content only; directed-pair rules and German grammatical metadata respected.
+- Cloned moaz76943-creator/deutsch-build (depth 1). Ran `npm test` (test-vocab-extra.js): PASS (106 unique IDs).
+- No FAIL tests. No crash bugs found.
+- Added 20 new A1/A2 items to `src/lib/deutsch/content/vocab-extra.ts` (ids v-extra-186 .. v-extra-205):
+  - Verbs with full conjugation (ich/du/er/wir/ihr/sie + Präteritum + Perfekt + aux): sprechen, hören, sehen, lesen, schreiben, lernen, arbeiten, wohnen, kaufen, brauchen
+  - Nouns with article (der/die/das) + plural + natural DE example + AR translation: Tisch, Tür, Fenster, Stuhl, Lampe, Buch, Kaffee, Milch, Wasser, Tag
+- No id collisions. Minimal safe append. No deletions of existing items.
+- Re-ran tests: PASS (126 unique IDs, präteritum and article:'der' present).
+- Preview: no dedicated web preview server in package.json (Flutter/Android primary); content structure validated by tests. Auth/DB kept OFF.
+- Priority: stability > content correctness > learning system.
