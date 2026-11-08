@@ -64,3 +64,9 @@ HSPLandroidx/profileinstaller/ProfileInstaller;->writeProfile(Landroid/content/C
 HSPLio/flutter/widgets/framework/Element;->rebuild()V
 HSPLio/flutter/rendering/RenderBox;->paint(Landroid/graphics/Canvas;Landroid/graphics/Offset;)V
 HSPLio/flutter/widgets/scroll_view/ListView;->createRenderObject(Lio/flutter/widgets/framework/BuildContext;)Lio/flutter/rendering/RenderObject;
+
+# GridView and gesture hot paths for dashboards and calendars (2026-11-08)
+HSPLio/flutter/widgets/scroll_view/GridView;->build(Lio/flutter/widgets/framework/BuildContext;)Lio/flutter/widgets/framework/Widget;
+HSPLio/flutter/widgets/scroll_view/GridView$builder;->build(Lio/flutter/widgets/framework/BuildContext;)Lio/flutter/widgets/framework/Widget;
+HSPLio/flutter/gestures/GestureBinding;->handleEvent(Landroid/view/MotionEvent;Lio/flutter/gestures/HitTestResult;)V
+HSPLio/flutter/widgets/framework/RenderObject;->hitTest(Lio/flutter/rendering/BoxHitTestResult;Landroid/graphics/Offset;)Z
