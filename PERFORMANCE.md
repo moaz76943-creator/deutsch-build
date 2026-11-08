@@ -9,7 +9,7 @@ Offline-first German learning app. Analyzed for startup time, memory, battery, n
 - **Image cache tuning**: In `main.dart`, reduced to 250 images / 48 MB (from defaults 1000 / 100 MB) + memory-pressure clearing.
 - **L1 Vocabulary Cache**: LRU with 100 items / 10 MB budget + trim on memory pressure.
 - **Isolated bootstrap & CPU worker**: Heavy work off main isolate (`IsolatedBootstrapPipeline`, `persistent_cpu_worker.dart`).
-- **Efficient lists**: Most long lists use `ListView.builder` (e.g. vocabulary, verb conjugations with precomputed flat items).
+- **Efficient lists**: Most long lists use `ListView.builder` (e.g. vocabulary, verb conjugations with precomputed flat items) + `cacheExtent` tuning where cards are complex.
 - **CI performance guard**: Static analysis for blocking calls in `build()`, controller leaks, etc.
 - **Offline-first**: Minimal network; no cleartext; privacy-focused permissions.
 
@@ -18,7 +18,7 @@ Offline-first German learning app. Analyzed for startup time, memory, battery, n
 - Memory: Caches bounded; image cache trimmed; SQLite on worker where possible.
 - Battery: No persistent wake locks; background work minimized (offline).
 - Network: Negligible (offline packs).
-- UI Jank: Builder pattern used for dynamic lists; const widgets where possible.
+- UI Jank: Builder pattern used for dynamic lists; const widgets where possible; cacheExtent for prefetch.
 
 ## Concrete Improvement (previous run)
 **Change**: Converted `MilestoneBadgesPage` from eager `ListView(children: [...map...])` to `ListView.builder` with a precomputed item list (`_HeaderItem`, `_TitleItem`, `_BadgeItem`).
@@ -59,7 +59,7 @@ Offline-first German learning app. Analyzed for startup time, memory, battery, n
 **Before**: Profile covered ListView and basic rendering.
 **After**: Includes GridView and gesture hit-testing hot paths.
 
-## Concrete Improvement (this run)
+## Concrete Improvement (previous run)
 **Change**: Further expanded `android/app/src/main/baseline-prof.txt` with hot paths for `ExpansionTile.build`, image stream listeners, and `RenderImage.paint`.
 
 **Why**: Vocabulary screens heavily use ExpansionTile for detailed cards and image rendering for visual memory aids. AOT-compiling these reduces first-interaction jank when expanding cards or loading images after install. Aligns with baseline profile best practices for critical user journeys without changing any runtime code or security posture.
@@ -72,10 +72,23 @@ Offline-first German learning app. Analyzed for startup time, memory, battery, n
 **Before**: Profile included GridView and basic gestures.
 **After**: Covers ExpansionTile and image painting/decode paths used in journal and vocabulary views.
 
-### How to measure
-Use Flutter DevTools or Android Studio Profiler / Macrobenchmark:
-- Cold start app, navigate to vocabulary journal or learning page, expand a card and scroll, measure frame times and jank %.
-- Compare before/after on physical device (profile builds).
-- Monitor time to first interactive image render.
+## Concrete Improvement (this run)
+**Change**: Added `cacheExtent: 800` to the main `ListView.builder` in `VerbConjugationPage` and `cacheExtent: 600` to the favorites list in `VerbFavoritesPage`.
 
-Further improvements for future runs: add `cacheExtent` tuning on ListView.builders (e.g. 500-1000 px), lazy-load secondary feature modules more aggressively, or WorkManager for any deferred offline pack validation.
+**Why**: Verb conjugation cards are complex (multiple Text, IconButtons, nested Containers). Default cacheExtent (250px) can cause hitches during fast flings as items are built on demand. Raising it prefetches more off-screen items, reducing frame drops during scroll while keeping memory bounded by the builder pattern. Follows Flutter performance best practices for lists with heavy item widgets.
+
+**Expected measurable impact**:
+- Smoother scrolling / lower jank % on the verb conjugation screen: ~5-15% fewer dropped frames during continuous scroll on mid-range devices.
+- Slightly higher peak memory during scroll (bounded), but better perceived fluidity.
+- No security impact (pure layout parameter; no new permissions, no data changes, R8/obfuscation unaffected).
+
+**Before**: Default cacheExtent (~250 logical pixels).
+**After**: Explicit 800/600 px prefetch for complex cards.
+
+### How to measure
+Use Flutter DevTools Performance view or Android Studio Profiler / Macrobenchmark:
+- Open verb conjugation page, perform rapid flings/scrolls, measure frame times, jank percentage, and raster thread time.
+- Compare before/after on physical device (profile or release builds).
+- Monitor memory during scroll.
+
+Further improvements for future runs: lazy-load secondary feature modules more aggressively, WorkManager for any deferred offline pack validation, or itemExtent where heights are fixed.
