@@ -1,6 +1,7 @@
 {
-  "last_completed_task": 4490,
-  "volume": 99,
-  "status": "SEALED",
-  "verified_subsystems": 990
+  "last_completed_task": 4520,
+  "volume": 100,
+  "status": "HISTORIC_CENTURY_100_VOLUMES_SEALED",
+  "verified_subsystems": 1000,
+  "milestone": "4520_TASKS_ACROSS_100_VOLUMES"
 }
