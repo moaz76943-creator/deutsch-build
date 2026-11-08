@@ -49,8 +49,8 @@ class TestBuildPipeline(unittest.TestCase):
         output = process.stdout.strip()
         self.assertEqual(output, "storePassword=<REDACTED> storeFile=key.jks --pass <REDACTED> --pass=<REDACTED>")
 
-    def test_run_with_retry_transient_error(self):
-        """Tests if run_with_retry handles transient errors."""
+    def test_with_retry_transient_error(self):
+        """Tests if with_retry handles transient errors."""
         script_content = '''#!/usr/bin/env bash
 source scripts/common.sh
 
@@ -66,7 +66,7 @@ fail_then_succeed() {
     fi
 }
 rm -f /tmp/test_transient_marker
-run_with_retry fail_then_succeed
+with_retry fail_then_succeed
 # We exit explicitly here to pass the exit code to python
 sys_exit_code=$?
 echo $sys_exit_code > /tmp/test_transient_code
