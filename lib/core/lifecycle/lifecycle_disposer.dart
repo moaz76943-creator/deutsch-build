@@ -47,17 +47,21 @@ class LifecycleDisposer {
     if (_isDisposed) return;
     _isDisposed = true;
 
-    for (final sub in _subscriptions) {
-      sub.cancel();
+    for (final sub in _subscriptions.reversed) {
+      try {
+        sub.cancel();
+      } catch (_) {}
     }
     _subscriptions.clear();
 
-    for (final timer in _timers) {
-      timer.cancel();
+    for (final timer in _timers.reversed) {
+      try {
+        timer.cancel();
+      } catch (_) {}
     }
     _timers.clear();
 
-    for (final teardown in _teardownCallbacks) {
+    for (final teardown in _teardownCallbacks.reversed) {
       try {
         teardown();
       } catch (_) {
