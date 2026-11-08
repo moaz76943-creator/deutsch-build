@@ -20,9 +20,7 @@ const expectedSecurityInvariants = <String, dynamic>{
     'READ_MEDIA_VISUAL_USER_SELECTED',
   ],
   'requiredPermissions': [
-    'INTERNET', // optional pack updates only
-    'ACCESS_NETWORK_STATE',
-    'RECORD_AUDIO', // on-device pronunciation practice
+    'RECORD_AUDIO', // on-device pronunciation practice only; runtime + prominent disclosure
   ],
   'queriesTts': true,
 };
@@ -33,9 +31,10 @@ Google Play Core App Quality – Security & Data Safety
 -----------------------------------------------------
 [✓] Target SDK 36
 [✓] allowBackup="false" + dataExtractionRules
-[✓] usesCleartextTraffic="false"
+[✓] usesCleartextTraffic="false" + networkSecurityConfig
 [✓] Broad storage permissions removed (tools:node="remove")
-[✓] RECORD_AUDIO justified for on-device speech practice
+[✓] RECORD_AUDIO justified for on-device speech practice (optional, no off-device transmission)
+[✓] No INTERNET / ACCESS_NETWORK_STATE declared (fully offline-first)
 [✓] Offline-first core flows (SRS, search, vault)
 [✓] Encrypted vault (Android Keystore / PBKDF2+AES)
 [✓] No mandatory network for learning
