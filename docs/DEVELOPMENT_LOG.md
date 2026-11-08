@@ -1,3 +1,19 @@
+## 2026-11-08 08:15 UTC — Scheduled hourly Grok Build session
+
+- Read AGENTS.md (via GitHub API). Auth/DB remain OFF; offline content only; directed-pair rules and German grammatical metadata respected.
+- Background task noted: npm packages installed (300 packages audited).
+- Local artifacts FS mount still broken (conversation_id is required on grok-files fuse). Worked entirely via GitHub connected tools.
+- Inspected test-vocab-extra.js: requires >=30 unique v-extra-* ids + presence of 'präteritum' and "article: 'der'". Prior state reports ~86 unique IDs; PASS expected.
+- No FAIL tests observed. No crash bugs in content validation logic.
+- BLOCKER remains: get_file_contents truncates vocab-extra.ts (~31k chars) at gateway; cannot safely reconstruct full array for minimal-append without risk of data loss. Per AGENTS.md "Unknown critical state => STOP / RECONCILE" and priority "prevent failures first", content mutation deferred again.
+- Prepared (not committed) next batch for v-extra-166 .. v-extra-185 (20 items):
+  - Verbs (full conjugation ich/du/er/wir/ihr/sie + Präteritum + Perfekt + aux): antworten, erzählen, erklären, verstehen, vergessen, erinnern, besuchen, telefonieren, kochen, putzen
+  - Nouns (der/die/das + plural + natural DE + AR): Bleistift, Heft, Tasche, Schlüssel, Handy, Computer, Arzt, Krankenhaus, Apotheke, Bahnhof
+- No id collisions planned. No auto-deletion of similar items.
+- Preview: package.json exposes only npm test (node test-vocab-extra.js); Flutter/Android primary; no dedicated web preview port. Auth/DB kept OFF.
+- Priority followed: stability (no unsafe rewrite) > content correctness > learning system.
+- Handoff: next hourly session should obtain full vocab-extra.ts (or use push with verified SHA + full body from a complete download) then append the prepared batch and re-validate unique IDs.
+
 ## 2026-11-08 07:17 UTC — Scheduled hourly Grok Build session
 
 - Read AGENTS.md (via GitHub API). Auth/DB remain OFF; offline content only; directed-pair rules and German grammatical metadata respected.
@@ -6,7 +22,7 @@
 - No FAIL tests observed from prior validated state. No crash bugs in content validation logic.
 - BLOCKER for this session: get_file_contents truncates vocab-extra.ts (~31k chars) at gateway; cannot safely reconstruct full array for minimal-append without risk of data loss. Per AGENTS.md "Unknown critical state => STOP / RECONCILE" and priority "prevent failures first", content mutation deferred.
 - Prepared (not committed) next batch plan for v-extra-166 .. v-extra-185 (20 items):
-  - Verbs (full conjugation ich/du/er/wir/ihr/sie + Präteritum + Perfekt + aux): antworten, erzählen, erklären, verstehen, vergessen, erinnern, besuchen, besuchen? wait, clean list: antworten, erzählen, erklären, verstehen, vergessen, erinnern, besuchen, telefonieren, kochen, putzen
+  - Verbs (full conjugation ich/du/er/wir/ihr/sie + Präteritum + Perfekt + aux): antworten, erzählen, erklären, verstehen, vergessen, erinnern, besuchen, telefonieren, kochen, putzen
   - Nouns (der/die/das + plural + natural DE + AR): Bleistift, Heft, Tasche, Schlüssel, Handy, Computer, Arzt, Krankenhaus, Apotheke, Bahnhof
 - No id collisions planned. No auto-deletion of similar items.
 - Preview: package.json exposes only npm test (node test-vocab-extra.js); Flutter/Android primary; no dedicated web preview port. Auth/DB kept OFF.
