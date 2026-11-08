@@ -1,6 +1,7 @@
 // ignore_for_file: unused_import
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -175,12 +176,12 @@ class PackDownloaderService {
             if (client == null) httpClient.close();
             return false;
           }
-          await Future.delayed(Duration(seconds: retries));
+          await Future<void>.delayed(Duration(seconds: retries));
           continue;
         }
 
         if (response.statusCode == 416) {
-          await response.stream.drain();
+          await response.stream.drain<void>();
           if (await file.exists()) await file.delete();
           downloadedBytes = 0;
           retries = 0;
@@ -188,14 +189,14 @@ class PackDownloaderService {
         }
 
         if (response.statusCode >= 400) {
-          await response.stream.drain();
+          await response.stream.drain<void>();
           retries++;
           if (retries > maxRetries) {
             _downloadStates[languageCode] = PackDownloadState.rejected;
             if (client == null) httpClient.close();
             return false;
           }
-          await Future.delayed(Duration(seconds: retries));
+          await Future<void>.delayed(Duration(seconds: retries));
           continue;
         }
 
@@ -219,7 +220,7 @@ class PackDownloaderService {
           fileSink = file.openWrite(
               mode: downloadedBytes > 0 ? FileMode.append : FileMode.write);
         } catch (e) {
-          await response.stream.drain();
+          await response.stream.drain<void>();
           _downloadStates[languageCode] = PackDownloadState.paused;
           if (client == null) httpClient.close();
           return false;
@@ -267,7 +268,7 @@ class PackDownloaderService {
             if (client == null) httpClient.close();
             return false;
           }
-          await Future.delayed(Duration(seconds: retries));
+          await Future<void>.delayed(Duration(seconds: retries));
           continue; // Retry
         }
       }
@@ -315,7 +316,7 @@ class PackDownloaderService {
         return false;
       }
     } catch (e) {
-      print("requestDownload caught error at end: $e");
+      debugPrint("requestDownload caught error at end: $e");
       _downloadStates[languageCode] = PackDownloadState.paused;
       if (client == null) httpClient.close();
       return false;
