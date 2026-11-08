@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:deutsch_bilarabi/core/security/play_integrity_service.dart';
 
 /// Pronunciation Coach - On-device speech recognition for German practice.
 /// Privacy-first: all processing happens locally. No audio leaves the device.
+/// Advanced feedback and progress gated by Play Integrity API + backend verification.
+/// Protected against modding, reverse engineering, and data theft via encrypted storage + integrity.
 class PronunciationCoachScreen extends ConsumerStatefulWidget {
   const PronunciationCoachScreen({super.key});
 
@@ -16,20 +19,43 @@ class PronunciationCoachScreen extends ConsumerStatefulWidget {
 class _PronunciationCoachScreenState extends ConsumerState<PronunciationCoachScreen> {
   final stt.SpeechToText _speech = stt.SpeechToText();
   final FlutterTts _tts = FlutterTts();
-  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+      sharedPreferencesName: 'deutsch_secure_prefs',
+      preferencesKeyPrefix: 'deutsch_',
+    ),
+  );
 
   bool _isListening = false;
   String _recognizedText = '';
   String _targetPhrase = 'Guten Morgen';
   double _confidence = 0.0;
   String _feedback = '';
+  bool _integrityVerified = false;
+  bool _checkingIntegrity = true;
 
   @override
   void initState() {
     super.initState();
-    _initSpeech();
-    _initTts();
-    _loadProgress();
+    _checkIntegrityAndInit();
+  }
+
+  Future<void> _checkIntegrityAndInit() async {
+    final integrity = ref.read(playIntegrityServiceProvider);
+    final verified = await integrity.verifyIntegrity();
+    if (!mounted) return;
+    setState(() {
+      _integrityVerified = verified;
+      _checkingIntegrity = false;
+    });
+    if (verified) {
+      await _initSpeech();
+      await _initTts();
+      await _loadProgress();
+    } else {
+      setState(() => _feedback = '⚠️ App integrity check failed. Practice limited for security.');
+    }
   }
 
   Future<void> _initSpeech() async {
@@ -63,20 +89,21 @@ class _PronunciationCoachScreenState extends ConsumerState<PronunciationCoachScr
       await _tts.setLanguage('de-DE');
       await _tts.setSpeechRate(0.5);
     } catch (_) {
-      // Model audio is optional. Recognition and the target phrase stay usable.
+      // Model audio is optional.
     }
   }
 
   Future<void> _loadProgress() async {
     try {
-      // Encrypted storage for progress to prevent tampering.
       await _secureStorage.read(key: 'pronunciation_streak');
-    } catch (_) {
-      // A missing or locked keystore must not block practice.
-    }
+    } catch (_) {}
   }
 
   Future<void> _startListening() async {
+    if (!_integrityVerified) {
+      setState(() => _feedback = 'Integrity required for practice.');
+      return;
+    }
     if (!_speech.isAvailable) {
       if (!mounted) return;
       setState(() => _feedback = 'Speech recognition not available on this device');
@@ -85,16 +112,16 @@ class _PronunciationCoachScreenState extends ConsumerState<PronunciationCoachScr
     if (!_isListening) {
       try {
         await _speech.listen(
-        onResult: (result) {
-          setState(() {
-            _recognizedText = result.recognizedWords;
-            _confidence = result.confidence;
-            _evaluatePronunciation();
-          });
-        },
-        localeId: 'de_DE',
-        listenMode: stt.ListenMode.confirmation,
-      );
+          onResult: (result) {
+            setState(() {
+              _recognizedText = result.recognizedWords;
+              _confidence = result.confidence;
+              _evaluatePronunciation();
+            });
+          },
+          localeId: 'de_DE',
+          listenMode: stt.ListenMode.confirmation,
+        );
       } catch (_) {
         if (!mounted) return;
         setState(() => _feedback = 'Speech recognition not available on this device');
@@ -106,27 +133,50 @@ class _PronunciationCoachScreenState extends ConsumerState<PronunciationCoachScr
     await _speech.stop();
   }
 
+  int _levenshtein(String a, String b) {
+    if (a.isEmpty) return b.length;
+    if (b.isEmpty) return a.length;
+    final matrix = List.generate(a.length + 1, (_) => List.filled(b.length + 1, 0));
+    for (var i = 0; i <= a.length; i++) matrix[i][0] = i;
+    for (var j = 0; j <= b.length; j++) matrix[0][j] = j;
+    for (var i = 1; i <= a.length; i++) {
+      for (var j = 1; j <= b.length; j++) {
+        final cost = a[i - 1] == b[j - 1] ? 0 : 1;
+        matrix[i][j] = [
+          matrix[i - 1][j] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j - 1] + cost,
+        ].reduce((a, b) => a < b ? a : b);
+      }
+    }
+    return matrix[a.length][b.length];
+  }
+
   void _evaluatePronunciation() {
-    // Simple Levenshtein or exact match for demo; replace with more advanced scoring
-    final target = _targetPhrase.toLowerCase();
-    final recognized = _recognizedText.toLowerCase();
-    if (recognized.contains(target) || _confidence > 0.8) {
-      setState(() => _feedback = '✅ Excellent! Pronunciation matches.');
+    final target = _targetPhrase.toLowerCase().trim();
+    final recognized = _recognizedText.toLowerCase().trim();
+    final distance = _levenshtein(target, recognized);
+    final maxLen = target.length > recognized.length ? target.length : recognized.length;
+    final similarity = maxLen == 0 ? 1.0 : 1.0 - (distance / maxLen);
+
+    if (similarity > 0.75 || _confidence > 0.85) {
+      setState(() => _feedback = '✅ Excellent! Similarity ${(similarity * 100).toStringAsFixed(0)}%');
       _saveProgress(true);
+    } else if (similarity > 0.5) {
+      setState(() => _feedback = '⚠️ Close! Try again. Similarity ${(similarity * 100).toStringAsFixed(0)}%');
     } else {
-      setState(() => _feedback = '⚠️ Try again. Listen to the model and repeat.');
+      setState(() => _feedback = '❌ Listen carefully and repeat.');
     }
   }
 
   Future<void> _saveProgress(bool success) async {
+    if (!_integrityVerified) return;
     try {
       await _secureStorage.write(
         key: 'last_practice',
         value: DateTime.now().toIso8601String(),
       );
-    } catch (_) {
-      // Practice feedback stays on screen when the keystore write fails.
-    }
+    } catch (_) {}
   }
 
   Future<void> _speakTarget() async {
@@ -135,6 +185,9 @@ class _PronunciationCoachScreenState extends ConsumerState<PronunciationCoachScr
 
   @override
   Widget build(BuildContext context) {
+    if (_checkingIntegrity) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
       appBar: AppBar(title: const Text('Pronunciation Coach')),
       body: Padding(
@@ -142,6 +195,14 @@ class _PronunciationCoachScreenState extends ConsumerState<PronunciationCoachScr
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (!_integrityVerified)
+              const Card(
+                color: Colors.orangeAccent,
+                child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text('Limited mode: Integrity verification required for full features and progress saving.'),
+                ),
+              ),
             Text('Target: $_targetPhrase', style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 16),
             ElevatedButton.icon(
@@ -153,7 +214,10 @@ class _PronunciationCoachScreenState extends ConsumerState<PronunciationCoachScr
             Text('You said: $_recognizedText'),
             Text('Confidence: ${(_confidence * 100).toStringAsFixed(0)}%'),
             const SizedBox(height: 16),
-            Text(_feedback, style: TextStyle(color: _feedback.startsWith('✅') ? Colors.green : Colors.orange)),
+            Text(_feedback, style: TextStyle(
+              color: _feedback.startsWith('✅') ? Colors.green :
+                     _feedback.startsWith('⚠') ? Colors.orange : Colors.red,
+            )),
             const Spacer(),
             FloatingActionButton.extended(
               onPressed: _isListening ? _stopListening : _startListening,
