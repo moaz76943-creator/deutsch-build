@@ -118,17 +118,28 @@ class PooledDatabaseManager {
       final waiter = Completer<void>();
       Database? leased;
       var waiting = false;
-      await _locked(() async {
-        try {
-          final opened = await _tryOpenLocked(code);
-          if (opened == null) throw const _PoolSaturated();
-          _leases[code] = (_leases[code] ?? 0) + 1;
-          leased = opened;
-        } on _PoolSaturated {
-          _slotWaiters.add(waiter);
-          waiting = true;
-        }
-      });
+      try {
+        await _locked(() async {
+          try {
+            final opened = await _tryOpenLocked(code);
+            if (opened == null) throw const _PoolSaturated();
+            _leases[code] = (_leases[code] ?? 0) + 1;
+            leased = opened;
+          } on _PoolSaturated {
+            _slotWaiters.add(waiter);
+            waiting = true;
+          }
+        });
+      } catch (e) {
+        await _locked(() async {
+          if (_slotWaiters.isNotEmpty) {
+            final next = _slotWaiters.removeAt(0);
+            if (!next.isCompleted) next.complete();
+          }
+        });
+        rethrow;
+      }
+
       if (waiting) {
         await waiter.future;
         continue;
