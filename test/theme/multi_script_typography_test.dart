@@ -4,68 +4,132 @@ import 'package:deutsch_bilarabi/theme/multi_script_typography.dart';
 
 void main() {
   group('MultiScriptTypography.getStyleForScript', () {
-    test('returns style with correct script fallbacks when no baseStyle is provided', () {
-      final style = MultiScriptTypography.getStyleForScript('arab');
-
-      expect(style.fontFamilyFallback, isNotNull);
-      expect(style.fontFamilyFallback, containsAll([
-        'Noto Sans Arabic',
-        'Noto Naskh Arabic',
-        'Geeza Pro',
-        'Arial',
-        'sans-serif',
-      ]));
+    test('returns style with correct fallbacks for latin script', () {
+      final style = MultiScriptTypography.getStyleForScript('latn');
+      expect(
+        style.fontFamilyFallback,
+        ['Roboto', 'Noto Sans', 'Arial', 'Helvetica', 'sans-serif'],
+      );
     });
 
-    test('appends existing baseStyle fallbacks to the new fallbacks without duplication', () {
-      const baseStyle = TextStyle(
-        fontFamilyFallback: ['MyCustomFont', 'Arial'],
+    test('returns style with correct fallbacks for arabic script', () {
+      final style = MultiScriptTypography.getStyleForScript('arab');
+      expect(
+        style.fontFamilyFallback,
+        [
+          'Noto Sans Arabic',
+          'Noto Naskh Arabic',
+          'Geeza Pro',
+          'Arial',
+          'sans-serif'
+        ],
       );
+    });
 
+    test('returns style with correct fallbacks for CJK script', () {
+      final style = MultiScriptTypography.getStyleForScript('hani');
+      expect(
+        style.fontFamilyFallback,
+        [
+          'Noto Sans CJK SC',
+          'Noto Sans CJK TC',
+          'Noto Sans CJK JP',
+          'Noto Sans CJK KR',
+          'Noto Sans SC',
+          'Noto Sans TC',
+          'Noto Sans JP',
+          'Noto Sans KR',
+          'PingFang SC',
+          'Hiragino Sans',
+          'Yu Gothic',
+          'Malgun Gothic',
+          'sans-serif'
+        ],
+      );
+    });
+
+    test('returns style with correct fallbacks for unmapped script', () {
+      final style = MultiScriptTypography.getStyleForScript('unknown');
+      expect(
+        style.fontFamilyFallback,
+        ['Roboto', 'Noto Sans', 'Arial', 'Helvetica', 'sans-serif'], // Defaults to latin
+      );
+    });
+
+    test('merges existing fallbacks without duplicates', () {
+      const baseStyle = TextStyle(fontFamilyFallback: ['MyCustomFont', 'Arial', 'Roboto']);
       final style = MultiScriptTypography.getStyleForScript('latn', baseStyle: baseStyle);
 
-      expect(style.fontFamilyFallback, isNotNull);
-      // 'Arial' is in both, should only appear once.
-      // The order should be script fallbacks first, then existing fallbacks.
-      final fallbacks = style.fontFamilyFallback!;
-      expect(fallbacks, contains('MyCustomFont'));
-
-      final expectedFallbacks = [
-        'Roboto',
-        'Noto Sans',
-        'Arial',
-        'Helvetica',
-        'sans-serif',
-        'MyCustomFont',
-      ];
-      expect(fallbacks, equals(expectedFallbacks));
+      expect(
+        style.fontFamilyFallback,
+        ['Roboto', 'Noto Sans', 'Arial', 'Helvetica', 'sans-serif', 'MyCustomFont'],
+      );
     });
 
-    test('falls back to latin script when scriptCode is unknown', () {
-      final style = MultiScriptTypography.getStyleForScript('unknown_script_code');
+    test('returns style with existing properties preserved', () {
+      const baseStyle = TextStyle(fontSize: 16.0, color: Colors.red);
+      final style = MultiScriptTypography.getStyleForScript('latn', baseStyle: baseStyle);
 
-      expect(style.fontFamilyFallback, isNotNull);
-      expect(style.fontFamilyFallback, containsAll([
-        'Roboto',
-        'Noto Sans',
-        'Arial',
-        'Helvetica',
-        'sans-serif',
-      ]));
+      expect(style.fontSize, 16.0);
+      expect(style.color, Colors.red);
+      expect(
+        style.fontFamilyFallback,
+        ['Roboto', 'Noto Sans', 'Arial', 'Helvetica', 'sans-serif'],
+      );
+    });
+  });
+
+  group('MultiScriptTypography.detectScriptFamily', () {
+    test('detects script from direct script tag', () {
+      expect(
+        MultiScriptTypography.detectScriptFamily('arab'),
+        ScriptFamily.arabic,
+      );
     });
 
-    test('resolves language codes to correct scripts', () {
-      final style = MultiScriptTypography.getStyleForScript('ja');
+    test('detects script from language tag', () {
+      expect(
+        MultiScriptTypography.detectScriptFamily('ar'),
+        ScriptFamily.arabic,
+      );
 
-      expect(style.fontFamilyFallback, isNotNull);
-      expect(style.fontFamilyFallback, contains('Noto Sans CJK JP'));
+      expect(
+        MultiScriptTypography.detectScriptFamily('zh'),
+        ScriptFamily.cjk,
+      );
     });
 
-    test('resolves composite language codes', () {
-      final style = MultiScriptTypography.getStyleForScript('zh-Hant');
+    test('detects script from BCP-47 explicit tag', () {
+      expect(
+        MultiScriptTypography.detectScriptFamily('sr-Latn'),
+        ScriptFamily.latin,
+      );
 
-      expect(style.fontFamilyFallback, isNotNull);
-      expect(style.fontFamilyFallback, contains('Noto Sans CJK TC'));
+      expect(
+        MultiScriptTypography.detectScriptFamily('az-Arab'),
+        ScriptFamily.arabic,
+      );
+    });
+
+    test('normalizes input appropriately', () {
+      expect(
+        MultiScriptTypography.detectScriptFamily(' SR_Latn '),
+        ScriptFamily.latin,
+      );
+    });
+
+    test('defaults to latin for empty string', () {
+      expect(
+        MultiScriptTypography.detectScriptFamily(''),
+        ScriptFamily.latin,
+      );
+    });
+
+    test('defaults to latin for unknown language', () {
+      expect(
+        MultiScriptTypography.detectScriptFamily('xx-YY'),
+        ScriptFamily.latin,
+      );
     });
   });
 }
