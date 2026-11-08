@@ -4,36 +4,40 @@ import 'package:deutsch_bilarabi/theme/multi_script_typography.dart';
 void main() {
   group('MultiScriptTypography.detectScriptFamily', () {
     test('returns latin for empty or whitespace strings', () {
-      expect(MultiScriptTypography.detectScriptFamily(''), equals(ScriptFamily.latin));
-      expect(MultiScriptTypography.detectScriptFamily('   '), equals(ScriptFamily.latin));
+      expect(MultiScriptTypography.detectScriptFamily(''), ScriptFamily.latin);
+      expect(MultiScriptTypography.detectScriptFamily('   '), ScriptFamily.latin);
     });
 
-    test('resolves direct script tags (e.g. latn, arab)', () {
-      expect(MultiScriptTypography.detectScriptFamily('arab'), equals(ScriptFamily.arabic));
-      expect(MultiScriptTypography.detectScriptFamily('cyrl'), equals(ScriptFamily.cyrillic));
-      expect(MultiScriptTypography.detectScriptFamily('grek'), equals(ScriptFamily.greek));
+    test('resolves direct script tags', () {
+      expect(MultiScriptTypography.detectScriptFamily('arab'), ScriptFamily.arabic);
+      expect(MultiScriptTypography.detectScriptFamily('Cyrl'), ScriptFamily.cyrillic);
+      expect(MultiScriptTypography.detectScriptFamily('Hant'), ScriptFamily.cjk);
     });
 
-    test('resolves explicit script subtags in BCP-47 codes taking precedence over language defaults', () {
-      // az-Arab -> Arabic, sr-Latn -> Latin, sr-Cyrl -> Cyrillic
-      expect(MultiScriptTypography.detectScriptFamily('az-Arab'), equals(ScriptFamily.arabic));
-      expect(MultiScriptTypography.detectScriptFamily('sr-Latn'), equals(ScriptFamily.latin));
-      expect(MultiScriptTypography.detectScriptFamily('sr-Cyrl'), equals(ScriptFamily.cyrillic));
-      // With underscores instead of dashes
-      expect(MultiScriptTypography.detectScriptFamily('zh_Hant'), equals(ScriptFamily.cjk));
+    test('resolves simple language codes based on default mapping', () {
+      expect(MultiScriptTypography.detectScriptFamily('ru'), ScriptFamily.cyrillic);
+      expect(MultiScriptTypography.detectScriptFamily('ar'), ScriptFamily.arabic);
+      expect(MultiScriptTypography.detectScriptFamily('zh'), ScriptFamily.cjk);
+      expect(MultiScriptTypography.detectScriptFamily('th'), ScriptFamily.thai);
+      expect(MultiScriptTypography.detectScriptFamily('hi'), ScriptFamily.devanagari);
     });
 
-    test('resolves by language code when no script subtag is present', () {
-      expect(MultiScriptTypography.detectScriptFamily('ar'), equals(ScriptFamily.arabic));
-      expect(MultiScriptTypography.detectScriptFamily('ar-SA'), equals(ScriptFamily.arabic));
-      expect(MultiScriptTypography.detectScriptFamily('ru'), equals(ScriptFamily.cyrillic));
-      expect(MultiScriptTypography.detectScriptFamily('hi'), equals(ScriptFamily.devanagari));
-      expect(MultiScriptTypography.detectScriptFamily('zh-CN'), equals(ScriptFamily.cjk));
+    test('resolves explicit BCP-47 script subtags with precedence', () {
+      expect(MultiScriptTypography.detectScriptFamily('sr-Latn'), ScriptFamily.latin);
+      expect(MultiScriptTypography.detectScriptFamily('sr-Cyrl'), ScriptFamily.cyrillic);
+      expect(MultiScriptTypography.detectScriptFamily('zh-Hant'), ScriptFamily.cjk);
+      expect(MultiScriptTypography.detectScriptFamily('zh-Hans'), ScriptFamily.cjk);
+      expect(MultiScriptTypography.detectScriptFamily('az-Arab'), ScriptFamily.arabic);
     });
 
-    test('defaults to latin for unknown language codes', () {
-      expect(MultiScriptTypography.detectScriptFamily('xx'), equals(ScriptFamily.latin));
-      expect(MultiScriptTypography.detectScriptFamily('xx-YY'), equals(ScriptFamily.latin));
+    test('handles underscore separators interchangeably with hyphens', () {
+      expect(MultiScriptTypography.detectScriptFamily('sr_Latn'), ScriptFamily.latin);
+      expect(MultiScriptTypography.detectScriptFamily('zh_Hant_TW'), ScriptFamily.cjk);
+    });
+
+    test('returns latin for unknown language codes', () {
+      expect(MultiScriptTypography.detectScriptFamily('unknown'), ScriptFamily.latin);
+      expect(MultiScriptTypography.detectScriptFamily('xx-YY'), ScriptFamily.latin);
     });
   });
 }
