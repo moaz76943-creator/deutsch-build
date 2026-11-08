@@ -92,3 +92,20 @@ Use Flutter DevTools Performance view or Android Studio Profiler / Macrobenchmar
 - Monitor memory during scroll.
 
 Further improvements for future runs: lazy-load secondary feature modules more aggressively, WorkManager for any deferred offline pack validation, or itemExtent where heights are fixed.
+
+## Concrete Improvement (this run)
+**Change**: Added `cacheExtent: 600` to both `ListView.separated` instances in `VocabularyV35` (`_buildListView` for corpus items and the custom entries list).
+
+**Why**: Vocabulary cards use complex `ExpansionTile`s with multiple nested widgets, images/audio buttons, and conditional content. Default cacheExtent can lead to build hitches during rapid scrolling as off-screen complex items are materialized. Explicit prefetch of 600 logical pixels keeps more items ready, reducing jank while the builder pattern still bounds memory. Aligns with Flutter list performance best practices.
+
+**Expected measurable impact**:
+- Smoother continuous scrolling on the vocabulary list view: ~5-15% reduction in dropped frames / jank percentage on mid-range devices during flings.
+- Lower raster/UI thread spikes when scrolling past expansion-capable cards.
+- Slightly higher (but bounded) memory during active scroll.
+- No security impact (layout parameter only; no new permissions, no data exposure, R8/obfuscation and offline integrity unchanged).
+
+**Before**: Default cacheExtent (~250px).
+**After**: Explicit 600px prefetch for complex vocabulary cards.
+
+### How to measure
+Flutter DevTools Performance / Android Profiler: open vocabulary screen in list mode, rapid scroll/fling, compare frame times and jank % before/after (profile/release build on physical device).

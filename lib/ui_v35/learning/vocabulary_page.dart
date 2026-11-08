@@ -235,6 +235,7 @@ class _VocabularyV35State extends State<VocabularyV35> {
     final showTranslation = widget
         .dependencies.settingsController.preferences.showAutomaticTranslation;
     return ListView.separated(
+      cacheExtent: 600,
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 28),
       itemCount: items.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -648,6 +649,7 @@ class _VocabularyV35State extends State<VocabularyV35> {
                 );
               }
               return ListView.separated(
+                cacheExtent: 600,
                 padding: const EdgeInsets.fromLTRB(12, 12, 12, 28),
                 itemCount: _customEntries.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
