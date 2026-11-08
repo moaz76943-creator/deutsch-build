@@ -7,12 +7,13 @@ class Vol111UIBridge {
   static const int endTaskId = 4850;
 
   static Map<String, dynamic> getSummary() {
+    final diagnostics = Vol111SystemsDiagnostics.runRealDiagnostics();
     return {
       'volume': volume,
       'range': '$startTaskId-$endTaskId',
       'linguistic_count': Vol111DiscourseRegistry.items.length,
-      'subsystems_count': Vol111SystemsDiagnostics.engines.length,
-      'system_status': Vol111SystemsDiagnostics.runSelfDiagnostics() ? 'OPTIMAL' : 'DEGRADED',
+      'diagnostics': diagnostics,
+      'status': diagnostics['status'] == 'FUNCTIONALLY_VERIFIED' ? 'OPTIMAL' : 'DEGRADED',
     };
   }
 }
