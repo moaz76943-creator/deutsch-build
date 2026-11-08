@@ -1961,5 +1961,316 @@ export const vocabExtra = [
     plural: 'Tage',
     exampleDe: 'Heute ist ein schöner Tag.',
     exampleAr: 'اليوم يوم جميل.'
+  },
+{
+    id: 'v-extra-206',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'singen',
+    arabic: 'يغني',
+    conjugation: {
+      ich: 'singe',
+      du: 'singst',
+      er: 'singt',
+      wir: 'singen',
+      ihr: 'singt',
+      sie_pl: 'singen',
+      präteritum: 'sang',
+      perfekt: 'hat gesungen',
+      aux: 'haben'
+    },
+    example: 'Die Kinder singen ein Lied.',
+    exampleAr: 'الأطفال يغنون أغنية.'
+  },
+  {
+    id: 'v-extra-207',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'tanzen',
+    arabic: 'يرقص',
+    conjugation: {
+      ich: 'tanze',
+      du: 'tanzt',
+      er: 'tanzt',
+      wir: 'tanzen',
+      ihr: 'tanzt',
+      sie_pl: 'tanzen',
+      präteritum: 'tanzte',
+      perfekt: 'hat getanzt',
+      aux: 'haben'
+    },
+    example: 'Wir tanzen auf der Party.',
+    exampleAr: 'نرقص في الحفلة.'
+  },
+  {
+    id: 'v-extra-208',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'schwimmen',
+    arabic: 'يسبح',
+    conjugation: {
+      ich: 'schwimme',
+      du: 'schwimmst',
+      er: 'schwimmt',
+      wir: 'schwimmen',
+      ihr: 'schwimmt',
+      sie_pl: 'schwimmen',
+      präteritum: 'schwamm',
+      perfekt: 'ist geschwommen',
+      aux: 'sein'
+    },
+    example: 'Er schwimmt im See.',
+    exampleAr: 'هو يسبح في البحيرة.'
+  },
+  {
+    id: 'v-extra-209',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'weinen',
+    arabic: 'يبكي',
+    conjugation: {
+      ich: 'weine',
+      du: 'weinst',
+      er: 'weint',
+      wir: 'weinen',
+      ihr: 'weint',
+      sie_pl: 'weinen',
+      präteritum: 'weinte',
+      perfekt: 'hat geweint',
+      aux: 'haben'
+    },
+    example: 'Das Baby weint.',
+    exampleAr: 'الطفل يبكي.'
+  },
+  {
+    id: 'v-extra-210',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'waschen',
+    arabic: 'يغسل',
+    conjugation: {
+      ich: 'wasche',
+      du: 'wäschst',
+      er: 'wäscht',
+      wir: 'waschen',
+      ihr: 'wascht',
+      sie_pl: 'waschen',
+      präteritum: 'wusch',
+      perfekt: 'hat gewaschen',
+      aux: 'haben'
+    },
+    example: 'Ich wasche die Hände.',
+    exampleAr: 'أغسل اليدين.'
+  },
+  {
+    id: 'v-extra-211',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'duschen',
+    arabic: 'يستحم',
+    conjugation: {
+      ich: 'dusche',
+      du: 'duschst',
+      er: 'duscht',
+      wir: 'duschen',
+      ihr: 'duscht',
+      sie_pl: 'duschen',
+      präteritum: 'duschte',
+      perfekt: 'hat geduscht',
+      aux: 'haben'
+    },
+    example: 'Sie duscht morgens.',
+    exampleAr: 'هي تستحم في الصباح.'
+  },
+  {
+    id: 'v-extra-212',
+    type: 'verb',
+    level: 'A2',
+    infinitive: 'frühstücken',
+    arabic: 'يتناول الفطور',
+    conjugation: {
+      ich: 'frühstücke',
+      du: 'frühstückst',
+      er: 'frühstückt',
+      wir: 'frühstücken',
+      ihr: 'frühstückt',
+      sie_pl: 'frühstücken',
+      präteritum: 'frühstückte',
+      perfekt: 'hat gefrühstückt',
+      aux: 'haben'
+    },
+    example: 'Wir frühstücken um acht.',
+    exampleAr: 'نتناول الفطور في الثامنة.'
+  },
+  {
+    id: 'v-extra-213',
+    type: 'verb',
+    level: 'A2',
+    infinitive: 'zuhören',
+    arabic: 'يستمع',
+    conjugation: {
+      ich: 'höre zu',
+      du: 'hörst zu',
+      er: 'hört zu',
+      wir: 'hören zu',
+      ihr: 'hört zu',
+      sie_pl: 'hören zu',
+      präteritum: 'hörte zu',
+      perfekt: 'hat zugehört',
+      aux: 'haben'
+    },
+    example: 'Hört ihr zu?',
+    exampleAr: 'هل تستمعون؟'
+  },
+  {
+    id: 'v-extra-214',
+    type: 'verb',
+    level: 'A1',
+    infinitive: 'malen',
+    arabic: 'يرسم',
+    conjugation: {
+      ich: 'male',
+      du: 'malst',
+      er: 'malt',
+      wir: 'malen',
+      ihr: 'malt',
+      sie_pl: 'malen',
+      präteritum: 'malte',
+      perfekt: 'hat gemalt',
+      aux: 'haben'
+    },
+    example: 'Das Kind malt ein Bild.',
+    exampleAr: 'الطفل يرسم صورة.'
+  },
+  {
+    id: 'v-extra-215',
+    type: 'verb',
+    level: 'A2',
+    infinitive: 'zeichnen',
+    arabic: 'يرسم / يخطط',
+    conjugation: {
+      ich: 'zeichne',
+      du: 'zeichnest',
+      er: 'zeichnet',
+      wir: 'zeichnen',
+      ihr: 'zeichnet',
+      sie_pl: 'zeichnen',
+      präteritum: 'zeichnete',
+      perfekt: 'hat gezeichnet',
+      aux: 'haben'
+    },
+    example: 'Er zeichnet einen Baum.',
+    exampleAr: 'هو يرسم شجرة.'
+  },
+  {
+    id: 'v-extra-216',
+    type: 'noun',
+    level: 'A1',
+    de: 'Käse',
+    ar: 'جبن',
+    article: 'der',
+    plural: 'Käse',
+    exampleDe: 'Der Käse schmeckt gut.',
+    exampleAr: 'الجبن لذيذ.'
+  },
+  {
+    id: 'v-extra-217',
+    type: 'noun',
+    level: 'A1',
+    de: 'Suppe',
+    ar: 'حساء',
+    article: 'die',
+    plural: 'Suppen',
+    exampleDe: 'Die Suppe ist heiß.',
+    exampleAr: 'الحساء ساخن.'
+  },
+  {
+    id: 'v-extra-218',
+    type: 'noun',
+    level: 'A1',
+    de: 'Teller',
+    ar: 'طبق',
+    article: 'der',
+    plural: 'Teller',
+    exampleDe: 'Der Teller ist sauber.',
+    exampleAr: 'الطبق نظيف.'
+  },
+  {
+    id: 'v-extra-219',
+    type: 'noun',
+    level: 'A1',
+    de: 'Gabel',
+    ar: 'شوكة',
+    article: 'die',
+    plural: 'Gabeln',
+    exampleDe: 'Ich brauche eine Gabel.',
+    exampleAr: 'أحتاج شوكة.'
+  },
+  {
+    id: 'v-extra-220',
+    type: 'noun',
+    level: 'A1',
+    de: 'Messer',
+    ar: 'سكين',
+    article: 'das',
+    plural: 'Messer',
+    exampleDe: 'Das Messer ist scharf.',
+    exampleAr: 'السكين حاد.'
+  },
+  {
+    id: 'v-extra-221',
+    type: 'noun',
+    level: 'A1',
+    de: 'Löffel',
+    ar: 'ملعقة',
+    article: 'der',
+    plural: 'Löffel',
+    exampleDe: 'Der Löffel liegt auf dem Tisch.',
+    exampleAr: 'الملعقة على الطاولة.'
+  },
+  {
+    id: 'v-extra-222',
+    type: 'noun',
+    level: 'A1',
+    de: 'Küche',
+    ar: 'مطبخ',
+    article: 'die',
+    plural: 'Küchen',
+    exampleDe: 'Die Küche ist modern.',
+    exampleAr: 'المطبخ حديث.'
+  },
+  {
+    id: 'v-extra-223',
+    type: 'noun',
+    level: 'A1',
+    de: 'Bad',
+    ar: 'حمام',
+    article: 'das',
+    plural: 'Bäder',
+    exampleDe: 'Das Bad ist klein.',
+    exampleAr: 'الحمام صغير.'
+  },
+  {
+    id: 'v-extra-224',
+    type: 'noun',
+    level: 'A2',
+    de: 'Tomate',
+    ar: 'طماطم',
+    article: 'die',
+    plural: 'Tomaten',
+    exampleDe: 'Die Tomate ist rot.',
+    exampleAr: 'الطماطم حمراء.'
+  },
+  {
+    id: 'v-extra-225',
+    type: 'noun',
+    level: 'A1',
+    de: 'Kartoffel',
+    ar: 'بطاطا',
+    article: 'die',
+    plural: 'Kartoffeln',
+    exampleDe: 'Die Kartoffeln sind gekocht.',
+    exampleAr: 'البطاطا مطبوخة.'
   }
+];
 ];
