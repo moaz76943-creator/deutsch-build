@@ -222,6 +222,7 @@ class _VerbConjugationPageState extends State<VerbConjugationPage> {
       ),
       body: ListView.builder(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 24),
+        cacheExtent: 800, // Prefetch ~800px ahead for complex verb cards; reduces scroll jank
         itemCount: _items.length,
         itemBuilder: (context, index) {
           final item = _items[index];
@@ -304,6 +305,7 @@ class VerbFavoritesPage extends StatelessWidget {
             )
           : ListView.builder(
               padding: const EdgeInsets.all(12),
+              cacheExtent: 600,
               itemCount: selected.length,
               itemBuilder: (context, index) {
                 final v = selected[index];
