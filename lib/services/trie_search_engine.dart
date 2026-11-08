@@ -8,6 +8,8 @@ class TrieNode {
 /// A bounded, language-specific *search-key* index. It does not mutate or
 /// replace original surface spellings, and it does not infer segmentation.
 class TrieSearchEngine {
+  final int maxInputCodeUnits;
+  final int maxIdCodeUnits;
   TrieNode _root = TrieNode();
   int _nodeCount = 1;
   int _contentVersion = 0;
@@ -153,11 +155,12 @@ class TrieSearchEngine {
     _nodeCount = 1;
   }
 
-  void reset(int newVersion) {
+  void reset(int version) {
     clear();
-    _contentVersion = newVersion;
+    _contentVersion = version;
   }
 
   int get currentNodeCount => _nodeCount;
+
   int get contentVersion => _contentVersion;
 }

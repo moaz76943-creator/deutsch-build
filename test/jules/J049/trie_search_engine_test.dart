@@ -61,10 +61,11 @@ void main() {
       expect(results.length, lessThanOrEqualTo(2));
 
       // Test nodes limit
-      final smallEngine = TrieSearchEngine(maxNodes: 6);
+      final smallEngine = TrieSearchEngine(maxNodes: 5);
       smallEngine.insert('longword', '1');
       expect(smallEngine.searchPrefix('longword'), isEmpty);
-      expect(smallEngine.searchPrefix('long'), ['1']); // Since nodes limited to 6 (1 root + 5 chars, so 'longw' would work, 'long' definitely works)
+      expect(smallEngine.searchPrefix('longw'), isEmpty); // Exceeds node limits
+      expect(smallEngine.searchPrefix('long'), ['1']); // Since nodes limited to 5 (1 root + 4 chars)
     });
 
     test('Stale cache clearing', () {
