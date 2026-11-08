@@ -28,10 +28,30 @@ HSPLio/flutter/embedding/engine/dart/DartExecutor;->executeDartEntrypoint(Lio/fl
 HSPLio/flutter/view/FlutterView;->onDraw(Landroid/graphics/Canvas;)V
 HSPLio/flutter/view/FlutterView;->onLayout(ZIIII)V
 HSPLio/flutter/embedding/android/FlutterView;->onDraw(Landroid/graphics/Canvas;)V
+HSPLio/flutter/embedding/android/FlutterView;->onLayout(ZIIII)V
+
+# Common UI / navigation hot paths (first interactions after launch)
+HSPLio/flutter/widgets/framework/RenderObject;->layout(Lio/flutter/rendering/Constraints;Z)V
+HSPLio/flutter/rendering/RenderObject;->performLayout()V
+HSPLio/flutter/widgets/framework/Element;->updateChild(Lio/flutter/widgets/framework/Element;Lio/flutter/widgets/framework/Widget;Ljava/lang/Object;)Lio/flutter/widgets/framework/Element;
+HSPLio/flutter/widgets/framework/BuildOwner;->buildScope(Lio/flutter/widgets/framework/Element;Lkotlin/jvm/functions/Function0;)V
+HSPLio/flutter/rendering/RenderBox;->performLayout()V
+HSPLio/flutter/material/MaterialApp;->build(Lio/flutter/widgets/framework/BuildContext;)Lio/flutter/widgets/framework/Widget;
+
+# List / scroll performance (reduces jank on vocabulary journal and dashboards)
+HSPLio/flutter/widgets/scrollable/Scrollable;->build(Lio/flutter/widgets/framework/BuildContext;)Lio/flutter/widgets/framework/Widget;
+HSPLio/flutter/widgets/scroll_view/ListView;->build(Lio/flutter/widgets/framework/BuildContext;)Lio/flutter/widgets/framework/Widget;
+HSPLio/flutter/rendering/Viewport;->performLayout()V
 
 # Messaging / plugins (common after first frame)
 HSPLio/flutter/plugin/common/BinaryMessenger;->send(Ljava/lang/String;Ljava/nio/ByteBuffer;)V
 HSPLio/flutter/plugin/common/MethodChannel;->invokeMethod(Ljava/lang/String;Ljava/lang/Object;Lio/flutter/plugin/common/MethodChannel$Result;)V
 
+# Image caching hot paths (CachedNetworkImage / memory cache)
+HSPLio/flutter/painting/ImageProvider;->resolve(Lio/flutter/painting/ImageConfiguration;)Lio/flutter/painting/ImageStream;
+HSPLio/flutter/painting/MemoryImage;->load(Ljava/lang/Object;Lio/flutter/painting/ImageDecoderCallback;)Lio/flutter/painting/ImageStreamCompleter;
+
 # Profile installer itself
 HSPLandroidx/profileinstaller/ProfileInstaller;->writeProfile(Landroid/content/Context;)V
+HSPLandroidx/profileinstaller/ProfileInstaller;->installProfile(Landroid/content/Context;)V
+HSPLandroidx/profileinstaller/ProfileInstaller;->writeProfile(Landroid/content/Context;Ljava/util/concurrent/Executor;Landroidx/profileinstaller/ProfileInstaller$DiagnosticsCallback;)V

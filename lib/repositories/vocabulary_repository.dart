@@ -1,7 +1,5 @@
-<<<<<<< HEAD
-$(cat /tmp/vocab_repo_new.dart)
-=======
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:deutsch_bilarabi/services/database_service.dart';
@@ -58,10 +56,19 @@ class VocabularyRepository {
         return seeded;
       }
 
-      final results = records.map((row) {
-        final jsonStr = row['json_data'] as String;
-        return Map<String, dynamic>.from(jsonDecode(jsonStr) as Map);
-      }).toList();
+      final jsonStrings = records
+          .map((row) => row['json_data'] as String)
+          .toList();
+
+      List<Map<String, dynamic>> results;
+      if (jsonStrings.length > 50) {
+        results = await compute(_decodeVocabularyRecords, jsonStrings);
+      } else {
+        results = jsonStrings.map((jsonStr) {
+          return Map<String, dynamic>.from(jsonDecode(jsonStr) as Map);
+        }).toList();
+      }
+
       _offlineCache = results;
       _isCacheValid = true;
       return results;
@@ -83,13 +90,8 @@ class VocabularyRepository {
       }
 
       if (jsonString != null && jsonString.isNotEmpty && jsonString != '[]') {
-        final decoded = jsonDecode(jsonString);
-        if (decoded is! List) return _offlineCache;
-        final List<dynamic> decodedList = decoded;
-        final items =
-            decodedList
-                .map((e) => Map<String, dynamic>.from(e as Map))
-                .toList();
+        final items = await compute(_parseVocabularyJson, jsonString);
+        if (items.isEmpty) return _offlineCache;
         await saveVocabularyList(items);
         return items;
       }
@@ -289,4 +291,20 @@ class VocabularyRepository {
     };
   }
 }
->>>>>>> origin/staging/v2-full-platform
+
+// Top-level for isolate compute (must be top-level or static)
+List<Map<String, dynamic>> _decodeVocabularyRecords(List<String> jsonStrings) {
+  return jsonStrings.map((jsonStr) {
+    return Map<String, dynamic>.from(jsonDecode(jsonStr) as Map);
+  }).toList();
+}
+
+List<Map<String, dynamic>> _parseVocabularyJson(String jsonString) {
+  try {
+    final decoded = jsonDecode(jsonString);
+    if (decoded is! List) return [];
+    return decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  } catch (_) {
+    return [];
+  }
+}

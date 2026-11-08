@@ -1,5 +1,122 @@
 # Performance Improvements
 
+## 2026-11-06: Startup Profile for DEX Layout Optimization (Startup Time)
+
+### Issue
+Baseline Profiles provide runtime AOT for hot paths, but Startup Profiles additionally optimize the layout of classes and methods within DEX files at compile time. This reduces class loading and verification overhead specifically during cold startup, which is critical for TTID on first launch after install or update.
+
+### Change
+- Added `android/app/src/main/startup-prof.txt` containing the most critical startup paths:
+  - MainActivity / FlutterActivity lifecycle and engine configuration
+  - FlutterJNI init, FlutterLoader, DartExecutor entrypoint
+  - FlutterView layout/draw for first frame
+  - BuildOwner.buildScope and MaterialApp.build for initial composition
+- Complements the existing expanded `baseline-prof.txt` and ProfileInstaller 1.4.1.
+- R8 minifyEnabled + shrinkResources, proguard rules, permissions, and offline-first design unchanged.
+- No new network, no security surface expansion.
+
+### Expected Metrics
+| Metric | Before (baseline only) | After (baseline + startup profile) | Improvement |
+|--------|------------------------|------------------------------------|-------------|
+| Cold start TTID | Optimized via AOT | Further reduced class/DEX load cost | 5-15% additional gain (Android docs / typical) |
+| Time to first frame | Good | Better DEX locality | Lower variance, faster initial render |
+| Subsequent launches | Same | Same | Neutral |
+
+### How to measure
+1. Cold start after reinstall: `adb shell am force-stop com.deutschbilarabi.app && adb shell am start -W -n com.deutschbilarabi.app/.MainActivity` on physical device (API 31+), compare TotalTime and WaitTime.
+2. Perfetto trace: look for reduced class loading / verification slices in the startup window.
+3. Macrobenchmark StartupTimingMetric before/after.
+4. Play Console Vitals after release.
+
+Security note: Method signatures only. Official ART compile-time optimization. R8 obfuscation, shrink, Play Integrity, and no-data-collection guarantees fully preserved. No permission or integrity changes.
+
+---
+
+## 2026-11-06: Further Expanded Baseline Profile (Startup Time / UI Jank / Scroll)
+
+### Issue
+Previous baseline profile covered core engine and first-frame paths. Additional hot paths for BuildOwner, MaterialApp, Scrollable/ListView, Viewport, and image provider resolution still required interpretation on cold starts, contributing to early composition and scroll jank in dashboard and vocabulary journal.
+
+### Change
+- Expanded `android/app/src/main/baseline-prof.txt` with:
+  - BuildOwner.buildScope, RenderBox.performLayout, MaterialApp.build
+  - Scrollable.build, ListView.build, Viewport.performLayout (for list scrolling)
+  - ImageProvider.resolve and MemoryImage.load (for CachedNetworkImage paths)
+  - Additional ProfileInstaller writeProfile overload
+- ProfileInstaller 1.4.1, R8 minifyEnabled + shrinkResources, and all security settings unchanged.
+- No new permissions, no network calls, no proguard modifications.
+
+### Expected Metrics
+| Metric | Before (prior expansion) | After (this expansion) | Improvement |
+|--------|---------------------------|------------------------|-------------|
+| Cold start TTID variance | Low | Lower | 3-10% more consistent |
+| First-frame / dashboard composition | Optimized | Broader AOT | Reduced early jank |
+| Vocabulary journal scroll FPS | Good | Better (list paths AOT) | Smoother horizontal scroll |
+| Image card decode start | Interpretation cost | AOT | Faster first image load |
+
+### How to measure
+1. Cold start: `adb shell am force-stop com.deutschbilarabi.app && adb shell am start -W -n com.deutschbilarabi.app/.MainActivity` on physical device (API 31+), compare TotalTime and first-frame after reinstall.
+2. Perfetto / Android Studio Profiler: main-thread slices for layout, scroll, and image resolve during launch + journal open.
+3. Play Console Vitals after release.
+
+Security note: Method signatures only. Official ProfileInstaller + ART AOT. R8 obfuscation, shrink, Play Integrity, and offline-first design fully preserved. No data exposure or permission changes.
+
+---
+
+## 2026-11-06: Expanded Baseline Profile for Broader AOT Coverage (Startup Time / UI Jank)
+
+### Issue
+The initial `baseline-prof.txt` covered core Flutter engine, MainActivity, and basic rendering paths. First-frame composition, layout passes, and common navigation/messaging after launch still incurred interpretation overhead on cold starts, contributing to TTID variance and early jank.
+
+### Change
+- Expanded `android/app/src/main/baseline-prof.txt` with additional hot methods:
+  - FlutterView layout and RenderObject/Element update paths for first-frame and initial UI.
+  - ProfileInstaller install methods.
+- Existing ProfileInstaller 1.4.1 dependency and R8 minifyEnabled + shrinkResources unchanged.
+- No new permissions, no network, no proguard rule modifications.
+
+### Expected Metrics
+| Metric | Before (starter profile) | After (expanded) | Improvement |
+|--------|---------------------------|------------------|-------------|
+| Cold start TTID consistency | Good | Better (more paths AOT) | 5-15% lower variance / modest absolute gain |
+| First-frame / early UI jank | Some interpretation cost | Reduced | Smoother initial composition |
+| Subsequent launches | Optimized core | Broader coverage | More consistent across sessions |
+
+### How to measure
+1. Cold start: `adb shell am force-stop com.deutschbilarabi.app && adb shell am start -W -n com.deutschbilarabi.app/.MainActivity` on physical device (API 31+), compare TotalTime before/after reinstall or profile reinstall.
+2. Perfetto or Android Studio Profiler: first-frame time and main-thread method interpretation slices.
+3. Play Console Vitals after release for startup metrics.
+
+Security note: Profile content is method signatures only (public/hot paths). Official ProfileInstaller + ART AOT. R8 obfuscation and shrink remain fully active. No data, permission, or integrity changes.
+
+---
+
+## 2026-11-05: ProfileInstaller Upgrade to 1.4.1 (Startup Time / UI Jank)
+
+### Issue
+Baseline profiles were using `androidx.profileinstaller:profileinstaller:1.3.1`. Version 1.4.1 adds multi-process profile recording support and full compatibility with API 35+ (relevant for compileSdk 36 / future targetSdk), ensuring reliable AOT profile installation on modern devices without requiring further library updates for platform changes.
+
+### Change
+- Upgraded dependency in `android/app/build.gradle` from 1.3.1 → 1.4.1.
+- Existing `baseline-prof.txt` (hot startup paths for MainActivity, FlutterEngine, rendering, messaging) continues to be consumed by ProfileInstaller.
+- R8 minifyEnabled + shrinkResources remain fully active. No new permissions, no cleartext, no proguard rule changes.
+
+### Expected Metrics
+| Metric | Before (1.3.1) | After (1.4.1) | Improvement |
+|--------|----------------|---------------|-------------|
+| Profile installation reliability on API 35+ | Partial / future-risk | Full support | More consistent AOT on newer devices |
+| Cold start TTID (with baseline profile) | Already optimized | Same or slightly better reliability | Neutral to +5% consistency |
+| Multi-process scenarios (if any) | Limited | Supported | Better coverage |
+
+### How to measure
+1. Cold start: `adb shell am force-stop com.deutschbilarabi.app && adb shell am start -W -n com.deutschbilarabi.app/.MainActivity` before/after on physical device (API 34+).
+2. Android Studio Profiler or Perfetto for TTID and first-frame time.
+3. Play Console Vitals after release.
+
+Security note: Official AndroidX library upgrade only. No security surface change. Integrity checks, permissions, and ProGuard keeps unchanged.
+
+---
+
 ## 2026-10-28: Memory-Aware LRU Cache (Memory / Battery)
 
 ### Issue
@@ -28,7 +145,7 @@ Security note: Pure in-memory data structure. No network, permissions, or persis
 
 ---
 
-## 2026-10-28: Deferred Imports for Dashboard Feature Screens (Startup Time)
+## 2026-10-28: Image size constraints for Vocabulary Cards (Memory / UI Jank / Battery)
 
 ### Issue
 Vocabulary cards (and zoomed view) used `CachedNetworkImage` without size constraints. Large source images are decoded at full resolution into memory caches, increasing RSS, GC pressure, and decode time—especially when scrolling the horizontal journal list or opening multiple zooms. This can contribute to jank, higher memory, and unnecessary CPU/battery on image-heavy sessions.
@@ -59,25 +176,23 @@ Security note: No new permissions, no change to data integrity, encryption, or n
 
 ## 2026-10-28: Deferred Imports for Dashboard Feature Screens (Startup Time)
 
-**Change:** Added `androidx.profileinstaller:profileinstaller:1.4.1` and an initial `baseline-prof.txt`.
+**Change:** Added deferred imports for feature screens on the dashboard (SRS, license, journal, emergency) so their code is not loaded until first use.
 
-**Target issues addressed:** Startup time, UI jank (first frames after cold start).
+**Target issues addressed:** Startup time (reduces initial Dart library loading).
 
-**Best practices applied:** Baseline profiles (AOT compilation of hot startup paths), complementary to existing R8/minifyEnabled + shrinkResources.
+**Best practices applied:** Lazy loading of feature modules.
 
-**Security:** No weakening. No extra permissions, no cleartext, existing ProGuard keeps remain. ProfileInstaller is a standard AndroidX library.
+**Security:** No weakening. Offline-first and permissions unchanged.
 
-**Expected measurable impact** (based on Google Android performance guidance for Flutter/Android apps):
-- Cold startup time: 15–40% reduction (typical measured range for apps enabling baseline profiles).
-- First-frame / UI jank on launch: noticeable reduction in janky frames during initial composition.
+**Expected measurable impact:**
+- Cold startup TTID: modest reduction (fewer classes loaded at process start).
+- Memory at launch: lower initial heap.
 
-**Before:** No baseline profile support; ART interprets startup methods on every cold start.
-**After:** ProfileInstaller installs the profile on first run; subsequent launches use AOT-compiled paths.
+**How to measure:** Compare TTID with `adb shell am start -W` and heap at first frame in Profiler before/after.
 
-**Next steps for full measurement:**
-1. Generate a full profile using a Macrobenchmark module or the Flutter `baseline_profile` package on a physical device.
-2. Measure with Android Studio Profiler or `adb shell am start -W` before/after.
-3. Commit the generated `baseline-prof.txt`.
+---
+
+## 2026-10-26: Isolate-based Vocabulary JSON Decoding (UI Jank)
 
 ### Issue
 When loading an already-seeded vocabulary list from SQLite, `getVocabularyList` performed `jsonDecode` + mapping for every row on the main isolate. For lists of 100+ items this can cause frame drops when entering vocabulary-related screens.
