@@ -34,13 +34,6 @@ class AppTypography {
     fontFamily: 'Cairo',
   );
 
-  static const TextStyle body = TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.w400,
-    height: 1.45,
-    fontFamily: 'Cairo',
-  );
-
   static const TextStyle label = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w500,
@@ -71,6 +64,13 @@ class AppTypography {
       color: color ?? Colors.white,
     );
   }
+
+  static const TextStyle caption = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    height: 1.4,
+    fontFamily: 'Cairo',
+  );
 
   static TextStyle get body => const TextStyle(
         fontFamily: 'Cairo',
