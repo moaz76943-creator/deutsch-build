@@ -11,11 +11,11 @@ subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
     project.evaluationDependsOn(":app")
 
-<<<<<<< HEAD
     // flutter_tts 3.8.5 still declares compileSdk 31, but its AndroidX
     // dependencies require API 34+. Register the AGP callback after the
     // library plugin is applied, then override its finalized DSL. This
     // affects only this plugin; the app and other modules are untouched.
+    // Required for successful builds when targeting API 36.
     if (project.name == "flutter_tts") {
         project.pluginManager.withPlugin("com.android.library") {
             project.extensions.getByName("androidComponents").finalizeDsl { androidDsl ->
@@ -25,8 +25,6 @@ subprojects {
     }
 }
 
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }

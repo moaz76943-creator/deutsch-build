@@ -42,6 +42,8 @@ HSPLio/flutter/material/MaterialApp;->build(Lio/flutter/widgets/framework/BuildC
 HSPLio/flutter/widgets/scrollable/Scrollable;->build(Lio/flutter/widgets/framework/BuildContext;)Lio/flutter/widgets/framework/Widget;
 HSPLio/flutter/widgets/scroll_view/ListView;->build(Lio/flutter/widgets/framework/BuildContext;)Lio/flutter/widgets/framework/Widget;
 HSPLio/flutter/rendering/Viewport;->performLayout()V
+HSPLio/flutter/widgets/scroll_view/ListView$builder;->build(Lio/flutter/widgets/framework/BuildContext;)Lio/flutter/widgets/framework/Widget;
+HSPLio/flutter/rendering/sliver/SliverMultiBoxAdaptorElement;->updateChild(Lio/flutter/widgets/framework/Element;Lio/flutter/widgets/framework/Widget;Ljava/lang/Object;)Lio/flutter/widgets/framework/Element;
 
 # Messaging / plugins (common after first frame)
 HSPLio/flutter/plugin/common/BinaryMessenger;->send(Ljava/lang/String;Ljava/nio/ByteBuffer;)V
@@ -55,3 +57,8 @@ HSPLio/flutter/painting/MemoryImage;->load(Ljava/lang/Object;Lio/flutter/paintin
 HSPLandroidx/profileinstaller/ProfileInstaller;->writeProfile(Landroid/content/Context;)V
 HSPLandroidx/profileinstaller/ProfileInstaller;->installProfile(Landroid/content/Context;)V
 HSPLandroidx/profileinstaller/ProfileInstaller;->writeProfile(Landroid/content/Context;Ljava/util/concurrent/Executor;Landroidx/profileinstaller/ProfileInstaller$DiagnosticsCallback;)V
+
+# Additional for UI jank reduction (2026-11-07)
+HSPLio/flutter/widgets/framework/Element;->rebuild()V
+HSPLio/flutter/rendering/RenderObject;->paint(Landroid/graphics/Canvas;Landroid/graphics/Offset;)V
+HSPLio/flutter/widgets/scrollable/ScrollableState;->setState(Lkotlin/jvm/functions/Function0;)V
