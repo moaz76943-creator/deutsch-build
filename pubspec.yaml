@@ -25,6 +25,8 @@ dependencies:
   sqflite_common_ffi: '>=2.3.0 <2.4.0'
   sqlite3: '>=2.3.0 <3.0.0'
   crypto: ^3.0.7
+  flutter_secure_storage: ^9.2.2
+  speech_to_text: ^7.0.0
 
   archive: ^4.5.2
   flutter_animate: ^4.5.2
