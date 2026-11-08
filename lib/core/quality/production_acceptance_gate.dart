@@ -46,6 +46,7 @@ class J025StartupContract {
 
   final Set<String> registeredLanguages;
   final Set<String> verifiedDictionaries;
+  final List<LanguageReadinessEvidence> languageEvidence;
 
   final bool hasOptionalAudio;
   final bool hasExecutedTests;
@@ -64,6 +65,7 @@ class J025StartupContract {
     this.isVerificationStale = false,
     this.registeredLanguages = const {},
     this.verifiedDictionaries = const {},
+    this.languageEvidence = const [],
     this.hasOptionalAudio = true,
     this.hasExecutedTests = true,
     this.hasNewDartErrors = false,
@@ -180,6 +182,23 @@ class ProductionAcceptanceGate {
         eligibility: PromotionEligibility.blocked,
         reason: 'Unsupported language claims detected.',
       );
+    }
+
+    for (final evidence in contract.languageEvidence) {
+      if (!evidence.hasLocalPackEvidence) {
+        return const J095VerificationResult(
+          outcome: GateOutcome.failed,
+          eligibility: PromotionEligibility.blocked,
+          reason: 'Missing local pack evidence for language.',
+        );
+      }
+      if (evidence.isMetadataOnly) {
+        return const J095VerificationResult(
+          outcome: GateOutcome.failed,
+          eligibility: PromotionEligibility.blocked,
+          reason: 'Metadata-only languages cannot be certified as ready.',
+        );
+      }
     }
 
     if (!contract.hasOptionalAudio) {

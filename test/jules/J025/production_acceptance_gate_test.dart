@@ -1,6 +1,21 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/quality/production_acceptance_gate.dart';
 
+class _MockLanguageReadinessEvidence implements LanguageReadinessEvidence {
+  @override
+  final String languageCode;
+  @override
+  final bool hasLocalPackEvidence;
+  @override
+  final bool isMetadataOnly;
+
+  const _MockLanguageReadinessEvidence({
+    required this.languageCode,
+    this.hasLocalPackEvidence = true,
+    this.isMetadataOnly = false,
+  });
+}
+
 void main() {
   group('ProductionAcceptanceGate', () {
     test('verifyAppReadiness remains backward compatible', () {
@@ -125,6 +140,38 @@ void main() {
       final result = ProductionAcceptanceGate.evaluateReadiness(contract);
       expect(result.outcome, GateOutcome.passed);
       expect(result.eligibility, PromotionEligibility.degraded);
+    });
+
+    test('Missing local pack evidence blocks acceptance', () {
+      const contract = J025StartupContract(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        languageEvidence: [
+          _MockLanguageReadinessEvidence(languageCode: 'en', hasLocalPackEvidence: false),
+        ],
+      );
+
+      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
+      expect(result.outcome, GateOutcome.failed);
+      expect(result.eligibility, PromotionEligibility.blocked);
+      expect(result.reason, 'Missing local pack evidence for language.');
+    });
+
+    test('Metadata-only languages block acceptance', () {
+      const contract = J025StartupContract(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        languageEvidence: [
+          _MockLanguageReadinessEvidence(languageCode: 'en', isMetadataOnly: true),
+        ],
+      );
+
+      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
+      expect(result.outcome, GateOutcome.failed);
+      expect(result.eligibility, PromotionEligibility.blocked);
+      expect(result.reason, 'Metadata-only languages cannot be certified as ready.');
     });
 
     test('Successful pass', () {
