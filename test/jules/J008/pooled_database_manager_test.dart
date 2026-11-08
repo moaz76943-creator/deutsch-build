@@ -108,4 +108,68 @@ void main() {
     await manager.closeAll();
     if (file.existsSync()) file.deleteSync();
   });
+
+  test('J008 Handle failed opening, cancellation and leaked leases', () async {
+    final manager = PooledDatabaseManager(
+      openConnection: (String code) async {
+        if (code == 'xx-fail') {
+          throw Exception('Simulated open failure');
+        }
+        final file = File('test_fail_$code.db');
+        return await databaseFactory.openDatabase(file.path);
+      },
+      maxConnections: 1,
+    );
+
+    // Open one successfully
+    await manager.withDatabase('de-de', (db) async {
+      expect(db.isOpen, true);
+    });
+
+    // Try opening one that fails while having max connections
+    // This will evict de-de, and attempt to open fail. It fails.
+    // The active connections should be 0.
+    await expectLater(() => manager.open('xx-fail'), throwsException);
+    expect(manager.activeCount, 0);
+
+    // Try withDatabase when the first slot fails to open,
+    // a subsequent wait queue caller should eventually be woken up and able to open their own.
+    final futures = <Future<void>>[];
+
+    // Occupy the single slot
+    final f1 = manager.withDatabase('en-us', (db) async {
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    });
+
+    futures.add(f1);
+
+    // This will queue up because maxConnections=1 and en-us is leased.
+    // When en-us is released, this attempts to open but fails.
+    final fFail = manager.withDatabase('xx-fail', (db) async {});
+
+    // This will queue up behind fail. When fail fails, it should wake up this request,
+    // which will then successfully open es-es.
+    final f3 = manager.withDatabase('es-es', (db) async {
+      expect(db.isOpen, true);
+    });
+
+    futures.add(f3);
+
+    // Wait for the fail to complete with error
+    await expectLater(fFail, throwsException);
+
+    // Wait for the others to succeed
+    await Future.wait(futures);
+
+    expect(manager.activeCount, 1);
+
+    await manager.closeAll();
+
+    final files = ['test_fail_de-de.db', 'test_fail_en-us.db', 'test_fail_es-es.db'];
+    for(final f in files) {
+      if(File(f).existsSync()) {
+        File(f).deleteSync();
+      }
+    }
+  });
 }
