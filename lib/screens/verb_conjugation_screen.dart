@@ -41,7 +41,7 @@ class _VerbConjugationScreenState extends State<VerbConjugationScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const GrammarGuideScreen()),
+                MaterialPageRoute<void>(builder: (_) => const GrammarGuideScreen()),
               );
             },
           ),
@@ -73,13 +73,11 @@ class _VerbConjugationScreenState extends State<VerbConjugationScreen> {
                           children: <Widget>[
                             Text(
                               _verbData['verb'] as String,
-                              style: AppTypography.display
-                                  .copyWith(color: Colors.white, fontSize: 20),
+                              style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                             ),
                             Text(
                               _verbData['type'] as String,
-                              style: AppTypography.body.copyWith(
-                                  color: Colors.white70, fontSize: 12),
+                              style: const TextStyle(color: Colors.white70, fontSize: 12),
                             ),
                           ],
                         ),
@@ -123,13 +121,11 @@ class _VerbConjugationScreenState extends State<VerbConjugationScreen> {
                           children: <Widget>[
                             Text(
                               pronoun,
-                              style: AppTypography.title.copyWith(
-                                  color: Colors.white70, fontSize: 16),
+                              style: const TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w600),
                             ),
                             Text(
                               conjugated,
-                              style: AppTypography.display.copyWith(
-                                  color: const Color(0xFF38BDF8), fontSize: 18),
+                              style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
