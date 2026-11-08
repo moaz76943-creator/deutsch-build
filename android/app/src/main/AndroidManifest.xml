@@ -1,7 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <!-- App-private external pack directories need no broad storage permission.
-         These removal directives also block permissions from plugin manifests. -->
+         These removal directives also block permissions from plugin manifests.
+         Explicitly remove network permissions to enforce offline-first design
+         and guarantee no data can leave the device (Data safety compliance). -->
+    <uses-permission android:name="android.permission.INTERNET"
+        tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"
+        tools:node="remove" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
         tools:node="remove" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
