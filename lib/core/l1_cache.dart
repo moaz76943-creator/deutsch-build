@@ -10,15 +10,22 @@ class L1VocabularyCache {
 
   L1VocabularyCache._internal() {
     _memoryCache = LruMemoryCache<String, List<Map<String, dynamic>>>(
-      maxCapacity: 100,
-      maxMemoryBytes: 10 * 1024 * 1024, // 10MB budget
+      maxCapacity: 50,
+      maxMemoryBytes: 5 * 1024 * 1024, // 5MB budget
       onEvict: (key) {
         _identities.remove(key);
       },
+      sizeEstimator: (k, v) => _measureSize(v),
     );
   }
 
-  int _measureSize(List<Map<String, dynamic>> items) {
+  int get currentMemoryBytes => _memoryCache.currentMemoryBytes;
+
+  String generateKey(String language, String direction, String contentVersion) {
+    return '${language}_${direction}_$contentVersion';
+  }
+
+  static int _measureSize(List<Map<String, dynamic>> items) {
     int size = 0;
     for (final item in items) {
       for (final entry in item.entries) {
@@ -52,8 +59,7 @@ class L1VocabularyCache {
 
     _invalidateStale(identity);
 
-    final size = _measureSize(items);
-    _memoryCache.put(langCode, List.unmodifiable(items), itemSizeBytes: size);
+    _memoryCache.put(langCode, List.unmodifiable(items));
     _identities[langCode] = identity;
   }
 
@@ -75,21 +81,77 @@ class L1VocabularyCache {
     }
   }
 
-  // Legacy fallback
-  void put(String langCode, List<Map<String, dynamic>> items) {
-    _memoryCache.put(langCode, List.unmodifiable(items),
-        itemSizeBytes: _measureSize(items));
+  void put(String keyOrLang, List<Map<String, dynamic>> items,
+      {String? direction, dynamic packVersion, int? requestEpoch, int? activeEpoch}) {
+    if (requestEpoch != null && activeEpoch != null && requestEpoch < activeEpoch) {
+      return;
+    }
+
+    String effectiveKey = keyOrLang;
+    if (direction != null || packVersion != null) {
+      effectiveKey = generateKey(keyOrLang, direction ?? '', packVersion?.toString() ?? '');
+    }
+
+    _memoryCache.put(effectiveKey, List.unmodifiable(items));
   }
 
-  List<Map<String, dynamic>>? get(String langCode) {
-    return _memoryCache.get(langCode);
+  List<Map<String, dynamic>>? get(String key, {String? direction, dynamic packVersion}) {
+    String effectiveKey = key;
+    if (direction != null || packVersion != null) {
+      effectiveKey = generateKey(key, direction ?? '', packVersion?.toString() ?? '');
+    }
+    if (!_memoryCache.containsKey(effectiveKey) && _memoryCache.containsKey(key)) {
+      return _memoryCache.get(key);
+    }
+    return _memoryCache.get(effectiveKey);
   }
 
-  bool has(String langCode) => _memoryCache.containsKey(langCode);
+  bool has(String key, {String? direction, dynamic packVersion}) {
+    String effectiveKey = key;
+    if (direction != null || packVersion != null) {
+      effectiveKey = generateKey(key, direction ?? '', packVersion?.toString() ?? '');
+    }
+    return _memoryCache.containsKey(effectiveKey) || _memoryCache.containsKey(key);
+  }
+
+  void invalidateStaleVersions(String version) {
+    final keysToRemove = <String>[];
+    for (final key in _memoryCache.keys) {
+      final parts = key.split('_');
+      if (parts.length >= 3) {
+        final keyVersion = parts.last;
+        if (keyVersion != version) {
+          keysToRemove.add(key);
+        }
+      }
+    }
+    for (final k in keysToRemove) {
+      _memoryCache.remove(k);
+    }
+  }
+
+  void invalidateStale(String language, String direction, dynamic packVersion) {
+    final keysToRemove = <String>[];
+    final versionStr = packVersion.toString();
+    for (final key in _memoryCache.keys) {
+      final parts = key.split('_');
+      if (parts.length >= 3) {
+        if (parts[0] == language && parts[1] == direction && parts[2] != versionStr) {
+          keysToRemove.add(key);
+        }
+      }
+    }
+    for (final k in keysToRemove) {
+      _memoryCache.remove(k);
+    }
+  }
 
   void clear() {
     _memoryCache.clear();
-    // _identities is implicitly cleared via onEvict callbacks
+  }
+
+  void onMemoryPressure() {
+    _memoryCache.trimMemoryPressure();
   }
 
   void trimMemoryPressure() {
