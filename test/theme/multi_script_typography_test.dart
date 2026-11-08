@@ -1,43 +1,71 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/theme/multi_script_typography.dart';
 
 void main() {
-  group('MultiScriptTypography.detectScriptFamily', () {
-    test('returns latin for empty or whitespace strings', () {
-      expect(MultiScriptTypography.detectScriptFamily(''), ScriptFamily.latin);
-      expect(MultiScriptTypography.detectScriptFamily('   '), ScriptFamily.latin);
+  group('MultiScriptTypography.getStyleForScript', () {
+    test('returns style with correct script fallbacks when no baseStyle is provided', () {
+      final style = MultiScriptTypography.getStyleForScript('arab');
+
+      expect(style.fontFamilyFallback, isNotNull);
+      expect(style.fontFamilyFallback, containsAll([
+        'Noto Sans Arabic',
+        'Noto Naskh Arabic',
+        'Geeza Pro',
+        'Arial',
+        'sans-serif',
+      ]));
     });
 
-    test('resolves direct script tags', () {
-      expect(MultiScriptTypography.detectScriptFamily('arab'), ScriptFamily.arabic);
-      expect(MultiScriptTypography.detectScriptFamily('Cyrl'), ScriptFamily.cyrillic);
-      expect(MultiScriptTypography.detectScriptFamily('Hant'), ScriptFamily.cjk);
+    test('appends existing baseStyle fallbacks to the new fallbacks without duplication', () {
+      const baseStyle = TextStyle(
+        fontFamilyFallback: ['MyCustomFont', 'Arial'],
+      );
+
+      final style = MultiScriptTypography.getStyleForScript('latn', baseStyle: baseStyle);
+
+      expect(style.fontFamilyFallback, isNotNull);
+      // 'Arial' is in both, should only appear once.
+      // The order should be script fallbacks first, then existing fallbacks.
+      final fallbacks = style.fontFamilyFallback!;
+      expect(fallbacks, contains('MyCustomFont'));
+
+      final expectedFallbacks = [
+        'Roboto',
+        'Noto Sans',
+        'Arial',
+        'Helvetica',
+        'sans-serif',
+        'MyCustomFont',
+      ];
+      expect(fallbacks, equals(expectedFallbacks));
     });
 
-    test('resolves simple language codes based on default mapping', () {
-      expect(MultiScriptTypography.detectScriptFamily('ru'), ScriptFamily.cyrillic);
-      expect(MultiScriptTypography.detectScriptFamily('ar'), ScriptFamily.arabic);
-      expect(MultiScriptTypography.detectScriptFamily('zh'), ScriptFamily.cjk);
-      expect(MultiScriptTypography.detectScriptFamily('th'), ScriptFamily.thai);
-      expect(MultiScriptTypography.detectScriptFamily('hi'), ScriptFamily.devanagari);
+    test('falls back to latin script when scriptCode is unknown', () {
+      final style = MultiScriptTypography.getStyleForScript('unknown_script_code');
+
+      expect(style.fontFamilyFallback, isNotNull);
+      expect(style.fontFamilyFallback, containsAll([
+        'Roboto',
+        'Noto Sans',
+        'Arial',
+        'Helvetica',
+        'sans-serif',
+      ]));
     });
 
-    test('resolves explicit BCP-47 script subtags with precedence', () {
-      expect(MultiScriptTypography.detectScriptFamily('sr-Latn'), ScriptFamily.latin);
-      expect(MultiScriptTypography.detectScriptFamily('sr-Cyrl'), ScriptFamily.cyrillic);
-      expect(MultiScriptTypography.detectScriptFamily('zh-Hant'), ScriptFamily.cjk);
-      expect(MultiScriptTypography.detectScriptFamily('zh-Hans'), ScriptFamily.cjk);
-      expect(MultiScriptTypography.detectScriptFamily('az-Arab'), ScriptFamily.arabic);
+    test('resolves language codes to correct scripts', () {
+      final style = MultiScriptTypography.getStyleForScript('ja');
+
+      expect(style.fontFamilyFallback, isNotNull);
+      expect(style.fontFamilyFallback, contains('Noto Sans CJK JP'));
     });
 
-    test('handles underscore separators interchangeably with hyphens', () {
-      expect(MultiScriptTypography.detectScriptFamily('sr_Latn'), ScriptFamily.latin);
-      expect(MultiScriptTypography.detectScriptFamily('zh_Hant_TW'), ScriptFamily.cjk);
-    });
+    test('resolves composite language codes', () {
+      final style = MultiScriptTypography.getStyleForScript('zh-Hant');
 
-    test('returns latin for unknown language codes', () {
-      expect(MultiScriptTypography.detectScriptFamily('unknown'), ScriptFamily.latin);
-      expect(MultiScriptTypography.detectScriptFamily('xx-YY'), ScriptFamily.latin);
+      expect(style.fontFamilyFallback, isNotNull);
+      expect(style.fontFamilyFallback, contains('Noto Sans CJK TC'));
     });
   });
 }
