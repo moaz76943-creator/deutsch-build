@@ -1,6 +1,6 @@
 # Privacy Policy for Deutsch بالعربي
 
-**Last updated:** October 30, 2026
+**Last updated:** November 8, 2026
 
 **Developer / Entity:** moaz76943-creator (matches Google Play developer account listing)
 
@@ -22,6 +22,7 @@ The app is designed to function primarily without an internet connection. Most l
 - **Collection:** Audio is processed **locally on your device only**. We do not transmit, store on servers, or share audio recordings. Per Google Play Data safety guidelines, pure on-device processing that never leaves the device is not considered "collection" or "sharing".
 - **Data Safety:** No voice data is collected or shared off the device. Declare "No" for Audio files / Voice or sound recordings in the Play Console Data safety form.
 - You can deny the permission; text-based practice remains available.
+- **Recommended prominent disclosure text (show immediately before the system permission dialog):** "Deutsch بالعربي needs access to your microphone to analyze your pronunciation on-device for practice. Audio never leaves your device and is not stored or shared."
 
 ### Network Access (INTERNET, ACCESS_NETWORK_STATE)
 
@@ -53,8 +54,17 @@ Exact answers for the Play Console Data safety form (must match this policy):
 - **Data collected:** None. On-device processing of optional microphone input does not leave the device and is not declared as collected data. Play Integrity checks do not involve collection of user personal data.
 - **Data shared:** None.
 - **Is all of the user data collected by your app encrypted in transit?** N/A (no data collected); any network traffic uses HTTPS.
-- **Do you provide a way for users to request that their data is deleted?** Yes — uninstalling the app removes all local data. No server-side data exists.
+- **Do you provide a way for users to request that their data is deleted?** Yes — see the dedicated section below. Uninstalling the app removes all local data. No server-side data exists.
 - **Security practices:** Data encrypted in transit where applicable (HTTPS); local data protected by Android sandbox and encryption where used. App uses Google Play App Signing and Play Integrity API.
+
+## Your Rights and Data Deletion
+
+Because the app stores data only locally on your device and does not create user accounts or store personal data on servers:
+
+- **Access / Review:** All data is under your control on the device. No remote access is possible.
+- **Deletion:** Uninstall the app to permanently delete all local learning progress, preferences, and any temporary audio buffers. There is no server-side data to delete. This is the complete and only deletion path required. No additional in-app deletion UI is needed because no persistent remote data exists.
+- **Request confirmation:** You may contact us via the methods listed above if you need confirmation that no residual data exists.
+- This satisfies Google Play requirements for a clear deletion path (in-app via uninstall, and documented publicly).
 
 ## Permissions Summary
 
@@ -72,7 +82,8 @@ Exact answers for the Play Console Data safety form (must match this policy):
 - Play Integrity API for device and app integrity checks (requires CLOUD_PROJECT_NUMBER for production).
 - Targets Android 16 (API level 36), meeting the August 31, 2026 requirement for new apps and updates. Existing apps need at least API 35 to remain available to new users on newer devices.
 - allowBackup="false"; usesCleartextTraffic="false"; data extraction rules configured; R8/ProGuard minification and resource shrinking enabled in release.
-- Prominent disclosure is shown in-app before any sensitive permission request (e.g., microphone).
+- Prominent disclosure is shown in-app before any sensitive permission request (e.g., microphone). See recommended text above.
+- FLAG_SECURE is set to prevent screenshots of sensitive learning content in the app switcher (disabled only in debug builds).
 
 ## Children's Privacy
 
