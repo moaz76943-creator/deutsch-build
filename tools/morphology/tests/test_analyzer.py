@@ -69,9 +69,40 @@ class TestAnalyzer(unittest.TestCase):
 
         analyzer.close()
 
+    def test_finnish_neutral_vowels(self):
+        self.ndb.execute("INSERT INTO nominals VALUES ('vesi1', 'vesi', 'noun', 'none', 'sg')")
+        self.ndb.commit()
+
+        fi = get_profile("fi")
+        analyzer = MorphologyAnalyzer([self.noun_db_path], fi)
+
+        res = analyzer.analyze("vesissäni")
+        self.assertEqual(len(res), 1)
+
+        res2 = analyzer.analyze("vesissani")
+        self.assertEqual(len(res2), 0)
+
+        analyzer.close()
+
+    def test_turkish_vowel_harmony_4_way(self):
+        self.ndb.execute("INSERT INTO nominals VALUES ('göz1', 'göz', 'noun', 'none', 'sg')")
+        self.ndb.commit()
+
+        tr = get_profile("tr")
+        analyzer = MorphologyAnalyzer([self.noun_db_path], tr)
+
+        res = analyzer.analyze("gözüm")
+        self.assertEqual(len(res), 1)
+
+        res2 = analyzer.analyze("gözim")
+        self.assertEqual(len(res2), 0)
+
+        analyzer.close()
+
     def test_german_strong_weak(self):
         self.vdb.execute("INSERT INTO verbs VALUES ('v1', 'machen', 'make', 1)")
         self.vdb.execute("INSERT INTO verbs VALUES ('v2', 'gehen', 'go', 2)")
+        self.vdb.execute("INSERT INTO verbs VALUES ('v3', 'studieren', 'to study', 3)")
         self.vdb.execute("INSERT INTO verb_conjugations VALUES ('c1', 'v1', 'present', '1s', 'mache')")
         self.vdb.execute("INSERT INTO verb_conjugations VALUES ('c2', 'v2', 'past', '3s', 'ging')")
         self.vdb.commit()
@@ -97,6 +128,11 @@ class TestAnalyzer(unittest.TestCase):
         self.assertEqual(len(res), 1)
         self.assertEqual(res[0].lemma, "gehen")
         self.assertEqual(res[0].tags, ["past", "3s"])
+
+        res = analyzer.analyze("studiert")
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0].lemma, "studieren")
+        self.assertEqual(res[0].tags, ["PART_PERF"])
 
         analyzer.close()
 
