@@ -12,7 +12,7 @@
 
 Deutsch بالعربي is an offline-first German language learning application designed for Arabic speakers. We prioritize user privacy. This policy explains how the app accesses, processes, and handles data in compliance with Google Play User Data policy, Data safety requirements, Core App Quality guidelines, and security standards.
 
-The app is designed to function primarily without an internet connection. Most learning content, progress, and features operate entirely on your device.
+The app is designed to function entirely without an internet connection. Learning content, progress, and features operate on your device only. No network permissions are declared.
 
 ## Data We Access and Process
 
@@ -24,11 +24,10 @@ The app is designed to function primarily without an internet connection. Most l
 - You can deny the permission; text-based practice remains available.
 - **Recommended prominent disclosure text (show immediately before the system permission dialog):** "Deutsch بالعربي needs access to your microphone to analyze your pronunciation on-device for practice. Audio never leaves your device and is not stored or shared."
 
-### Network Access (INTERNET, ACCESS_NETWORK_STATE)
+### Network Access
 
-- **Purpose:** Optional features such as checking for content updates, downloading additional packs (if implemented), or Play Integrity checks. The core app works offline.
-- **Data:** No personal data is required or collected via the network for core functionality. Any network requests are minimal and for app functionality only. Data in transit uses modern cryptography (HTTPS).
-- **Play Integrity:** Integrity tokens may be obtained from Google Play services for app/device integrity verification. These tokens do not contain personal user data and are not used for tracking or advertising. They are processed according to Google's terms and are not stored by us beyond the immediate check.
+- **No network permissions declared.** The app does not request or use `INTERNET`, `ACCESS_NETWORK_STATE`, or related permissions. This is enforced in the manifests and quality-gate tests to keep the app fully offline.
+- No data can leave the device via the network. Core functionality does not depend on connectivity.
 
 ### Local Storage
 
@@ -44,18 +43,18 @@ The app does **not** collect or access:
 - Advertising IDs or tracking data
 - Account information (no user accounts required for core use)
 - Any personal identifiable information (PII)
-- Device identifiers beyond what is necessary for Play Integrity (and only when network is available)
+- Device identifiers for tracking or advertising
 
 ## Data Safety Declaration (for Google Play)
 
 Exact answers for the Play Console Data safety form (must match this policy):
 
 - **Does your app collect or share any of the required user data types?** No
-- **Data collected:** None. On-device processing of optional microphone input does not leave the device and is not declared as collected data. Play Integrity checks do not involve collection of user personal data.
+- **Data collected:** None. On-device processing of optional microphone input does not leave the device and is not declared as collected data. No network access exists, so no off-device transmission is possible.
 - **Data shared:** None.
-- **Is all of the user data collected by your app encrypted in transit?** N/A (no data collected); any network traffic uses HTTPS.
+- **Is all of the user data collected by your app encrypted in transit?** N/A (no data collected; no network traffic from the app).
 - **Do you provide a way for users to request that their data is deleted?** Yes — see the dedicated section below. Uninstalling the app removes all local data. No server-side data exists.
-- **Security practices:** Data encrypted in transit where applicable (HTTPS); local data protected by Android sandbox and encryption where used. App uses Google Play App Signing and Play Integrity API.
+- **Security practices:** Local data protected by Android sandbox and encryption where used. App uses Google Play App Signing. Release builds enforce minification, resource shrinking, and signing.
 
 ## Your Rights and Data Deletion
 
@@ -71,19 +70,18 @@ Because the app stores data only locally on your device and does not create user
 | Permission              | Required? | Purpose                              | Off-device transmission? |
 |-------------------------|-----------|--------------------------------------|--------------------------|
 | RECORD_AUDIO            | Optional (runtime, on-demand)  | Pronunciation practice (on-device)  | No                       |
-| INTERNET                | Optional  | Updates / integrity checks          | Minimal, no PII          |
-| ACCESS_NETWORK_STATE    | Optional  | Connectivity checks                 | No                       |
+| INTERNET / network      | Not declared | Not used (offline-first)         | No                       |
 | Storage / media permissions     | Removed   | Not used                            | N/A                      |
 | POST_NOTIFICATIONS      | Removed (release) | Not used                       | N/A                      |
 
 ## App Integrity, Signing, Target SDK, and Security
 
 - Distributed via Google Play App Signing (upload key separate from the signing key managed by Google).
-- Play Integrity API for device and app integrity checks (requires CLOUD_PROJECT_NUMBER for production).
 - Targets Android 16 (API level 36), meeting the August 31, 2026 requirement for new apps and updates. Existing apps need at least API 35 to remain available to new users on newer devices.
 - allowBackup="false"; usesCleartextTraffic="false"; data extraction rules configured; R8/ProGuard minification and resource shrinking enabled in release.
 - Prominent disclosure is shown in-app before any sensitive permission request (e.g., microphone). See recommended text above.
 - FLAG_SECURE is set to prevent screenshots of sensitive learning content in the app switcher (disabled only in debug builds).
+- Play Integrity API code is present in the project for potential future use but is inactive under the current offline-first policy (no network permission is declared, so integrity token requests cannot succeed). No user data is involved.
 
 ## Children's Privacy
 
@@ -99,4 +97,4 @@ For questions about this privacy policy or data practices, contact the developer
 
 ---
 
-**Compliance notes:** Link the public URL in Play Console App content (Privacy policy). Complete Data safety form accurately matching the answers above (no collection/sharing). Provide in-app link and prominent disclosure before RECORD_AUDIO. Ensure GitHub Pages is enabled for the public URL. Target SDK 36, signing, and integrity protections are in place for production readiness.
+**Compliance notes:** Link the public URL in Play Console App content (Privacy policy). Complete Data safety form accurately matching the answers above (no collection/sharing). Provide in-app link and prominent disclosure before RECORD_AUDIO. Ensure GitHub Pages is enabled for the public URL. Target SDK 36, signing, and offline permissions are in place for production readiness.
