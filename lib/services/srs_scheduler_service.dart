@@ -275,7 +275,7 @@ class SrsSchedulerService {
             isUtc: true,
           );
         }
-        if (reviewed.microsecondsSinceEpoch < latestMicros) {
+        if (reviewedAt == null && reviewed.microsecondsSinceEpoch < latestMicros) {
           throw StateError('Stale review cannot overwrite durable progress');
         }
       }
