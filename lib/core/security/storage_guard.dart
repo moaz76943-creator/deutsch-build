@@ -29,9 +29,19 @@ class StorageGuard {
     try {
       final decoded = jsonDecode(rawJson);
       if (decoded is! Map) return false;
-      if (decoded['algorithm'] == null || decoded['hash'] == null || decoded['keyId'] == null) {
-        return false;
-      }
+
+      final algorithm = decoded['algorithm'];
+      if (algorithm == null || algorithm is! String) return false;
+
+      final hash = decoded['hash'];
+      if (hash == null || hash is! int) return false;
+
+      final keyId = decoded['keyId'];
+      if (keyId == null || keyId is! String) return false;
+
+      final expiresAt = decoded['expiresAt'];
+      if (expiresAt != null && expiresAt is! int) return false;
+
       return true;
     } catch (_) {
       return false;

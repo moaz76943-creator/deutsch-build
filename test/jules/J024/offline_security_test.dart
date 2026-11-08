@@ -38,6 +38,15 @@ void main() {
           isTrue);
     });
 
+    test('authorizeUserDownload enforces capability binding', () {
+      expect(OfflineGate.authorizeUserDownload(false, 'test'), isNull);
+
+      final capability = OfflineGate.authorizeUserDownload(true, 'test');
+      expect(capability, isNotNull);
+      expect(capability!.contentId, 'test');
+      expect(capability.isExpired, isFalse);
+    });
+
     test('assertOperationPolicy throws on denial', () {
       expect(() => OfflineGate.assertOperationPolicy(OperationType.telemetry),
           throwsA(isA<StateError>()));
@@ -64,12 +73,49 @@ void main() {
       };
       expect(StorageGuard.validateManifestStructure(jsonEncode(valid)), isTrue);
 
-      final invalid1 = {
+      final validWithExpires = {
+        'algorithm': 'fnv1a',
+        'hash': 123,
+        'keyId': 'key-prod-ed25519-v1',
+        'expiresAt': DateTime.now().millisecondsSinceEpoch + 10000,
+      };
+      expect(StorageGuard.validateManifestStructure(jsonEncode(validWithExpires)), isTrue);
+
+      final invalidMissingFields = {
         'algorithm': 'fnv1a',
         'hash': 123,
       };
-      expect(StorageGuard.validateManifestStructure(jsonEncode(invalid1)), isFalse);
+      expect(StorageGuard.validateManifestStructure(jsonEncode(invalidMissingFields)), isFalse);
       expect(StorageGuard.validateManifestStructure('invalid'), isFalse);
+
+      final invalidTypeAlgo = {
+        'algorithm': 123,
+        'hash': 123,
+        'keyId': 'key',
+      };
+      expect(StorageGuard.validateManifestStructure(jsonEncode(invalidTypeAlgo)), isFalse);
+
+      final invalidTypeHash = {
+        'algorithm': 'fnv1a',
+        'hash': '123',
+        'keyId': 'key',
+      };
+      expect(StorageGuard.validateManifestStructure(jsonEncode(invalidTypeHash)), isFalse);
+
+      final invalidTypeKeyId = {
+        'algorithm': 'fnv1a',
+        'hash': 123,
+        'keyId': 123,
+      };
+      expect(StorageGuard.validateManifestStructure(jsonEncode(invalidTypeKeyId)), isFalse);
+
+      final invalidTypeExpiresAt = {
+        'algorithm': 'fnv1a',
+        'hash': 123,
+        'keyId': 'key-prod-ed25519-v1',
+        'expiresAt': 'not_an_int',
+      };
+      expect(StorageGuard.validateManifestStructure(jsonEncode(invalidTypeExpiresAt)), isFalse);
     });
   });
 
@@ -90,6 +136,22 @@ void main() {
         'keyId': DataIntegritySigner.approvedTrustedKey,
       };
       expect(DataIntegritySigner.verifyManifest(manifest, payload), isTrue);
+
+      expect(DataIntegritySigner.verifyManifest(null, payload), isFalse);
+      expect(DataIntegritySigner.verifyManifest(manifest, null), isFalse);
+    });
+
+    test('Rejects altered payload', () {
+      final payload = 'test payload';
+      final hash = DataIntegritySigner.computeChecksum(payload);
+      final manifest = {
+        'algorithm': 'fnv1a',
+        'hash': hash,
+        'keyId': DataIntegritySigner.approvedTrustedKey,
+      };
+
+      final alteredPayload = 'altered payload';
+      expect(DataIntegritySigner.verifyManifest(manifest, alteredPayload), isFalse);
     });
 
     test('Rejects invalid algorithm or key', () {
