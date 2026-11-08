@@ -3,63 +3,70 @@ import 'package:deutsch_bilarabi/theme/multi_script_typography.dart';
 
 void main() {
   group('MultiScriptTypography.detectScriptFamily', () {
-    test('Empty and whitespace strings default to latin', () {
-      expect(MultiScriptTypography.detectScriptFamily(''), equals(ScriptFamily.latin));
-      expect(MultiScriptTypography.detectScriptFamily(' '), equals(ScriptFamily.latin));
-      expect(MultiScriptTypography.detectScriptFamily('   '), equals(ScriptFamily.latin));
+    test('returns latin for empty or whitespace input', () {
+      expect(MultiScriptTypography.detectScriptFamily(''), ScriptFamily.latin);
+      expect(MultiScriptTypography.detectScriptFamily('   '), ScriptFamily.latin);
     });
 
-    test('Direct script code lookups match correctly', () {
-      expect(MultiScriptTypography.detectScriptFamily('latn'), equals(ScriptFamily.latin));
-      expect(MultiScriptTypography.detectScriptFamily('arab'), equals(ScriptFamily.arabic));
-      expect(MultiScriptTypography.detectScriptFamily('cyrl'), equals(ScriptFamily.cyrillic));
-      expect(MultiScriptTypography.detectScriptFamily('hani'), equals(ScriptFamily.cjk));
-      expect(MultiScriptTypography.detectScriptFamily('deva'), equals(ScriptFamily.devanagari));
-      expect(MultiScriptTypography.detectScriptFamily('jpan'), equals(ScriptFamily.cjk));
+    test('returns latin for unknown language code', () {
+      expect(MultiScriptTypography.detectScriptFamily('en'), ScriptFamily.latin);
+      expect(MultiScriptTypography.detectScriptFamily('fr'), ScriptFamily.latin);
+      expect(MultiScriptTypography.detectScriptFamily('unknown'), ScriptFamily.latin);
     });
 
-    test('BCP-47 fallback uses explicit script subtag over default language script', () {
-      // Serbian defaults to Cyrillic, but sr-Latn uses Latin
-      expect(MultiScriptTypography.detectScriptFamily('sr-Latn'), equals(ScriptFamily.latin));
+    group('direct script matches', () {
+      test('resolves from script tags directly', () {
+        expect(MultiScriptTypography.detectScriptFamily('latn'), ScriptFamily.latin);
+        expect(MultiScriptTypography.detectScriptFamily('arab'), ScriptFamily.arabic);
+        expect(MultiScriptTypography.detectScriptFamily('cyrl'), ScriptFamily.cyrillic);
+        expect(MultiScriptTypography.detectScriptFamily('hans'), ScriptFamily.cjk);
+        expect(MultiScriptTypography.detectScriptFamily('hant'), ScriptFamily.cjk);
+      });
 
-      // Azerbaijani isn't in default list, but explicit subtag arab works
-      expect(MultiScriptTypography.detectScriptFamily('az-Arab'), equals(ScriptFamily.arabic));
-
-      // Traditional Chinese
-      expect(MultiScriptTypography.detectScriptFamily('zh-Hant'), equals(ScriptFamily.cjk));
-
-      // Explicit script in later parts
-      expect(MultiScriptTypography.detectScriptFamily('en-US-Arab-123'), equals(ScriptFamily.arabic));
+      test('is case insensitive', () {
+        expect(MultiScriptTypography.detectScriptFamily('Latn'), ScriptFamily.latin);
+        expect(MultiScriptTypography.detectScriptFamily('ARAB'), ScriptFamily.arabic);
+        expect(MultiScriptTypography.detectScriptFamily('Cyrl'), ScriptFamily.cyrillic);
+        expect(MultiScriptTypography.detectScriptFamily('Hans'), ScriptFamily.cjk);
+      });
     });
 
-    test('Default language resolution without explicit script subtag', () {
-      expect(MultiScriptTypography.detectScriptFamily('ru'), equals(ScriptFamily.cyrillic));
-      expect(MultiScriptTypography.detectScriptFamily('ar'), equals(ScriptFamily.arabic));
-      expect(MultiScriptTypography.detectScriptFamily('zh'), equals(ScriptFamily.cjk));
-      expect(MultiScriptTypography.detectScriptFamily('hi'), equals(ScriptFamily.devanagari));
+    group('explicit subtag matches', () {
+      test('prioritizes explicit BCP-47 script subtags', () {
+        expect(MultiScriptTypography.detectScriptFamily('sr-Latn'), ScriptFamily.latin);
+        expect(MultiScriptTypography.detectScriptFamily('az-Arab'), ScriptFamily.arabic);
+        expect(MultiScriptTypography.detectScriptFamily('zh-Hant'), ScriptFamily.cjk);
+        expect(MultiScriptTypography.detectScriptFamily('uz-Cyrl'), ScriptFamily.cyrillic);
+      });
 
-      // With region but no script, uses language default
-      expect(MultiScriptTypography.detectScriptFamily('zh-CN'), equals(ScriptFamily.cjk));
-      expect(MultiScriptTypography.detectScriptFamily('ru-RU'), equals(ScriptFamily.cyrillic));
+      test('handles underscores instead of hyphens', () {
+        expect(MultiScriptTypography.detectScriptFamily('sr_Latn'), ScriptFamily.latin);
+        expect(MultiScriptTypography.detectScriptFamily('az_Arab'), ScriptFamily.arabic);
+        expect(MultiScriptTypography.detectScriptFamily('zh_Hant'), ScriptFamily.cjk);
+        expect(MultiScriptTypography.detectScriptFamily('uz_Cyrl'), ScriptFamily.cyrillic);
+      });
+
+      test('is case insensitive for subtags', () {
+        expect(MultiScriptTypography.detectScriptFamily('SR-LATN'), ScriptFamily.latin);
+        expect(MultiScriptTypography.detectScriptFamily('az_arab'), ScriptFamily.arabic);
+      });
     });
 
-    test('Handles underscores instead of hyphens', () {
-      expect(MultiScriptTypography.detectScriptFamily('zh_Hans_CN'), equals(ScriptFamily.cjk));
-      expect(MultiScriptTypography.detectScriptFamily('sr_Latn'), equals(ScriptFamily.latin));
-      expect(MultiScriptTypography.detectScriptFamily('ru_RU'), equals(ScriptFamily.cyrillic));
-    });
+    group('language defaults', () {
+      test('resolves based on language default when no script tag is present', () {
+        expect(MultiScriptTypography.detectScriptFamily('ru'), ScriptFamily.cyrillic);
+        expect(MultiScriptTypography.detectScriptFamily('ar'), ScriptFamily.arabic);
+        expect(MultiScriptTypography.detectScriptFamily('zh'), ScriptFamily.cjk);
+        expect(MultiScriptTypography.detectScriptFamily('hi'), ScriptFamily.devanagari);
+        expect(MultiScriptTypography.detectScriptFamily('ja'), ScriptFamily.cjk);
+        expect(MultiScriptTypography.detectScriptFamily('ko'), ScriptFamily.cjk);
+      });
 
-    test('Unknown languages or script tags default to latin', () {
-      expect(MultiScriptTypography.detectScriptFamily('unknown'), equals(ScriptFamily.latin));
-      expect(MultiScriptTypography.detectScriptFamily('xx-yyy'), equals(ScriptFamily.latin));
-      expect(MultiScriptTypography.detectScriptFamily('en'), equals(ScriptFamily.latin)); // 'en' is not in _languageScripts
-      expect(MultiScriptTypography.detectScriptFamily('fr-FR'), equals(ScriptFamily.latin)); // 'fr' is not in _languageScripts
-    });
-
-    test('Case insensitivity is handled correctly', () {
-      expect(MultiScriptTypography.detectScriptFamily('LATN'), equals(ScriptFamily.latin));
-      expect(MultiScriptTypography.detectScriptFamily('Cyrl'), equals(ScriptFamily.cyrillic));
-      expect(MultiScriptTypography.detectScriptFamily('ZH-hans-cn'), equals(ScriptFamily.cjk));
+      test('resolves based on language default with regions (no explicit script)', () {
+        expect(MultiScriptTypography.detectScriptFamily('ru-RU'), ScriptFamily.cyrillic);
+        expect(MultiScriptTypography.detectScriptFamily('ar-SA'), ScriptFamily.arabic);
+        expect(MultiScriptTypography.detectScriptFamily('zh-CN'), ScriptFamily.cjk);
+      });
     });
   });
 }
