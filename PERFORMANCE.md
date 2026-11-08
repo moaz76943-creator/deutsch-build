@@ -1,5 +1,34 @@
 # Performance Improvements
 
+## 2026-11-08: Enhanced Baseline Profile for Reduced UI Jank (UI Jank / Startup)
+
+### Issue
+Existing baseline-prof.txt covered core startup and basic list paths, but lacked some high-frequency paint, rebuild, and ListView render-object methods. This limited AOT coverage for scroll-heavy vocabulary journal and dashboard interactions, leaving residual frame drops on lower-end devices.
+
+### Change
+- Expanded `android/app/src/main/baseline-prof.txt` with additional HSP rules for:
+  - `Element.rebuild()`, `RenderBox.paint()`, `ListView.createRenderObject()`, and extra scrollable/state methods.
+- Rules target hot paths during list scrolling and UI updates without altering app logic, permissions, or R8 keep rules.
+- Startup Profile (`startup-prof.txt`) and R8 full mode remain active and unchanged.
+
+### Expected Metrics
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| Scroll jank (vocabulary journal / lists) | Occasional drops on mid/low devices | Fewer dropped frames | 10-25% reduction in jank (device-dependent) |
+| First interaction smoothness after cold start | Good with prior profile | More consistent | Lower variance in frame times |
+| Cold start TTID | Already improved by prior profiles | Marginal further gain | Neutral to +5% |
+| Memory / battery | Unchanged | Unchanged | Neutral |
+
+### How to measure
+1. Use Macrobenchmark with `FrameTimingMetric` while scrolling a vocabulary list (100+ items) before/after.
+2. Perfetto traces: compare `Choreographer` frame durations and `RecyclerView`/`ListView` slices during scroll.
+3. DevTools Timeline / Android Studio Profiler on a physical mid-range device.
+4. Play Console Vitals after release for frozen/slow frames.
+
+Security note: Profile rules are optimization metadata only. R8 minifyEnabled, shrinkResources, proguard keep rules, permissions, integrity checks, and offline-first behavior are unchanged. No new attack surface.
+
+---
+
 ## 2026-11-07: ImageCache Size Limits (Memory / Battery / UI Jank)
 
 ### Issue
