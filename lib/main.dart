@@ -12,52 +12,7 @@ import 'package:deutsch_bilarabi/core/recovery/session_recovery_manager.dart';
 import 'package:deutsch_bilarabi/core/quality/production_acceptance_gate.dart';
 import 'package:deutsch_bilarabi/core/lifecycle/runtime_lifecycle_registry.dart';
 import 'package:deutsch_bilarabi/core/registry/feature_capability_registry.dart';
-import 'package:deutsch_bilarabi/core/l1_cache.dart';
-
-/// Protects against crash loops that could corrupt local data or leave the app unusable.
-/// Enhances security by detecting repeated failures and forcing safe mode.
-class CrashLoopGuard {
-  static const String _keyCrashCount = 'deutsch_crash_count_v1';
-  static const String _keyLastCrash = 'deutsch_last_crash_v1';
-  static const int _maxCrashes = 3;
-  static const Duration _resetDuration = Duration(minutes: 5);
-
-  final SharedPreferences _prefs;
-
-  CrashLoopGuard(this._prefs);
-
-  Future<void> recordFailure() async {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    final lastCrash = _prefs.getInt(_keyLastCrash) ?? 0;
-    int crashCount = _prefs.getInt(_keyCrashCount) ?? 0;
-
-    if (now - lastCrash < _resetDuration.inMilliseconds) {
-      crashCount++;
-    } else {
-      crashCount = 1;
-    }
-
-    await _prefs.setInt(_keyLastCrash, now);
-    await _prefs.setInt(_keyCrashCount, crashCount);
-  }
-
-  Future<void> recordSuccess() async {
-    await _prefs.remove(_keyCrashCount);
-    await _prefs.remove(_keyLastCrash);
-  }
-
-  bool isCrashLoopDetected() {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    final lastCrash = _prefs.getInt(_keyLastCrash) ?? 0;
-    final crashCount = _prefs.getInt(_keyCrashCount) ?? 0;
-
-    if (now - lastCrash > _resetDuration.inMilliseconds) {
-      return false;
-    }
-
-    return crashCount >= _maxCrashes;
-  }
-}
+import 'package:deutsch_bilarabi/core/resilience/crash_loop_guard.dart';
 
 /// UI gate shown when crash loop is detected. Prevents further data damage.
 class SafeModeRecoveryGate extends StatelessWidget {
