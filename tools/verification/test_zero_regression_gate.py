@@ -40,13 +40,29 @@ class TestZeroRegressionGate(unittest.TestCase):
     def test_missing_memory_benchmark_not_run(self, mock_exists):
         mock_exists.return_value = False
         res = gate.run_benchmark_memory(self.root)
-        self.assertEqual(res.status, gate.STATUS_NOT_RUN)
+        self.assertEqual(res.status, gate.STATUS_BLOCKED)
 
     @patch('pathlib.Path.exists')
     def test_missing_startup_tests_not_run(self, mock_exists):
         mock_exists.return_value = False
         res = gate.run_startup_tests(self.root)
-        self.assertEqual(res.status, gate.STATUS_NOT_RUN)
+        self.assertEqual(res.status, gate.STATUS_BLOCKED)
+
+    @patch('pathlib.Path.exists')
+    @patch('tools.verification.zero_regression_gate.run_command')
+    def test_memory_benchmark_blocked_on_missing_metrics(self, mock_run, mock_exists):
+        mock_exists.return_value = True
+        mock_run.return_value = (0, "No metrics here", "")
+        res = gate.run_benchmark_memory(self.root)
+        self.assertEqual(res.status, gate.STATUS_BLOCKED)
+
+    @patch('pathlib.Path.exists')
+    @patch('tools.verification.zero_regression_gate.run_command')
+    def test_startup_blocked_on_missing_metrics(self, mock_run, mock_exists):
+        mock_exists.return_value = True
+        mock_run.return_value = (0, "Some startup log", "")
+        res = gate.run_startup_tests(self.root)
+        self.assertEqual(res.status, gate.STATUS_BLOCKED)
 
     def test_manifest_generation(self):
         results = {
