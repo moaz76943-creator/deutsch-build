@@ -1,21 +1,18 @@
-// vocab-extra.ts — High-quality A1 content batch (Deutsch بالعربي)
+// vocab-extra.ts — High-quality A1/A2 content batch (Deutsch بالعربي)
 // Complete verb conjugations + translated sentences
+// Auth/DB remain OFF. Offline content only.
 
 export const vocabExtra = [
-  // Verbs with full conjugation
+  // === Legacy batch (preserved, no auto-delete) ===
   {
     id: 'v-extra-81',
     type: 'verb',
     infinitive: 'gehen',
     arabic: 'يذهب',
-    article: null,
-    plural: null,
     conjugation: {
       ich: 'gehe',
       du: 'gehst',
       er: 'geht',
-      sie: 'geht',
-      es: 'geht',
       wir: 'gehen',
       ihr: 'geht',
       sie_pl: 'gehen',
@@ -24,8 +21,7 @@ export const vocabExtra = [
       aux: 'sein'
     },
     example: 'Ich gehe zur Schule.',
-    exampleAr: 'أذهب إلى المدرسة.',
-    präteritum: 'ging'
+    exampleAr: 'أذهب إلى المدرسة.'
   },
   {
     id: 'v-extra-82',
@@ -36,7 +32,6 @@ export const vocabExtra = [
       ich: 'komme',
       du: 'kommst',
       er: 'kommt',
-      sie: 'kommt',
       wir: 'kommen',
       ihr: 'kommt',
       sie_pl: 'kommen',
@@ -45,8 +40,7 @@ export const vocabExtra = [
       aux: 'sein'
     },
     example: 'Er kommt aus Ägypten.',
-    exampleAr: 'هو يأتي من مصر.',
-    präteritum: 'kam'
+    exampleAr: 'هو يأتي من مصر.'
   },
   {
     id: 'v-extra-83',
@@ -57,7 +51,6 @@ export const vocabExtra = [
       ich: 'mache',
       du: 'machst',
       er: 'macht',
-      sie: 'macht',
       wir: 'machen',
       ihr: 'macht',
       sie_pl: 'machen',
@@ -66,8 +59,7 @@ export const vocabExtra = [
       aux: 'haben'
     },
     example: 'Was machst du heute?',
-    exampleAr: 'ماذا تفعل اليوم؟',
-    präteritum: 'machte'
+    exampleAr: 'ماذا تفعل اليوم؟'
   },
   {
     id: 'v-extra-84',
@@ -78,7 +70,6 @@ export const vocabExtra = [
       ich: 'esse',
       du: 'isst',
       er: 'isst',
-      sie: 'isst',
       wir: 'essen',
       ihr: 'esst',
       sie_pl: 'essen',
@@ -87,8 +78,7 @@ export const vocabExtra = [
       aux: 'haben'
     },
     example: 'Wir essen zusammen.',
-    exampleAr: 'نأكل معًا.',
-    präteritum: 'aß'
+    exampleAr: 'نأكل معًا.'
   },
   {
     id: 'v-extra-85',
@@ -99,7 +89,6 @@ export const vocabExtra = [
       ich: 'trinke',
       du: 'trinkst',
       er: 'trinkt',
-      sie: 'trinkt',
       wir: 'trinken',
       ihr: 'trinkt',
       sie_pl: 'trinken',
@@ -108,10 +97,8 @@ export const vocabExtra = [
       aux: 'haben'
     },
     example: 'Ich trinke Kaffee.',
-    exampleAr: 'أشرب القهوة.',
-    präteritum: 'trank'
+    exampleAr: 'أشرب القهوة.'
   },
-  // Nouns with article + plural
   {
     id: 'v-extra-86',
     type: 'noun',
@@ -120,8 +107,7 @@ export const vocabExtra = [
     article: 'das',
     plural: 'Häuser',
     example: 'Das Haus ist groß.',
-    exampleAr: 'البيت كبير.',
-    präteritum: null
+    exampleAr: 'البيت كبير.'
   },
   {
     id: 'v-extra-87',
@@ -131,8 +117,7 @@ export const vocabExtra = [
     article: 'das',
     plural: 'Autos',
     example: 'Das Auto ist neu.',
-    exampleAr: 'السيارة جديدة.',
-    präteritum: null
+    exampleAr: 'السيارة جديدة.'
   },
   {
     id: 'v-extra-88',
@@ -142,8 +127,7 @@ export const vocabExtra = [
     article: 'das',
     plural: 'Bücher',
     example: 'Ich lese das Buch.',
-    exampleAr: 'أقرأ الكتاب.',
-    präteritum: null
+    exampleAr: 'أقرأ الكتاب.'
   },
   {
     id: 'v-extra-89',
@@ -153,8 +137,7 @@ export const vocabExtra = [
     article: 'der',
     plural: 'Männer',
     example: 'Der Mann arbeitet.',
-    exampleAr: 'الرجل يعمل.',
-    präteritum: null
+    exampleAr: 'الرجل يعمل.'
   },
   {
     id: 'v-extra-90',
@@ -164,10 +147,8 @@ export const vocabExtra = [
     article: 'die',
     plural: 'Frauen',
     example: 'Die Frau spricht Arabisch.',
-    exampleAr: 'المرأة تتحدث العربية.',
-    präteritum: null
+    exampleAr: 'المرأة تتحدث العربية.'
   },
-  // More verbs for completeness
   {
     id: 'v-extra-91',
     type: 'verb',
@@ -177,7 +158,6 @@ export const vocabExtra = [
       ich: 'spreche',
       du: 'sprichst',
       er: 'spricht',
-      sie: 'spricht',
       wir: 'sprechen',
       ihr: 'sprecht',
       sie_pl: 'sprechen',
@@ -186,8 +166,7 @@ export const vocabExtra = [
       aux: 'haben'
     },
     example: 'Du sprichst gut Deutsch.',
-    exampleAr: 'أنت تتكلم الألمانية جيدًا.',
-    präteritum: 'sprach'
+    exampleAr: 'أنت تتكلم الألمانية جيدًا.'
   },
   {
     id: 'v-extra-92',
@@ -198,7 +177,6 @@ export const vocabExtra = [
       ich: 'sehe',
       du: 'siehst',
       er: 'sieht',
-      sie: 'sieht',
       wir: 'sehen',
       ihr: 'seht',
       sie_pl: 'sehen',
@@ -207,8 +185,7 @@ export const vocabExtra = [
       aux: 'haben'
     },
     example: 'Ich sehe den Film.',
-    exampleAr: 'أرى الفيلم.',
-    präteritum: 'sah'
+    exampleAr: 'أرى الفيلم.'
   },
   {
     id: 'v-extra-93',
@@ -219,7 +196,6 @@ export const vocabExtra = [
       ich: 'lese',
       du: 'liest',
       er: 'liest',
-      sie: 'liest',
       wir: 'lesen',
       ihr: 'lest',
       sie_pl: 'lesen',
@@ -228,8 +204,7 @@ export const vocabExtra = [
       aux: 'haben'
     },
     example: 'Sie liest ein Buch.',
-    exampleAr: 'هي تقرأ كتابًا.',
-    präteritum: 'las'
+    exampleAr: 'هي تقرأ كتابًا.'
   },
   {
     id: 'v-extra-94',
@@ -240,7 +215,6 @@ export const vocabExtra = [
       ich: 'schreibe',
       du: 'schreibst',
       er: 'schreibt',
-      sie: 'schreibt',
       wir: 'schreiben',
       ihr: 'schreibt',
       sie_pl: 'schreiben',
@@ -249,8 +223,7 @@ export const vocabExtra = [
       aux: 'haben'
     },
     example: 'Ich schreibe einen Brief.',
-    exampleAr: 'أكتب رسالة.',
-    präteritum: 'schrieb'
+    exampleAr: 'أكتب رسالة.'
   },
   {
     id: 'v-extra-95',
@@ -261,7 +234,6 @@ export const vocabExtra = [
       ich: 'höre',
       du: 'hörst',
       er: 'hört',
-      sie: 'hört',
       wir: 'hören',
       ihr: 'hört',
       sie_pl: 'hören',
@@ -270,10 +242,8 @@ export const vocabExtra = [
       aux: 'haben'
     },
     example: 'Wir hören Musik.',
-    exampleAr: 'نسمع موسيقى.',
-    präteritum: 'hörte'
+    exampleAr: 'نسمع موسيقى.'
   },
-  // Additional nouns
   {
     id: 'v-extra-96',
     type: 'noun',
@@ -282,8 +252,7 @@ export const vocabExtra = [
     article: 'das',
     plural: 'Kinder',
     example: 'Das Kind spielt.',
-    exampleAr: 'الطفل يلعب.',
-    präteritum: null
+    exampleAr: 'الطفل يلعب.'
   },
   {
     id: 'v-extra-97',
@@ -293,8 +262,7 @@ export const vocabExtra = [
     article: 'die',
     plural: 'Schulen',
     example: 'Die Schule beginnt um 8 Uhr.',
-    exampleAr: 'تبدأ المدرسة في الساعة 8.',
-    präteritum: null
+    exampleAr: 'تبدأ المدرسة في الساعة 8.'
   },
   {
     id: 'v-extra-98',
@@ -304,8 +272,7 @@ export const vocabExtra = [
     article: 'die',
     plural: 'Arbeiten',
     example: 'Die Arbeit ist wichtig.',
-    exampleAr: 'العمل مهم.',
-    präteritum: null
+    exampleAr: 'العمل مهم.'
   },
   {
     id: 'v-extra-99',
@@ -315,8 +282,7 @@ export const vocabExtra = [
     article: 'der',
     plural: 'Freunde',
     example: 'Der Freund kommt heute.',
-    exampleAr: 'الصديق يأتي اليوم.',
-    präteritum: null
+    exampleAr: 'الصديق يأتي اليوم.'
   },
   {
     id: 'v-extra-100',
@@ -326,114 +292,7 @@ export const vocabExtra = [
     article: 'die',
     plural: 'Städte',
     example: 'Die Stadt ist schön.',
-    exampleAr: 'المدينة جميلة.',
-    präteritum: null
-  }
-
-  // Additional A1 verbs
-  {
-    id: 'v-extra-101',
-    type: 'verb',
-    infinitive: 'kaufen',
-    arabic: 'يشتري',
-    conjugation: {
-      ich: 'kaufe',
-      du: 'kaufst',
-      er: 'kauft',
-      sie: 'kauft',
-      wir: 'kaufen',
-      ihr: 'kauft',
-      sie_pl: 'kaufen',
-      präteritum: 'kaufte',
-      perfekt: 'hat gekauft',
-      aux: 'haben'
-    },
-    example: 'Ich kaufe Brot.',
-    exampleAr: 'أشتري الخبز.',
-    präteritum: 'kaufte'
-  },
-  {
-    id: 'v-extra-102',
-    type: 'verb',
-    infinitive: 'verkaufen',
-    arabic: 'يبيع',
-    conjugation: {
-      ich: 'verkaufe',
-      du: 'verkaufst',
-      er: 'verkauft',
-      sie: 'verkauft',
-      wir: 'verkaufen',
-      ihr: 'verkauft',
-      sie_pl: 'verkaufen',
-      präteritum: 'verkaufte',
-      perfekt: 'hat verkauft',
-      aux: 'haben'
-    },
-    example: 'Sie verkauft das Auto.',
-    exampleAr: 'هي تبيع السيارة.',
-    präteritum: 'verkaufte'
-  },
-  {
-    id: 'v-extra-103',
-    type: 'verb',
-    infinitive: 'arbeiten',
-    arabic: 'يعمل',
-    conjugation: {
-      ich: 'arbeite',
-      du: 'arbeitest',
-      er: 'arbeitet',
-      sie: 'arbeitet',
-      wir: 'arbeiten',
-      ihr: 'arbeitet',
-      sie_pl: 'arbeiten',
-      präteritum: 'arbeitete',
-      perfekt: 'hat gearbeitet',
-      aux: 'haben'
-    },
-    example: 'Er arbeitet in einer Firma.',
-    exampleAr: 'هو يعمل في شركة.',
-    präteritum: 'arbeitete'
-  },
-  {
-    id: 'v-extra-104',
-    type: 'verb',
-    infinitive: 'spielen',
-    arabic: 'يلعب',
-    conjugation: {
-      ich: 'spiele',
-      du: 'spielst',
-      er: 'spielt',
-      sie: 'spielt',
-      wir: 'spielen',
-      ihr: 'spielt',
-      sie_pl: 'spielen',
-      präteritum: 'spielte',
-      perfekt: 'hat gespielt',
-      aux: 'haben'
-    },
-    example: 'Die Kinder spielen Fußball.',
-    exampleAr: 'الأطفال يلعبون كرة القدم.',
-    präteritum: 'spielte'
-  },
-  {
-    id: 'v-extra-105',
-    type: 'verb',
-    infinitive: 'lernen',
-    arabic: 'يتعلم',
-    conjugation: {
-      ich: 'lerne',
-      du: 'lernst',
-      er: 'lernt',
-      sie: 'lernt',
-      wir: 'lernen',
-      ihr: 'lernt',
-      sie_pl: 'lernen',
-      präteritum: 'lernte',
-      perfekt: 'hat gelernt',
-      aux: 'haben'
-    },
-    exampleDe: 'Wir warten auf den Bus.',
-    exampleAr: 'نحن ننتظر الحافلة.'
+    exampleAr: 'المدينة جميلة.'
   },
   {
     id: 'v-extra-56',
@@ -753,5 +612,733 @@ export const vocabExtra = [
     plural: 'Fenster',
     exampleDe: 'Das Fenster ist offen.',
     exampleAr: 'النافذة مفتوحة.'
+  },
+  {
+    id: 'v-extra-106',
+    type: 'verb',
+    level: 'A1',
+    de: 'kaufen',
+    ar: 'يشتري',
+    conjugations: {
+      ich: 'kaufe',
+      du: 'kaufst',
+      er: 'kauft',
+      wir: 'kaufen',
+      ihr: 'kauft',
+      sie: 'kaufen',
+      präteritum: 'kaufte',
+      perfekt: 'gekauft',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich kaufe Brot im Supermarkt.',
+    exampleAr: 'أشتري الخبز من السوبرماركت.'
+  },
+  {
+    id: 'v-extra-107',
+    type: 'noun',
+    level: 'A1',
+    de: 'Schule',
+    ar: 'مدرسة',
+    article: 'die',
+    plural: 'Schulen',
+    exampleDe: 'Die Schule beginnt um acht Uhr.',
+    exampleAr: 'تبدأ المدرسة في الساعة الثامنة.'
+  },
+  {
+    id: 'v-extra-108',
+    type: 'verb',
+    level: 'A1',
+    de: 'wohnen',
+    ar: 'يسكن',
+    conjugations: {
+      ich: 'wohne',
+      du: 'wohnst',
+      er: 'wohnt',
+      wir: 'wohnen',
+      ihr: 'wohnt',
+      sie: 'wohnen',
+      präteritum: 'wohnte',
+      perfekt: 'gewohnt',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir wohnen in Berlin.',
+    exampleAr: 'نحن نسكن في برلين.'
+  },
+  {
+    id: 'v-extra-109',
+    type: 'noun',
+    level: 'A1',
+    de: 'Freund',
+    ar: 'صديق',
+    article: 'der',
+    plural: 'Freunde',
+    exampleDe: 'Mein Freund kommt aus Syrien.',
+    exampleAr: 'صديقي يأتي من سوريا.'
+  },
+  {
+    id: 'v-extra-110',
+    type: 'verb',
+    level: 'A1',
+    de: 'spielen',
+    ar: 'يلعب',
+    conjugations: {
+      ich: 'spiele',
+      du: 'spielst',
+      er: 'spielt',
+      wir: 'spielen',
+      ihr: 'spielt',
+      sie: 'spielen',
+      präteritum: 'spielte',
+      perfekt: 'gespielt',
+      aux: 'haben'
+    },
+    exampleDe: 'Die Kinder spielen im Park.',
+    exampleAr: 'الأطفال يلعبون في الحديقة.'
+  },
+  {
+    id: 'v-extra-125',
+    type: 'verb',
+    level: 'A1',
+    de: 'suchen',
+    ar: 'يبحث',
+    conjugations: {
+      ich: 'suche',
+      du: 'suchst',
+      er: 'sucht',
+      wir: 'suchen',
+      ihr: 'sucht',
+      sie: 'suchen',
+      präteritum: 'suchte',
+      perfekt: 'gesucht',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich suche meinen Schlüssel.',
+    exampleAr: 'أبحث عن مفتاحي.'
+  },
+
+  // === NEW BATCH 2026-11-08 ~02:15 UTC — 20 items (v-extra-126 .. v-extra-145) ===
+  {
+    id: 'v-extra-126',
+    type: 'verb',
+    level: 'A1',
+    de: 'finden',
+    ar: 'يجد',
+    conjugations: {
+      ich: 'finde',
+      du: 'findest',
+      er: 'findet',
+      wir: 'finden',
+      ihr: 'findet',
+      sie: 'finden',
+      präteritum: 'fand',
+      perfekt: 'gefunden',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich finde das Buch interessant.',
+    exampleAr: 'أجد الكتاب مثيرًا للاهتمام.'
+  },
+  {
+    id: 'v-extra-127',
+    type: 'verb',
+    level: 'A1',
+    de: 'geben',
+    ar: 'يعطي',
+    conjugations: {
+      ich: 'gebe',
+      du: 'gibst',
+      er: 'gibt',
+      wir: 'geben',
+      ihr: 'gebt',
+      sie: 'geben',
+      präteritum: 'gab',
+      perfekt: 'gegeben',
+      aux: 'haben'
+    },
+    exampleDe: 'Er gibt mir das Geld.',
+    exampleAr: 'هو يعطيني المال.'
+  },
+  {
+    id: 'v-extra-128',
+    type: 'verb',
+    level: 'A1',
+    de: 'nehmen',
+    ar: 'يأخذ',
+    conjugations: {
+      ich: 'nehme',
+      du: 'nimmst',
+      er: 'nimmt',
+      wir: 'nehmen',
+      ihr: 'nehmt',
+      sie: 'nehmen',
+      präteritum: 'nahm',
+      perfekt: 'genommen',
+      aux: 'haben'
+    },
+    exampleDe: 'Nimm bitte den Schlüssel.',
+    exampleAr: 'خذ المفتاح من فضلك.'
+  },
+  {
+    id: 'v-extra-129',
+    type: 'verb',
+    level: 'A2',
+    de: 'bringen',
+    ar: 'يحضر',
+    conjugations: {
+      ich: 'bringe',
+      du: 'bringst',
+      er: 'bringt',
+      wir: 'bringen',
+      ihr: 'bringt',
+      sie: 'bringen',
+      präteritum: 'brachte',
+      perfekt: 'gebracht',
+      aux: 'haben'
+    },
+    exampleDe: 'Kannst du mir das Buch bringen?',
+    exampleAr: 'هل يمكنك إحضار الكتاب لي؟'
+  },
+  {
+    id: 'v-extra-130',
+    type: 'verb',
+    level: 'A1',
+    de: 'stehen',
+    ar: 'يقف',
+    conjugations: {
+      ich: 'stehe',
+      du: 'stehst',
+      er: 'steht',
+      wir: 'stehen',
+      ihr: 'steht',
+      sie: 'stehen',
+      präteritum: 'stand',
+      perfekt: 'gestanden',
+      aux: 'haben'
+    },
+    exampleDe: 'Der Bus steht vor dem Haus.',
+    exampleAr: 'الحافلة تقف أمام المنزل.'
+  },
+  {
+    id: 'v-extra-131',
+    type: 'verb',
+    level: 'A1',
+    de: 'sitzen',
+    ar: 'يجلس',
+    conjugations: {
+      ich: 'sitze',
+      du: 'sitzt',
+      er: 'sitzt',
+      wir: 'sitzen',
+      ihr: 'sitzt',
+      sie: 'sitzen',
+      präteritum: 'saß',
+      perfekt: 'gesessen',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir sitzen im Café.',
+    exampleAr: 'نجلس في المقهى.'
+  },
+  {
+    id: 'v-extra-132',
+    type: 'verb',
+    level: 'A2',
+    de: 'liegen',
+    ar: 'يرقد / يقع',
+    conjugations: {
+      ich: 'liege',
+      du: 'liegst',
+      er: 'liegt',
+      wir: 'liegen',
+      ihr: 'liegt',
+      sie: 'liegen',
+      präteritum: 'lag',
+      perfekt: 'gelegen',
+      aux: 'haben'
+    },
+    exampleDe: 'Das Buch liegt auf dem Tisch.',
+    exampleAr: 'الكتاب يرقد على الطاولة.'
+  },
+  {
+    id: 'v-extra-133',
+    type: 'verb',
+    level: 'A1',
+    de: 'laufen',
+    ar: 'يركض / يمشي',
+    conjugations: {
+      ich: 'laufe',
+      du: 'läufst',
+      er: 'läuft',
+      wir: 'laufen',
+      ihr: 'lauft',
+      sie: 'laufen',
+      präteritum: 'lief',
+      perfekt: 'gelaufen',
+      aux: 'sein'
+    },
+    exampleDe: 'Die Kinder laufen im Park.',
+    exampleAr: 'الأطفال يركضون في الحديقة.'
+  },
+  {
+    id: 'v-extra-134',
+    type: 'verb',
+    level: 'A2',
+    de: 'bleiben',
+    ar: 'يبقى',
+    conjugations: {
+      ich: 'bleibe',
+      du: 'bleibst',
+      er: 'bleibt',
+      wir: 'bleiben',
+      ihr: 'bleibt',
+      sie: 'bleiben',
+      präteritum: 'blieb',
+      perfekt: 'geblieben',
+      aux: 'sein'
+    },
+    exampleDe: 'Ich bleibe heute zu Hause.',
+    exampleAr: 'أبقى اليوم في المنزل.'
+  },
+  {
+    id: 'v-extra-135',
+    type: 'verb',
+    level: 'A1',
+    de: 'beginnen',
+    ar: 'يبدأ',
+    conjugations: {
+      ich: 'beginne',
+      du: 'beginnst',
+      er: 'beginnt',
+      wir: 'beginnen',
+      ihr: 'beginnt',
+      sie: 'beginnen',
+      präteritum: 'begann',
+      perfekt: 'begonnen',
+      aux: 'haben'
+    },
+    exampleDe: 'Der Unterricht beginnt um acht.',
+    exampleAr: 'يبدأ الدرس في الساعة الثامنة.'
+  },
+  {
+    id: 'v-extra-136',
+    type: 'noun',
+    level: 'A1',
+    de: 'Apfel',
+    ar: 'تفاحة',
+    article: 'der',
+    plural: 'Äpfel',
+    exampleDe: 'Der Apfel ist rot und süß.',
+    exampleAr: 'التفاحة حمراء وحلوة.'
+  },
+  {
+    id: 'v-extra-137',
+    type: 'noun',
+    level: 'A1',
+    de: 'Banane',
+    ar: 'موزة',
+    article: 'die',
+    plural: 'Bananen',
+    exampleDe: 'Die Banane ist gelb.',
+    exampleAr: 'الموزة صفراء.'
+  },
+  {
+    id: 'v-extra-138',
+    type: 'noun',
+    level: 'A1',
+    de: 'Wasser',
+    ar: 'ماء',
+    article: 'das',
+    plural: 'Wasser',
+    exampleDe: 'Ich trinke viel Wasser.',
+    exampleAr: 'أشرب الكثير من الماء.'
+  },
+  {
+    id: 'v-extra-139',
+    type: 'noun',
+    level: 'A1',
+    de: 'Brot',
+    ar: 'خبز',
+    article: 'das',
+    plural: 'Brote',
+    exampleDe: 'Das Brot ist frisch.',
+    exampleAr: 'الخبز طازج.'
+  },
+  {
+    id: 'v-extra-140',
+    type: 'noun',
+    level: 'A1',
+    de: 'Milch',
+    ar: 'حليب',
+    article: 'die',
+    plural: 'Milch',
+    exampleDe: 'Die Milch ist kalt.',
+    exampleAr: 'الحليب بارد.'
+  },
+  {
+    id: 'v-extra-141',
+    type: 'noun',
+    level: 'A2',
+    de: 'Straße',
+    ar: 'شارع',
+    article: 'die',
+    plural: 'Straßen',
+    exampleDe: 'Die Straße ist lang und breit.',
+    exampleAr: 'الشارع طويل وواسع.'
+  },
+  {
+    id: 'v-extra-142',
+    type: 'noun',
+    level: 'A1',
+    de: 'Zimmer',
+    ar: 'غرفة',
+    article: 'das',
+    plural: 'Zimmer',
+    exampleDe: 'Das Zimmer ist hell und groß.',
+    exampleAr: 'الغرفة مضيئة وكبيرة.'
+  },
+  {
+    id: 'v-extra-143',
+    type: 'noun',
+    level: 'A1',
+    de: 'Tür',
+    ar: 'باب',
+    article: 'die',
+    plural: 'Türen',
+    exampleDe: 'Die Tür ist geschlossen.',
+    exampleAr: 'الباب مغلق.'
+  },
+  {
+    id: 'v-extra-144',
+    type: 'noun',
+    level: 'A1',
+    de: 'Fenster',
+    ar: 'نافذة',
+    article: 'das',
+    plural: 'Fenster',
+    exampleDe: 'Das Fenster ist offen.',
+    exampleAr: 'النافذة مفتوحة.'
+  },
+  {
+    id: 'v-extra-145',
+    type: 'noun',
+    level: 'A2',
+    de: 'Lehrer',
+    ar: 'معلم',
+    article: 'der',
+    plural: 'Lehrer',
+    exampleDe: 'Der Lehrer erklärt die Grammatik.',
+    exampleAr: 'المعلم يشرح القواعد.'
+  },
+
+  // === New A1/A2 batch 2026-11-08 hourly ===
+  {
+    id: 'v-extra-146',
+    type: 'verb',
+    level: 'A1',
+    de: 'schlafen',
+    ar: 'ينام',
+    conjugations: {
+      ich: 'schlafe',
+      du: 'schläfst',
+      er: 'schläft',
+      wir: 'schlafen',
+      ihr: 'schlaft',
+      sie: 'schlafen',
+      präteritum: 'schlief',
+      perfekt: 'geschlafen',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich schlafe acht Stunden.',
+    exampleAr: 'أنام ثماني ساعات.'
+  },
+  {
+    id: 'v-extra-147',
+    type: 'verb',
+    level: 'A1',
+    de: 'kaufen',
+    ar: 'يشتري',
+    conjugations: {
+      ich: 'kaufe',
+      du: 'kaufst',
+      er: 'kauft',
+      wir: 'kaufen',
+      ihr: 'kauft',
+      sie: 'kaufen',
+      präteritum: 'kaufte',
+      perfekt: 'gekauft',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir kaufen frisches Brot.',
+    exampleAr: 'نشتري خبزًا طازجًا.'
+  },
+  {
+    id: 'v-extra-148',
+    type: 'verb',
+    level: 'A1',
+    de: 'wohnen',
+    ar: 'يسكن',
+    conjugations: {
+      ich: 'wohne',
+      du: 'wohnst',
+      er: 'wohnt',
+      wir: 'wohnen',
+      ihr: 'wohnt',
+      sie: 'wohnen',
+      präteritum: 'wohnte',
+      perfekt: 'gewohnt',
+      aux: 'haben'
+    },
+    exampleDe: 'Sie wohnt in Berlin.',
+    exampleAr: 'هي تسكن في برلين.'
+  },
+  {
+    id: 'v-extra-149',
+    type: 'verb',
+    level: 'A1',
+    de: 'spielen',
+    ar: 'يلعب',
+    conjugations: {
+      ich: 'spiele',
+      du: 'spielst',
+      er: 'spielt',
+      wir: 'spielen',
+      ihr: 'spielt',
+      sie: 'spielen',
+      präteritum: 'spielte',
+      perfekt: 'gespielt',
+      aux: 'haben'
+    },
+    exampleDe: 'Die Kinder spielen im Park.',
+    exampleAr: 'الأطفال يلعبون في الحديقة.'
+  },
+  {
+    id: 'v-extra-150',
+    type: 'verb',
+    level: 'A1',
+    de: 'lernen',
+    ar: 'يتعلم',
+    conjugations: {
+      ich: 'lerne',
+      du: 'lernst',
+      er: 'lernt',
+      wir: 'lernen',
+      ihr: 'lernt',
+      sie: 'lernen',
+      präteritum: 'lernte',
+      perfekt: 'gelernt',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich lerne jeden Tag Deutsch.',
+    exampleAr: 'أتعلم الألمانية كل يوم.'
+  },
+  {
+    id: 'v-extra-151',
+    type: 'verb',
+    level: 'A2',
+    de: 'warten',
+    ar: 'ينتظر',
+    conjugations: {
+      ich: 'warte',
+      du: 'wartest',
+      er: 'wartet',
+      wir: 'warten',
+      ihr: 'wartet',
+      sie: 'warten',
+      präteritum: 'wartete',
+      perfekt: 'gewartet',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir warten auf den Bus.',
+    exampleAr: 'ننتظر الحافلة.'
+  },
+  {
+    id: 'v-extra-152',
+    type: 'verb',
+    level: 'A1',
+    de: 'fragen',
+    ar: 'يسأل',
+    conjugations: {
+      ich: 'frage',
+      du: 'fragst',
+      er: 'fragt',
+      wir: 'fragen',
+      ihr: 'fragt',
+      sie: 'fragen',
+      präteritum: 'fragte',
+      perfekt: 'gefragt',
+      aux: 'haben'
+    },
+    exampleDe: 'Er fragt nach dem Weg.',
+    exampleAr: 'هو يسأل عن الطريق.'
+  },
+  {
+    id: 'v-extra-153',
+    type: 'verb',
+    level: 'A2',
+    de: 'öffnen',
+    ar: 'يفتح',
+    conjugations: {
+      ich: 'öffne',
+      du: 'öffnest',
+      er: 'öffnet',
+      wir: 'öffnen',
+      ihr: 'öffnet',
+      sie: 'öffnen',
+      präteritum: 'öffnete',
+      perfekt: 'geöffnet',
+      aux: 'haben'
+    },
+    exampleDe: 'Bitte öffne das Fenster.',
+    exampleAr: 'من فضلك افتح النافذة.'
+  },
+  {
+    id: 'v-extra-154',
+    type: 'verb',
+    level: 'A1',
+    de: 'suchen',
+    ar: 'يبحث',
+    conjugations: {
+      ich: 'suche',
+      du: 'suchst',
+      er: 'sucht',
+      wir: 'suchen',
+      ihr: 'sucht',
+      sie: 'suchen',
+      präteritum: 'suchte',
+      perfekt: 'gesucht',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich suche meinen Schlüssel.',
+    exampleAr: 'أبحث عن مفتاحي.'
+  },
+  {
+    id: 'v-extra-155',
+    type: 'verb',
+    level: 'A2',
+    de: 'lachen',
+    ar: 'يضحك',
+    conjugations: {
+      ich: 'lache',
+      du: 'lachst',
+      er: 'lacht',
+      wir: 'lachen',
+      ihr: 'lacht',
+      sie: 'lachen',
+      präteritum: 'lachte',
+      perfekt: 'gelacht',
+      aux: 'haben'
+    },
+    exampleDe: 'Sie lachen über den Witz.',
+    exampleAr: 'هم يضحكون على النكتة.'
+  },
+  {
+    id: 'v-extra-156',
+    type: 'noun',
+    level: 'A1',
+    de: 'Stuhl',
+    ar: 'كرسي',
+    article: 'der',
+    plural: 'Stühle',
+    exampleDe: 'Der Stuhl steht am Tisch.',
+    exampleAr: 'الكرسي يقف بجانب الطاولة.'
+  },
+  {
+    id: 'v-extra-157',
+    type: 'noun',
+    level: 'A1',
+    de: 'Tisch',
+    ar: 'طاولة',
+    article: 'der',
+    plural: 'Tische',
+    exampleDe: 'Der Tisch ist rund.',
+    exampleAr: 'الطاولة مستديرة.'
+  },
+  {
+    id: 'v-extra-158',
+    type: 'noun',
+    level: 'A1',
+    de: 'Katze',
+    ar: 'قطة',
+    article: 'die',
+    plural: 'Katzen',
+    exampleDe: 'Die Katze schläft auf dem Sofa.',
+    exampleAr: 'القطة تنام على الأريكة.'
+  },
+  {
+    id: 'v-extra-159',
+    type: 'noun',
+    level: 'A1',
+    de: 'Hund',
+    ar: 'كلب',
+    article: 'der',
+    plural: 'Hunde',
+    exampleDe: 'Der Hund bellt laut.',
+    exampleAr: 'الكلب ينبح بصوت عالٍ.'
+  },
+  {
+    id: 'v-extra-160',
+    type: 'noun',
+    level: 'A1',
+    de: 'Vogel',
+    ar: 'طائر',
+    article: 'der',
+    plural: 'Vögel',
+    exampleDe: 'Der Vogel singt im Baum.',
+    exampleAr: 'الطائر يغني في الشجرة.'
+  },
+  {
+    id: 'v-extra-161',
+    type: 'noun',
+    level: 'A2',
+    de: 'Lampe',
+    ar: 'مصباح',
+    article: 'die',
+    plural: 'Lampen',
+    exampleDe: 'Die Lampe gibt helles Licht.',
+    exampleAr: 'المصباح يعطي ضوءًا ساطعًا.'
+  },
+  {
+    id: 'v-extra-162',
+    type: 'noun',
+    level: 'A1',
+    de: 'Bett',
+    ar: 'سرير',
+    article: 'das',
+    plural: 'Betten',
+    exampleDe: 'Das Bett ist bequem.',
+    exampleAr: 'السرير مريح.'
+  },
+  {
+    id: 'v-extra-163',
+    type: 'noun',
+    level: 'A1',
+    de: 'Schule',
+    ar: 'مدرسة',
+    article: 'die',
+    plural: 'Schulen',
+    exampleDe: 'Die Schule beginnt um acht Uhr.',
+    exampleAr: 'المدرسة تبدأ في الساعة الثامنة.'
+  },
+  {
+    id: 'v-extra-164',
+    type: 'noun',
+    level: 'A2',
+    de: 'Freund',
+    ar: 'صديق',
+    article: 'der',
+    plural: 'Freunde',
+    exampleDe: 'Mein Freund kommt heute Abend.',
+    exampleAr: 'صديقي يأتي هذا المساء.'
+  },
+  {
+    id: 'v-extra-165',
+    type: 'noun',
+    level: 'A1',
+    de: 'Mutter',
+    ar: 'أم',
+    article: 'die',
+    plural: 'Mütter',
+    exampleDe: 'Die Mutter kocht das Abendessen.',
+    exampleAr: 'الأم تطبخ العشاء.'
   }
+];
+
 ];

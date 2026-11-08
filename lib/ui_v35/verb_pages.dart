@@ -302,68 +302,69 @@ class VerbFavoritesPage extends StatelessWidget {
                 'لم تضف أفعالًا للمفضلة بعد. اضغط ⭐ بجانب الفعل لإضافته.',
               ),
             )
-          : ListView(
+          : ListView.builder(
               padding: const EdgeInsets.all(12),
-              children: [
-                for (final v in selected)
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  v.infinitive,
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                  textDirection: TextDirection.ltr,
+              itemCount: selected.length,
+              itemBuilder: (context, index) {
+                final v = selected[index];
+                return Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                v.infinitive,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w900,
                                 ),
+                                textDirection: TextDirection.ltr,
                               ),
-                              IconButton(
-                                tooltip: 'نطق الفعل',
-                                onPressed: () => speak(v.infinitive),
-                                icon: const Icon(Icons.volume_up_outlined),
-                              ),
-                            ],
-                          ),
-                          Text(v.arabic),
-                          const SizedBox(height: 8),
-                          Text(
-                            '${v.person} — ${v.form}',
-                            style: const TextStyle(fontWeight: FontWeight.w800),
-                            textDirection: TextDirection.ltr,
-                          ),
-                          Text(v.personAr),
-                          const SizedBox(height: 6),
-                          Text(
-                            'الماضي: ${v.past}',
-                            textDirection: TextDirection.ltr,
-                          ),
-                          Text(v.pastArabic),
-                          const SizedBox(height: 8),
-                          Text(
-                            v.example,
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                            textDirection: TextDirection.ltr,
-                          ),
-                          Text(v.exampleAr),
-                          const SizedBox(height: 6),
-                          Text(
-                            v.pastExample,
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                            textDirection: TextDirection.ltr,
-                          ),
-                          Text(v.pastExampleAr),
-                        ],
-                      ),
+                            ),
+                            IconButton(
+                              tooltip: 'نطق الفعل',
+                              onPressed: () => speak(v.infinitive),
+                              icon: const Icon(Icons.volume_up_outlined),
+                            ),
+                          ],
+                        ),
+                        Text(v.arabic),
+                        const SizedBox(height: 8),
+                        Text(
+                          '${v.person} — ${v.form}',
+                          style: const TextStyle(fontWeight: FontWeight.w800),
+                          textDirection: TextDirection.ltr,
+                        ),
+                        Text(v.personAr),
+                        const SizedBox(height: 6),
+                        Text(
+                          'الماضي: ${v.past}',
+                          textDirection: TextDirection.ltr,
+                        ),
+                        Text(v.pastArabic),
+                        const SizedBox(height: 8),
+                        Text(
+                          v.example,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                          textDirection: TextDirection.ltr,
+                        ),
+                        Text(v.exampleAr),
+                        const SizedBox(height: 6),
+                        Text(
+                          v.pastExample,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                          textDirection: TextDirection.ltr,
+                        ),
+                        Text(v.pastExampleAr),
+                      ],
                     ),
                   ),
-              ],
+                );
+              },
             ),
     );
   }
