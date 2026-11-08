@@ -1,89 +1,45 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
-import 'package:meta/meta.dart';
 
-/// Target native operating system audio backend.
-enum AudioBackendHal {
-  androidOboe, // AAudio / OpenSL ES for Android (< 15ms)
-  appleCoreAudio, // AudioUnit on iOS and macOS (< 8ms)
-  windowsWasapi, // WASAPI exclusive mode for Windows (< 10ms)
-  linuxPipeWire, // PipeWire / ALSA for Linux (< 12ms)
-}
-
-/// Sovereign Voice Deep Core v2: Cross-Platform Low-Latency Audio HAL & Lock-Free SPSC Ring-Buffer.
-///
-/// Implements a high-performance Single-Producer Single-Consumer (SPSC) circular
-/// ring buffer for seamless audio stream transfer between the native audio HAL driver
-/// and Dart audio synthesis engines, eliminating audio dropouts, glitches, and buffer underruns.
-class LowLatencyAudioHalRingBuffer {
-  final int capacity; // Power of two capacity (e.g. 4096 samples)
-  final AudioBackendHal backend;
+final class LowLatencyAudioRingBuffer {
+  final int capacity;
+  final int _mask;
   final Float32List _buffer;
   int _readIndex = 0;
   int _writeIndex = 0;
-  int _underflowCount = 0;
-  int _overflowCount = 0;
 
-  LowLatencyAudioHalRingBuffer({
-    this.capacity = 4096,
-    this.backend = AudioBackendHal.androidOboe,
-  }) : _buffer = Float32List(capacity) {
+  factory LowLatencyAudioRingBuffer(int capacity) {
+    if (capacity <= 0) {
+      throw ArgumentError.value(capacity, 'capacity', 'Buffer capacity must be strictly positive');
+    }
     if ((capacity & (capacity - 1)) != 0) {
-      throw ArgumentError('Capacity must be a power of two.');
+      throw ArgumentError.value(capacity, 'capacity', 'Buffer capacity must be a power of two');
     }
+    return LowLatencyAudioRingBuffer._internal(capacity);
   }
 
-  /// Available samples ready to be read.
-  int get availableToRead => _writeIndex - _readIndex;
+  LowLatencyAudioRingBuffer._internal(this.capacity)
+      : _mask = capacity - 1,
+        _buffer = Float32List(capacity);
 
-  /// Available free space to write new samples.
-  int get availableToWrite => capacity - availableToRead;
+  int get availableRead => _writeIndex - _readIndex;
+  int get availableWrite => capacity - availableRead;
 
-  int get underflowCount => _underflowCount;
-  int get overflowCount => _overflowCount;
-
-  /// Writes audio samples into the ring buffer.
-  int write(Float32List samples) {
-    final int toWrite = math.min(samples.length, availableToWrite);
-    if (toWrite < samples.length) {
-      _overflowCount++;
+  bool write(Float32List samples) {
+    if (samples.length > availableWrite) return false;
+    for (int i = 0; i < samples.length; i++) {
+      _buffer[(_writeIndex + i) & _mask] = samples[i];
     }
-
-    final int mask = capacity - 1;
-    for (int i = 0; i < toWrite; i++) {
-      _buffer[(_writeIndex + i) & mask] = samples[i];
-    }
-
-    _writeIndex += toWrite;
-    return toWrite;
+    _writeIndex += samples.length;
+    return true;
   }
 
-  /// Reads audio samples from the ring buffer into the destination buffer.
   int read(Float32List destination) {
-    final int toRead = math.min(destination.length, availableToRead);
-    if (toRead < destination.length) {
-      _underflowCount++;
-      // Zero-fill remaining destination to prevent loud noise burst
-      for (int i = toRead; i < destination.length; i++) {
-        destination[i] = 0.0;
-      }
-    }
-
-    final int mask = capacity - 1;
+    final toRead = math.min(destination.length, availableRead);
     for (int i = 0; i < toRead; i++) {
-      destination[i] = _buffer[(_readIndex + i) & mask];
+      destination[i] = _buffer[(_readIndex + i) & _mask];
     }
-
     _readIndex += toRead;
     return toRead;
-  }
-
-  /// Resets pointers and clears buffer state.
-  void clear() {
-    _readIndex = 0;
-    _writeIndex = 0;
-    _underflowCount = 0;
-    _overflowCount = 0;
-    _buffer.fillRange(0, capacity, 0.0);
   }
 }

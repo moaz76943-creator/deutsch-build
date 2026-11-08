@@ -1,15 +1,12 @@
 import 'dart:math' as math;
-import 'package:meta/meta.dart';
 
-/// Articulatory phonetic feature dimensions according to IPA standards.
-@immutable
-class PhoneticFeatureVector {
-  final double tongueHeight; // 0.0 (low) to 1.0 (high)
-  final double tongueBackness; // 0.0 (front) to 1.0 (back)
-  final double lipRounding; // 0.0 (unrounded) to 1.0 (rounded)
-  final double voicing; // 0.0 (voiceless) to 1.0 (voiced)
-  final double nasality; // 0.0 (oral) to 1.0 (nasal)
-  final double constrictionDegree; // 0.0 (vowel) to 1.0 (plosive stop)
+final class PhoneticFeatureVector {
+  final double tongueHeight;
+  final double tongueBackness;
+  final double lipRounding;
+  final double voicing;
+  final double nasality;
+  final double constrictionDegree;
 
   const PhoneticFeatureVector({
     required this.tongueHeight,
@@ -19,82 +16,74 @@ class PhoneticFeatureVector {
     required this.nasality,
     required this.constrictionDegree,
   });
+
+  bool get isValid =>
+      tongueHeight.isFinite && tongueHeight >= 0.0 && tongueHeight <= 1.0 &&
+      tongueBackness.isFinite && tongueBackness >= 0.0 && tongueBackness <= 1.0 &&
+      lipRounding.isFinite && lipRounding >= 0.0 && lipRounding <= 1.0 &&
+      voicing.isFinite && voicing >= 0.0 && voicing <= 1.0 &&
+      nasality.isFinite && nasality >= 0.0 && nasality <= 1.0 &&
+      constrictionDegree.isFinite && constrictionDegree >= 0.0 && constrictionDegree <= 1.0;
 }
 
-/// Actionable diagnostic instruction for pronunciation correction.
-@immutable
-class ArticulatoryCorrectionGuide {
-  final double totalDistance;
-  final String heightAdvice;
-  final String backnessAdvice;
-  final String roundingAdvice;
-  final String primarySummary;
+sealed class PhoneticEvaluationResult {
+  const PhoneticEvaluationResult();
+}
 
-  const ArticulatoryCorrectionGuide({
-    required this.totalDistance,
-    required this.heightAdvice,
-    required this.backnessAdvice,
-    required this.roundingAdvice,
-    required this.primarySummary,
+final class ValidPhoneticScore extends PhoneticEvaluationResult {
+  final double distance;
+  final double similarityScore;
+  final bool isNativeLike;
+
+  const ValidPhoneticScore({
+    required this.distance,
+    required this.similarityScore,
+    required this.isNativeLike,
   });
 }
 
-/// Sovereign Voice Deep Core v2: Cross-Lingual Phonetic Distance & Diagnostic Engine.
-///
-/// Computes multi-dimensional phonetic distances between learner utterances and native
-/// targets across all 100 sovereign languages, generating precise physiological feedback
-/// (e.g., "Raise tongue body 2mm higher", "Round lips into an O-shape", "Avoid nasalization").
-@immutable
-class PhoneticDistanceDiagnosticEngine {
-  const PhoneticDistanceDiagnosticEngine();
+final class InvalidPhoneticInput extends PhoneticEvaluationResult {
+  final String reason;
+  const InvalidPhoneticInput(this.reason);
+}
 
-  /// Calculates Euclidean distance and generates physiological feedback.
-  ArticulatoryCorrectionGuide diagnoseMismatch({
-    required PhoneticFeatureVector learner,
-    required PhoneticFeatureVector nativeTarget,
-  }) {
-    final double dh = nativeTarget.tongueHeight - learner.tongueHeight;
-    final double db = nativeTarget.tongueBackness - learner.tongueBackness;
-    final double dr = nativeTarget.lipRounding - learner.lipRounding;
-    final double dv = nativeTarget.voicing - learner.voicing;
-    final double dn = nativeTarget.nasality - learner.nasality;
+final class PhoneticDistanceEngine {
+  static const double wTongueHeight = 0.25;
+  static const double wTongueBackness = 0.25;
+  static const double wLipRounding = 0.15;
+  static const double wConstriction = 0.15;
+  static const double wVoicing = 0.10;
+  static const double wNasality = 0.10;
 
-    final double distance = math.sqrt(dh * dh + db * db + dr * dr + dv * dv * 0.5 + dn * dn * 0.5);
-
-    String heightAdvice = 'Tongue height is accurate.';
-    if (dh > 0.15) {
-      heightAdvice = 'Raise the tongue higher towards the roof of your mouth.';
-    } else if (dh < -0.15) {
-      heightAdvice = 'Lower your jaw and drop the tongue lower.';
+  static PhoneticEvaluationResult evaluate(
+    PhoneticFeatureVector target,
+    PhoneticFeatureVector learner,
+  ) {
+    if (!target.isValid || !learner.isValid) {
+      return const InvalidPhoneticInput("Input dimensions must be finite numbers in [0.0, 1.0]");
     }
 
-    String backnessAdvice = 'Tongue horizontal position is accurate.';
-    if (db > 0.15) {
-      backnessAdvice = 'Retract the tongue further back towards the pharynx.';
-    } else if (db < -0.15) {
-      backnessAdvice = 'Push the tongue tip forward towards the front teeth.';
-    }
+    final dH = target.tongueHeight - learner.tongueHeight;
+    final dB = target.tongueBackness - learner.tongueBackness;
+    final dL = target.lipRounding - learner.lipRounding;
+    final dC = target.constrictionDegree - learner.constrictionDegree;
+    final dV = target.voicing - learner.voicing;
+    final dN = target.nasality - learner.nasality;
 
-    String roundingAdvice = 'Lip posture is accurate.';
-    if (dr > 0.2) {
-      roundingAdvice = 'Protrude and round your lips tightly.';
-    } else if (dr < -0.2) {
-      roundingAdvice = 'Spread your lips into a smile and relax tension.';
-    }
+    final weightedSum = (wTongueHeight * dH * dH) +
+        (wTongueBackness * dB * dB) +
+        (wLipRounding * dL * dL) +
+        (wConstriction * dC * dC) +
+        (wVoicing * dV * dV) +
+        (wNasality * dN * dN);
 
-    String primarySummary = 'Pronunciation is native-like!';
-    if (distance > 0.4) {
-      primarySummary = 'Noticeable articulatory deviation: adjust lip posture and tongue elevation.';
-    } else if (distance > 0.2) {
-      primarySummary = 'Minor accent variance: fine-tune tongue placement.';
-    }
+    final distance = math.sqrt(weightedSum);
+    final similarity = math.max(0.0, (1.0 - distance) * 100.0);
 
-    return ArticulatoryCorrectionGuide(
-      totalDistance: distance,
-      heightAdvice: heightAdvice,
-      backnessAdvice: backnessAdvice,
-      roundingAdvice: roundingAdvice,
-      primarySummary: primarySummary,
+    return ValidPhoneticScore(
+      distance: distance,
+      similarityScore: similarity,
+      isNativeLike: distance < 0.12,
     );
   }
 }
