@@ -5,45 +5,6 @@ import 'canonical_language_catalog.dart';
 import 'language_pair_readiness.dart';
 import 'dart:collection';
 
-abstract class DirectedPairReadiness {
-  final PairReadinessState state;
-  const DirectedPairReadiness(this.state);
-}
-
-class ReadinessUsable extends DirectedPairReadiness {
-  const ReadinessUsable() : super(PairReadinessState.usable);
-}
-
-abstract class ReadinessUnavailable extends DirectedPairReadiness {
-  final String reason;
-  const ReadinessUnavailable(super.state, this.reason);
-}
-
-class ReadinessUnsupported extends ReadinessUnavailable {
-  const ReadinessUnsupported(String reason)
-      : super(PairReadinessState.unsupported, reason);
-}
-
-class ReadinessReflexive extends ReadinessUnavailable {
-  const ReadinessReflexive()
-      : super(PairReadinessState.reflexive, 'Source and target languages cannot be identical.');
-}
-
-class ReadinessRegistered extends ReadinessUnavailable {
-  const ReadinessRegistered(String reason)
-      : super(PairReadinessState.registered, reason);
-}
-
-class ReadinessVerified extends ReadinessUnavailable {
-  const ReadinessVerified(String reason)
-      : super(PairReadinessState.verified, reason);
-}
-
-class ReadinessInstalled extends ReadinessUnavailable {
-  const ReadinessInstalled(String reason)
-      : super(PairReadinessState.installed, reason);
-}
-
 class PackRecord {
   final LanguagePackGateResult result;
   final bool isInstalled;
@@ -88,12 +49,12 @@ class CatalogReadinessEngine {
     }
 
     final sourceId = catalog.resolvePersistedId(pair.sourceLocale);
-    if (sourceId.status.name == 'unknown' || sourceId.status.name == 'reviewRequired') {
+    if (sourceId.status == CatalogIdentityStatus.unknown || sourceId.status == CatalogIdentityStatus.reviewRequired) {
       return ReadinessUnsupported('Source language metadata not found: ${pair.sourceLocale}');
     }
 
     final targetId = catalog.resolvePersistedId(pair.targetLocale);
-    if (targetId.status.name == 'unknown' || targetId.status.name == 'reviewRequired') {
+    if (targetId.status == CatalogIdentityStatus.unknown || targetId.status == CatalogIdentityStatus.reviewRequired) {
       return ReadinessUnsupported('Target language metadata not found: ${pair.targetLocale}');
     }
 
@@ -112,21 +73,23 @@ class CatalogReadinessEngine {
       return const ReadinessUnsupported('Silent pivot prevented: Neither language is production ready.');
     }
 
-    final record = _admittedPacks[pair.uniqueKey];
+    // In a directed pair source->target, we only strictly need the TARGET pack to be admitted/usable
+    // Actually, following the old design let's just check the target pack here:
+    final record = _admittedPacks[pair.targetLocale];
     if (record == null) {
-      return const ReadinessRegistered('Pack is not admitted yet.');
+      return const ReadinessRegistered('Target pack is not admitted yet.');
     }
 
     if (record.result.status != PackGateStatus.approved) {
-      return ReadinessRegistered('Pack rejected: ${record.result.reason}');
+      return ReadinessRegistered('Target pack rejected: ${record.result.reason ?? record.result.status.name}');
     }
 
     if (!record.isInstalled) {
-      return const ReadinessVerified('Pack is verified but not installed.');
+      return const ReadinessVerified('Target pack is verified but not installed.');
     }
 
     if (!record.isUsable) {
-      return const ReadinessInstalled('Pack is installed but not usable.');
+      return const ReadinessInstalled('Target pack is installed but not usable.');
     }
 
     return const ReadinessUsable();
@@ -144,36 +107,37 @@ class CatalogReadinessEngine {
       checksum: checksum,
     );
 
-    _admittedPacks[pair.uniqueKey] = PackRecord(result);
-    _evaluatedPairs.remove(pair.uniqueKey);
+    _admittedPacks[pair.targetLocale] = PackRecord(result);
+    // Invalidate cache for any pair involving this pack as a target
+    _evaluatedPairs.removeWhere((key, value) => key.contains('_${pair.targetLocale}_'));
   }
 
   void markPackInstalled(DirectedPairId pair) {
-    final record = _admittedPacks[pair.uniqueKey];
+    final record = _admittedPacks[pair.targetLocale];
     if (record != null) {
-      _admittedPacks[pair.uniqueKey] = PackRecord(
+      _admittedPacks[pair.targetLocale] = PackRecord(
         record.result,
         isInstalled: true,
         isUsable: record.isUsable,
       );
-      _evaluatedPairs.remove(pair.uniqueKey);
+      _evaluatedPairs.removeWhere((key, value) => key.contains('_${pair.targetLocale}_'));
     }
   }
 
   void markPackUsable(DirectedPairId pair) {
-    final record = _admittedPacks[pair.uniqueKey];
+    final record = _admittedPacks[pair.targetLocale];
     if (record != null) {
-      _admittedPacks[pair.uniqueKey] = PackRecord(
+      _admittedPacks[pair.targetLocale] = PackRecord(
         record.result,
         isInstalled: true,
         isUsable: true,
       );
-      _evaluatedPairs.remove(pair.uniqueKey);
+      _evaluatedPairs.removeWhere((key, value) => key.contains('_${pair.targetLocale}_'));
     }
   }
 
   void invalidatePack(DirectedPairId pair) {
-    _admittedPacks.remove(pair.uniqueKey);
-    _evaluatedPairs.remove(pair.uniqueKey);
+    _admittedPacks.remove(pair.targetLocale);
+    _evaluatedPairs.removeWhere((key, value) => key.contains('_${pair.targetLocale}_'));
   }
 }
