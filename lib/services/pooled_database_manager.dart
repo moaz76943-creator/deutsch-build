@@ -36,7 +36,6 @@ class PooledDatabaseManager {
   final Map<String, int> _leases = <String, int>{};
   final List<Completer<void>> _slotWaiters = <Completer<void>>[];
   Future<void> _mutexTail = Future<void>.value();
-  Completer<void>? _slotReleased;
 
   int get activeCount => _connections.values.where((db) => db.isOpen).length;
   List<String> get leastToMostRecentlyUsed =>
@@ -64,32 +63,13 @@ class PooledDatabaseManager {
 
   Future<Database> open(String languageCode) => _locked(() async {
         try {
-          return await _openLocked(_normalizeCode(languageCode));
+          final opened = await _tryOpenLocked(_normalizeCode(languageCode));
+          if (opened == null) throw const _PoolSaturated();
+          return opened;
         } on _PoolSaturated {
           throw StateError('All pooled content databases are in use');
         }
       });
-
-  /// Opens [code], waiting while every slot is leased.
-  /// Eviction still never closes a leased handle, so the open count stays
-  /// within [maxConnections].
-  Future<Database> _acquire(String code, {required bool lease}) async {
-    while (true) {
-      final pending = await _locked<Object>(() async {
-        final opened = await _tryOpenLocked(code);
-        if (opened == null) {
-          _slotReleased ??= Completer<void>();
-          return _SlotWait(_slotReleased!.future);
-        }
-        if (lease) {
-          _leases[code] = (_leases[code] ?? 0) + 1;
-        }
-        return opened;
-      });
-      if (pending is Database) return pending;
-      await (pending as _SlotWait).gate;
-    }
-  }
 
   Future<Database?> _tryOpenLocked(String code) async {
     final existing = _connections.remove(code);
@@ -140,7 +120,8 @@ class PooledDatabaseManager {
       var waiting = false;
       await _locked(() async {
         try {
-          final opened = await _openLocked(code);
+          final opened = await _tryOpenLocked(code);
+          if (opened == null) throw const _PoolSaturated();
           _leases[code] = (_leases[code] ?? 0) + 1;
           leased = opened;
         } on _PoolSaturated {
@@ -180,9 +161,11 @@ class PooledDatabaseManager {
     }
     final db = _connections.remove(code);
     if (db == null) return;
+
     final stillReferenced =
         _connections.values.any((other) => identical(other, db));
     if (stillReferenced) return;
+
     if (db.isOpen) {
       if (_beforeClose != null) {
         try {
