@@ -44,7 +44,7 @@ class LexiconRichDetails extends StatelessWidget {
             textDirection: TextDirection.ltr,
             child: Text(
               '/$ipa/',
-              style: AppTypography.caption,
+              style: AppTypography.label, // Fallback since caption isn't there
             ),
           ),
         ),
@@ -78,7 +78,7 @@ class LexiconRichDetails extends StatelessWidget {
       padding: const EdgeInsets.only(top: 2.0),
       child: Text(
         '$label$value',
-        style: AppTypography.caption,
+        style: AppTypography.label, // Fallback since caption isn't there
       ),
     );
   }

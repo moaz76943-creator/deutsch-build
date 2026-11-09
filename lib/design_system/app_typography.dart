@@ -72,18 +72,6 @@ class AppTypography {
     );
   }
 
-  static TextStyle get body => const TextStyle(
-        fontFamily: 'Cairo',
-        fontFamilyFallback: [
-          'NotoSansHebrew',
-          'NotoSansDevanagari',
-          'NotoSansEthiopic',
-          'NotoSansGeorgian',
-          'NotoSansArmenian',
-          'NotoSansCJK',
-        ],
-      );
-
   static List<String> _getFallbacksForProfile(String typographyProfile) {
     switch (typographyProfile) {
       case 'cairo':
