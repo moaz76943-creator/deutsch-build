@@ -1,6 +1,6 @@
 # Privacy Policy for Deutsch بالعربي
 
-**Last updated:** November 8, 2026
+**Last updated:** November 9, 2026
 
 **Developer / Entity:** moaz76943-creator (matches Google Play developer account listing)
 
@@ -81,7 +81,7 @@ Because the app stores data only locally on your device and does not create user
 - allowBackup="false"; usesCleartextTraffic="false"; data extraction rules configured; R8/ProGuard minification and resource shrinking enabled in release.
 - Prominent disclosure is shown in-app before any sensitive permission request (e.g., microphone). See recommended text above.
 - FLAG_SECURE is set to prevent screenshots of sensitive learning content in the app switcher (disabled only in debug builds).
-- Play Integrity API code is present in the project for potential future use but is inactive under the current offline-first policy (no network permission is declared, so integrity token requests cannot succeed). No user data is involved.
+- Play Integrity API code is present for potential future online features or fail-closed gating of advanced offline features, but is inactive under the current offline-first policy (no network permission is declared, so integrity token requests cannot succeed). No user data is involved or transmitted.
 
 ## Children's Privacy
 
