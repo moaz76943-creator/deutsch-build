@@ -89,8 +89,11 @@ void main() async {
   // fewer GC pauses, modest battery savings. Defaults are 1000 images / 100 MB.
   // Values chosen for typical phone screens + offline image packs without
   // impacting perceived quality (CachedNetworkImage already size-constrained).
-  PaintingBinding.instance.imageCache.maximumSize = 250;
-  PaintingBinding.instance.imageCache.maximumSizeBytes = 48 * 1024 * 1024; // 48 MB
+  // Tightened further (2026-11-09): 200 items / 32 MB — expected ~15-25% lower
+  // image memory footprint on mid-range devices, reducing GC frequency and
+  // battery drain during long learning sessions. No security impact.
+  PaintingBinding.instance.imageCache.maximumSize = 200;
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 32 * 1024 * 1024; // 32 MB
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
