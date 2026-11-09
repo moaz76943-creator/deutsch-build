@@ -1,0 +1,24 @@
+{
+  "ledger_version": "1.0.0",
+  "audit_date": "2026-11-08",
+  "compliance_status": "SOVEREIGN_PURE",
+  "prohibited_languages_strictly_excluded": ["he", "syc", "ber", "zgh"],
+  "citizenship_test_materials_strictly_excluded": true,
+  "zero_pii_enforced": true,
+  "sources": [
+    {
+      "id": "SRC-DE-001",
+      "name": "Deutsch Basis Kommunikationskorpus",
+      "license": "CC-BY-SA-4.0",
+      "pii_audit": "PASSED_ZERO_PII",
+      "linguistic_purity": "VERIFIED"
+    },
+    {
+      "id": "SRC-AR-001",
+      "name": "المدونة اللغوية العربية التوضيحية الأصيلة",
+      "license": "CC-BY-SA-4.0",
+      "pii_audit": "PASSED_ZERO_PII",
+      "linguistic_purity": "VERIFIED"
+    }
+  ]
+}
