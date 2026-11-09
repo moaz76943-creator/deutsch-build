@@ -37,16 +37,49 @@ class TestZeroRegressionGate(unittest.TestCase):
         self.assertEqual(res.status, gate.STATUS_BLOCKED)
 
     @patch('pathlib.Path.exists')
-    def test_missing_memory_benchmark_not_run(self, mock_exists):
+    def test_missing_memory_benchmark_blocked(self, mock_exists):
         mock_exists.return_value = False
         res = gate.run_benchmark_memory(self.root)
-        self.assertEqual(res.status, gate.STATUS_NOT_RUN)
+        self.assertEqual(res.status, gate.STATUS_BLOCKED)
 
     @patch('pathlib.Path.exists')
-    def test_missing_startup_tests_not_run(self, mock_exists):
+    def test_missing_startup_tests_blocked(self, mock_exists):
         mock_exists.return_value = False
         res = gate.run_startup_tests(self.root)
-        self.assertEqual(res.status, gate.STATUS_NOT_RUN)
+        self.assertEqual(res.status, gate.STATUS_BLOCKED)
+
+    @patch('os.path.exists')
+    @patch('pathlib.Path.exists')
+    @patch('shutil.which')
+    def test_missing_time_toolchain_blocks(self, mock_which, mock_path_exists, mock_os_exists):
+        mock_path_exists.return_value = True
+        def os_exists_side_effect(path):
+            if path == "/usr/bin/time":
+                return False
+            return True
+        mock_os_exists.side_effect = os_exists_side_effect
+        mock_which.return_value = None
+        res = gate.run_benchmark_memory(self.root)
+        self.assertEqual(res.status, gate.STATUS_BLOCKED)
+        self.assertIn("Missing time toolchain", res.message)
+
+    @patch('os.path.exists')
+    @patch('pathlib.Path.exists')
+    @patch('tools.verification.zero_regression_gate.run_command')
+    def test_unparseable_metrics_blocks(self, mock_run, mock_path_exists, mock_os_exists):
+        mock_path_exists.return_value = True
+        mock_os_exists.return_value = True
+        # memory mock
+        mock_run.return_value = (0, "no metrics here", "")
+        res = gate.run_benchmark_memory(self.root)
+        self.assertEqual(res.status, gate.STATUS_BLOCKED)
+        self.assertIn("Could not extract memory", res.message)
+
+        # startup mock
+        mock_run.return_value = (0, "no metrics here", "")
+        res2 = gate.run_startup_tests(self.root)
+        self.assertEqual(res2.status, gate.STATUS_BLOCKED)
+        self.assertIn("Could not extract STARTUP_TIME", res2.message)
 
     def test_manifest_generation(self):
         results = {
@@ -104,10 +137,12 @@ class TestZeroRegressionGate(unittest.TestCase):
         if os.path.exists(b_file): os.remove(b_file)
         if os.path.exists(c_file): os.remove(c_file)
 
+    @patch('os.path.exists')
     @patch('pathlib.Path.exists')
     @patch('tools.verification.zero_regression_gate.run_command')
-    def test_benchmark_memory_fails_on_exceeding_limit(self, mock_run, mock_exists):
-        mock_exists.return_value = True
+    def test_benchmark_memory_fails_on_exceeding_limit(self, mock_run, mock_path_exists, mock_os_exists):
+        mock_path_exists.return_value = True
+        mock_os_exists.return_value = True
         mock_run.return_value = (0, "MEMORY_PEAK_MB: 300.0", "")
         res = gate.run_benchmark_memory(self.root, limit_mb=256.0)
         self.assertEqual(res.status, gate.STATUS_FAIL)

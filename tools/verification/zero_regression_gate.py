@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import re
+import shutil
 import statistics
 import sqlite3
 import subprocess
@@ -180,11 +181,18 @@ def run_benchmark_memory(repo_root: Path, limit_mb: float = 256.0) -> GateResult
     logger.info("Checking peak memory...")
     target_test = "test/benchmark_test.dart"
     if not (repo_root / target_test).exists():
-        return GateResult(STATUS_NOT_RUN, "Missing memory benchmark test script")
+        return GateResult(STATUS_BLOCKED, "Missing memory benchmark test script")
+
+    if not shutil.which("time") and not os.path.exists("/usr/bin/time"):
+        return GateResult(STATUS_BLOCKED, "Missing time toolchain")
 
     # In a real environment, we'd use GNU time, or parse memory output from the test
     # We will simulate memory profiling with /usr/bin/time -v for now
     cmd = ["/usr/bin/time", "-v", "flutter", "test", target_test]
+    if not os.path.exists("/usr/bin/time"):
+        # fallback for environments where time is not in /usr/bin but in PATH
+        cmd = ["time", "-v", "flutter", "test", target_test]
+
     returncode, stdout, stderr = run_command(cmd, cwd=str(repo_root))
 
     if returncode != 0:
@@ -208,7 +216,7 @@ def run_benchmark_memory(repo_root: Path, limit_mb: float = 256.0) -> GateResult
             max_rss = float(match.group(1))
 
     if max_rss == 0.0:
-        return GateResult(STATUS_FAIL, "Could not extract memory peak metrics")
+        return GateResult(STATUS_BLOCKED, "Could not extract memory peak metrics")
 
     details = {"peak_memory_mb": max_rss}
     if max_rss > limit_mb:
@@ -223,7 +231,7 @@ def run_startup_tests(repo_root: Path, mode: str = "normal", threshold_ms: float
          # Fallback to general test if specific one is missing
          target_test = "test/benchmark_test.dart"
          if not (repo_root / target_test).exists():
-            return GateResult(STATUS_NOT_RUN, f"Missing startup tests for {mode} mode")
+            return GateResult(STATUS_BLOCKED, f"Missing startup tests for {mode} mode")
 
     env = os.environ.copy()
     env["STARTUP_MODE"] = mode
@@ -238,10 +246,10 @@ def run_startup_tests(repo_root: Path, mode: str = "normal", threshold_ms: float
         return GateResult(STATUS_FAIL, f"Startup tests failed in {mode} mode", {"stdout": stdout, "stderr": stderr})
 
     # Check if test outputs specific STARTUP_TIME_MS:
-    parsed_duration = elapsed_ms
     match = re.search(r"STARTUP_TIME_MS:\s*([\d.]+)", stdout)
-    if match:
-        parsed_duration = float(match.group(1))
+    if not match:
+        return GateResult(STATUS_BLOCKED, "Could not extract STARTUP_TIME_MS metrics")
+    parsed_duration = float(match.group(1))
 
     details = {"latency_ms": parsed_duration}
     if parsed_duration > threshold_ms:
