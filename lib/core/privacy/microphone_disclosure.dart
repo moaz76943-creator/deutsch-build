@@ -5,26 +5,35 @@ import 'package:flutter/services.dart';
 const String kPrivacyPolicyUrl =
     'https://moaz76943-creator.github.io/deutsch-bilarabi-privacy/privacy.html';
 
-const String kMicrophoneDisclosureText =
+const String kMicrophoneDisclosureTextAr =
     'يُستخدم الميكروفون فقط لتدريب النطق على هذا الجهاز. لا يُرفع التسجيل إلى خادم. يمكنك الرفض، ولن يظهر إذن النظام قبل موافقتك هنا.';
 
+const String kMicrophoneDisclosureTextEn =
+    'Deutsch بالعربي needs access to your microphone to analyze your pronunciation on-device for practice. Audio never leaves your device and is not stored or shared. You can deny; the system dialog appears only after you accept here.';
+
+const String kMicrophoneDisclosureText =
+    '$kMicrophoneDisclosureTextAr\n\n$kMicrophoneDisclosureTextEn';
+
 /// In-app explanation that must be accepted before the OS microphone dialog.
+/// Bilingual to satisfy prominent disclosure requirements under Google Play policies.
 Future<bool> showMicrophoneDisclosure(BuildContext context) async {
   final accepted = await showDialog<bool>(
     context: context,
     barrierDismissible: false,
     builder: (dialogContext) {
       return AlertDialog(
-        title: const Text('استخدام الميكروفون'),
-        content: const Text(kMicrophoneDisclosureText),
+        title: const Text('استخدام الميكروفون / Microphone Use'),
+        content: const SingleChildScrollView(
+          child: Text(kMicrophoneDisclosureText),
+        ),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('رفض'),
+            child: const Text('رفض / Deny'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('موافق'),
+            child: const Text('موافق / Accept'),
           ),
         ],
       );
