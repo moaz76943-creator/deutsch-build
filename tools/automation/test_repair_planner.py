@@ -83,5 +83,26 @@ class TestRepairPlanner(unittest.TestCase):
         plan_dry = self.planner.generate_plan(sig_dry, dry_run=True)
         self.assertTrue(plan_dry["dry_run"])
 
+    @patch('tools.automation.repair_planner.ScopeGuard')
+    def test_repeated_loops(self, MockGuard):
+        mock_guard_instance = MagicMock()
+        MockGuard.return_value = mock_guard_instance
+        mock_guard_instance.request_ownership.return_value = True
+
+        sig = "Error: corrupted artifact at build.zip"
+
+        # First attempt should succeed
+        plan = self.planner.generate_plan(sig, dry_run=False)
+        self.assertEqual(plan["category"], CORRUPTED_ARTIFACT)
+        self.assertEqual(plan["paths"], ["build.zip"])
+
+        # Second attempt with same signature should fail (no infinite loop)
+        with self.assertRaisesRegex(ValueError, "Duplicate attempt blocked"):
+            self.planner.generate_plan(sig, dry_run=False)
+
+        # But it should succeed if new_input is True
+        plan_new_input = self.planner.generate_plan(sig, dry_run=False, new_input=True)
+        self.assertEqual(plan_new_input["category"], CORRUPTED_ARTIFACT)
+
 if __name__ == '__main__':
     unittest.main()
