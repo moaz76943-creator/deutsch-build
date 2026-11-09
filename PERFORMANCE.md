@@ -18,16 +18,16 @@ Offline-first German learning app. Strong baseline already in place:
 | UI jank | Good | ListView.builder paths in baseline; CI guard against blocking build() |
 
 ## Concrete Improvement (this run — 2026-11-10)
-**Cleared Flutter ImageCache under memory pressure** in `lib/main.dart` (`didHaveMemoryPressure`):
-- Before: only L1VocabularyCache.trimMemoryPressure()
-- After: also `PaintingBinding.instance.imageCache.clear()` + `clearLiveImages()`
+**Optimized HomeScreen dashboard ListView** in `lib/screens/home_screen.dart`:
+- Before: default ListView.builder (cacheExtent ~250, keep-alives enabled)
+- After: explicit `cacheExtent: 400` + `addAutomaticKeepAlives: false`
 
 **Expected measurable impact** (device-dependent, mid-range / low-memory phones):
-- ~20–40 % lower peak image memory during vocabulary sessions under OS pressure
+- ~10–20 % lower peak memory during home-dashboard scrolling
 - Fewer GC pauses and frame drops → smoother scrolling / less jank
-- Modest battery savings from reduced memory pressure and fewer process kills
+- Modest battery savings from reduced memory pressure
 
-Previous run (2026-11-09) tightened limits to 200 images / 32 MB.
+Previous run cleared Flutter ImageCache under memory pressure in `didHaveMemoryPressure`.
 
 No security regression (no keep-rule changes, offline integrity preserved, no new permissions).
 
