@@ -178,7 +178,13 @@ class _HomeScreenState extends State<HomeScreen> {
           cacheExtent: 400,
           addAutomaticKeepAlives: false,
           itemCount: items.length,
-          itemBuilder: (context, index) => items[index],
+          itemBuilder: (context, index) => RepaintBoundary(
+            // Isolates repaint of each dashboard section. Reduces overpaint
+            // when sibling widgets update (e.g. stats load, streak badge).
+            // Expected: fewer dropped frames on home scroll/startup transitions,
+            // especially on mid-range devices with complex gradients/cards.
+            child: items[index],
+          ),
         ),
       ),
     );
