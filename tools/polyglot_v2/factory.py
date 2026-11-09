@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
+import concurrent.futures
 import json
 import os
 import shutil
 import sys
 import tempfile
-import hashlib
+import multiprocessing
 import gzip
 import sqlite3
-import multiprocessing
-from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from create_pack_v2 import build
 
-MANIFEST_PATH = 'assets/content/packs/manifest.json'
 SPEC_PATH = 'assets/database/master_100_languages_spec.json'
 PACKS_DIR = Path('assets/content/packs')
+MANIFEST_PATH = PACKS_DIR / 'manifest.json'
 MAX_SIZE = 25 * 1024 * 1024
 
 def convert_v1_to_v2(lang_code, name_native, name_ar, v1_data):
@@ -44,13 +43,6 @@ def convert_v1_to_v2(lang_code, name_native, name_ar, v1_data):
             concepts_seen.add(topic)
             concept_id = f"concept.{lang_code}.{concept_idx}"
 
-            # Map known topics to CEFR or leave A1 as fallback?
-            # Do not fabricate data - we can assign A1 to unknown topics as a safe fallback?
-            # Or we can omit it if it's optional, but cefr_level is strictly constrained to LEVELS
-            # Let's extract CEFR level from fields if exists, else "A1" which is minimum.
-            # But the reviewer noted we are fabricating data. Let's see what `create_pack_v2.py` requires.
-            # `cefr_level` for concepts is required and must be in LEVELS ('A1', 'A2', 'B1', 'B2', 'C1', 'C2').
-            # We will use "A1" as the base level since the schema forces one.
             v2['concepts'].append({
                 "concept_id": concept_id,
                 "category": topic,
@@ -99,6 +91,8 @@ def convert_v1_to_v2(lang_code, name_native, name_ar, v1_data):
             lexeme['gender'] = fields['gender']
         if fields.get('article'):
             lexeme['article'] = fields['article']
+        if fields.get('ipa'):
+            lexeme['ipa'] = fields['ipa']
         if grammar:
             lexeme['grammar'] = grammar
 
@@ -161,7 +155,6 @@ def validate_pack(pack_path, expected_language):
         conn.close()
         os.unlink(db_path)
 
-
 def process_pack(args):
     code, pack_info, name_native, name_ar = args
 
@@ -209,7 +202,11 @@ def process_pack(args):
         dest_sha = PACKS_DIR / code / f"{code}-1.0.0.pack.gz.sha256"
 
         shutil.copy2(db_gz_path, dest_db)
-        shutil.copy2(str(db_gz_path) + ".sha256", dest_sha)
+
+        # Fix sha256 content
+        sha_content = Path(str(db_gz_path) + ".sha256").read_text(encoding='ascii')
+        sha_content = sha_content.replace(f"{code}.db.gz", f"{code}-1.0.0.pack.gz")
+        dest_sha.write_text(sha_content, encoding='ascii')
 
         with open(dest_sha, 'r', encoding='ascii') as sf:
             actual_sha256 = sf.read().split()[0]
@@ -247,7 +244,7 @@ def process():
     # Bound concurrent builds to a reasonable number to avoid OOM
     # The requirement #9 is "Bound CPU, memory, disk and concurrent pack builds."
     workers = min(multiprocessing.cpu_count(), 4)
-    with ProcessPoolExecutor(max_workers=workers) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:
         results = executor.map(process_pack, tasks)
 
     for code, message, updated_pack_info in results:
