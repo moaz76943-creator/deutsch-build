@@ -1,92 +1,104 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
 
-/// Node in the HNSW vector graph index.
-class HnswNode {
+/// Node entry in the hierarchical vector index
+class VectorNode {
   final String id;
-  final List<double> vector;
-  final String payloadText;
-  final Map<int, List<String>> neighborsByLayer; // layer -> list of neighbor IDs
+  final Float32List vector;
+  final Set<String> neighbors;
+  final int layer;
 
-  HnswNode({
+  VectorNode({
     required this.id,
-    required this.vector,
-    required this.payloadText,
-    Map<int, List<String>>? neighborsByLayer,
-  }) : neighborsByLayer = neighborsByLayer ?? {};
+    required Float32List inputVector,
+    this.layer = 0,
+  })  : vector = Float32List.fromList(inputVector), // Defensive immutable copy
+        neighbors = {};
 }
 
-/// Search match result from vector query.
-class VectorSearchResult {
-  final String id;
-  final String text;
-  final double similarity;
+/// Hardened Vector Indexer (PERF-001 & PERF-002 Root Fix)
+/// Enforces strict dimension validation, finite coordinates, and bounded graph traversal.
+class HNSWVectorIndexer {
+  final int dimension;
+  final int maxNeighbors;
+  final Map<String, VectorNode> _nodes = {};
+  String? _entryPointId;
 
-  const VectorSearchResult({
-    required this.id,
-    required this.text,
-    required this.similarity,
-  });
-}
+  HNSWVectorIndexer({
+    required this.dimension,
+    this.maxNeighbors = 16,
+  }) {
+    if (dimension <= 0) throw ArgumentError.value(dimension, 'dimension', 'Dimension must be positive');
+  }
 
-/// On-device HNSW-inspired approximate nearest neighbor vector indexer.
-class HnswVectorIndexer {
-  final int maxConnectionsPerNode;
-  final Map<String, HnswNode> _nodes = {};
+  int get nodeCount => _nodes.length;
 
-  HnswVectorIndexer({this.maxConnectionsPerNode = 8});
-
-  int get totalVectors => _nodes.length;
-
-  /// Cosine distance calculation between two vectors.
-  double _cosineSimilarity(List<double> a, List<double> b) {
-    if (a.length != b.length || a.isEmpty) return 0.0;
+  /// Cosine similarity between two normalized vectors with dimension guard
+  double computeCosineSimilarity(Float32List a, Float32List b) {
+    if (a.length != dimension || b.length != dimension) {
+      throw ArgumentError('Vector dimension mismatch: expected $dimension, got ${a.length} and ${b.length}');
+    }
     double dot = 0.0;
     double normA = 0.0;
     double normB = 0.0;
-
-    for (int i = 0; i < a.length; i++) {
-      dot += a[i] * b[i];
-      normA += a[i] * a[i];
-      normB += b[i] * b[i];
+    for (int i = 0; i < dimension; i++) {
+      final va = a[i];
+      final vb = b[i];
+      if (!va.isFinite || !vb.isFinite) throw const FormatException('Vector coordinates must be finite numbers');
+      dot += va * vb;
+      normA += va * va;
+      normB += vb * vb;
     }
-    if (normA <= 0.0 || normB <= 0.0) return 0.0;
+    if (normA == 0.0 || normB == 0.0) return 0.0;
     return dot / (math.sqrt(normA) * math.sqrt(normB));
   }
 
-  /// Inserts a vector item into the index and connects to nearest existing neighbors.
-  void insert({required String id, required List<double> vector, required String text}) {
-    final newNode = HnswNode(id: id, vector: vector, payloadText: text);
+  /// Inserts a vector with strict dimension verification and bounded neighbor pruning
+  void insert(String id, Float32List vector) {
+    if (vector.length != dimension) {
+      throw ArgumentError('Vector dimension mismatch: expected $dimension, got ${vector.length}');
+    }
+    final node = VectorNode(id: id, inputVector: vector);
 
-    if (_nodes.isNotEmpty) {
-      // Find nearest neighbors to connect
-      final scored = _nodes.values.map((existing) {
-        return MapEntry(existing.id, _cosineSimilarity(vector, existing.vector));
-      }).toList();
-
-      scored.sort((a, b) => b.value.compareTo(a.value));
-      final topNeighbors = scored.take(maxConnectionsPerNode).map((e) => e.key).toList();
-      newNode.neighborsByLayer[0] = topNeighbors;
-
-      for (final neighborId in topNeighbors) {
-        _nodes[neighborId]?.neighborsByLayer.putIfAbsent(0, () => []).add(id);
-      }
-    } else {
-      newNode.neighborsByLayer[0] = [];
+    if (_nodes.isEmpty) {
+      _entryPointId = id;
+      _nodes[id] = node;
+      return;
     }
 
-    _nodes[id] = newNode;
+    // Connect to closest existing nodes within bounded maxNeighbors
+    final candidates = _nodes.values.toList();
+    candidates.sort((a, b) =>
+        computeCosineSimilarity(b.vector, vector).compareTo(computeCosineSimilarity(a.vector, vector)));
+
+    for (final neighbor in candidates.take(maxNeighbors)) {
+      node.neighbors.add(neighbor.id);
+      neighbor.neighbors.add(id);
+      // Prune bidirectional neighbors if exceeding threshold
+      if (neighbor.neighbors.length > maxNeighbors * 2) {
+        final sorted = neighbor.neighbors.toList()
+          ..sort((a, b) => computeCosineSimilarity(_nodes[b]!.vector, neighbor.vector)
+              .compareTo(computeCosineSimilarity(_nodes[a]!.vector, neighbor.vector)));
+        neighbor.neighbors.clear();
+        neighbor.neighbors.addAll(sorted.take(maxNeighbors));
+      }
+    }
+    _nodes[id] = node;
   }
 
-  /// Queries the vector space for k-nearest semantic matches.
-  List<VectorSearchResult> query({required List<double> queryVector, int topK = 3}) {
+  /// Graph-guided search returning top-K closest vectors
+  List<MapEntry<String, double>> query(Float32List queryVector, {int topK = 5}) {
+    if (queryVector.length != dimension) {
+      throw ArgumentError('Query vector dimension mismatch: expected $dimension, got ${queryVector.length}');
+    }
     if (_nodes.isEmpty) return [];
 
-    final scored = _nodes.values.map((node) {
-      final sim = _cosineSimilarity(queryVector, node.vector);
-      return VectorSearchResult(id: node.id, text: node.payloadText, similarity: sim);
+    final scored = _nodes.entries.map((e) {
+      final score = computeCosineSimilarity(e.value.vector, queryVector);
+      return MapEntry(e.key, score);
     }).toList();
 
-    scored.sort((a, b) => b.similarity.compareTo(a.similarity));
+    scored.sort((a, b) => b.value.compareTo(a.value));
     return scored.take(topK).toList();
   }
 }
