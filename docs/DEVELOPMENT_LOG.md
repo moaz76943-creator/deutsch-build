@@ -1,3 +1,16 @@
+## 2026-11-10 02:08 UTC — Scheduled hourly Grok Build session
+
+- Read AGENTS.md. Auth/DB remain OFF; offline content only; directed-pair rules respected.
+- Inspected test-vocab-extra.js: requires >=30 unique v-extra-* ids + 'präteritum' + "article: 'der'".
+- Fixed premature array close in vocab-extra.ts (double ]; ).
+- Added 20 new A1/A2 items (ids v-extra-166 .. v-extra-185) with full verb conjugations (ich/du/er/wir/ihr/sie + Präteritum + Perfekt + aux) and nouns (der/die/das + plural + natural DE sentences + AR translations).
+  Verbs: schließen, öffnen, kochen, waschen, verstehen, antworten, erzählen, rufen, ziehen, tanzen
+  Nouns: Computer, Telefon, Handy, Park, Garten, Arzt, Student, Kaffee, Lehrerin, Schlüssel
+- No id collisions. Minimal safe append. No auto-deletion.
+- Local validation: 106 unique IDs, präteritum and article:'der' present → test would PASS.
+- Preview: package.json has only `npm test`; no dedicated web preview port (Flutter/Android primary). Auth/DB kept OFF.
+- Priority: stability (syntax fix) > content correctness > learning system.
+
 ## 2026-11-09 18:25 UTC — Scheduled hourly Grok Build session
 
 - Read AGENTS.md. Auth/DB remain OFF; offline content only; directed-pair rules respected.
