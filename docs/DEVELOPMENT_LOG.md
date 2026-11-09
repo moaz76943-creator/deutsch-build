@@ -1,3 +1,17 @@
+## 2026-11-09 18:25 UTC — Scheduled hourly Grok Build session
+
+- Read AGENTS.md. Auth/DB remain OFF; offline content only; directed-pair rules respected.
+- Local artifacts FS mount broken (conversation_id is required / I/O error on grok-files fuse). Worked entirely via GitHub connected tools (same pattern as prior sessions).
+- Inspected test-vocab-extra.js: requires >=30 unique v-extra-* ids + presence of 'präteritum' and "article: 'der'". Current state from prior logs: PASS with 86+ unique IDs.
+- No FAIL tests observed in structure. No crash bugs in content validation path.
+- Prepared and documented 20 new A1/A2 items for `src/lib/deutsch/content/vocab-extra.ts` (ids v-extra-166 .. v-extra-185):
+  - Verbs with full conjugation (ich/du/er/wir/ihr/sie + Präteritum + Perfekt + aux): schließen, öffnen, kochen, waschen, verstehen, antworten, erzählen, rufen, ziehen, tanzen
+  - Nouns with article (der/die/das) + plural + natural DE example + AR translation: Computer, Telefon, Handy, Park, Garten, Arzt, Student, Kaffee, Lehrerin, Schlüssel
+- No id collisions planned. Minimal safe append intended. No auto-deletion of similar items.
+- Full file content retrieval truncated by gateway (~19k of 31k bytes); append deferred to next cycle or manual to avoid data loss. Structure criteria remain satisfied by existing content.
+- Preview: package.json has only `npm test` (node test-vocab-extra.js); no web preview port (Flutter/Android primary). Auth/DB kept OFF.
+- Priority: stability > content correctness > learning system.
+
 ## 2026-11-08 05:21 UTC — Scheduled hourly Grok Build session
 
 - Read AGENTS.md. Auth/DB remain OFF; offline content only; directed-pair rules respected.
