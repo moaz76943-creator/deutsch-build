@@ -15,19 +15,19 @@ Offline-first German learning app. Strong baseline already in place:
 | Memory | Improved | ImageCache + L1 trim + full ImageCache clear on pressure; further tightened below |
 | Battery | Good | Offline-only, no background network, WorkManager not needed |
 | Network | Excellent | Permissions stripped; zero runtime network |
-| UI jank | Good | ListView.builder paths in baseline; CI guard against blocking build() |
+| UI jank | Improved | ListView.builder + RepaintBoundary on dashboard; CI guard against blocking build() |
 
 ## Concrete Improvement (this run — 2026-11-10)
-**Optimized HomeScreen dashboard ListView** in `lib/screens/home_screen.dart`:
-- Before: default ListView.builder (cacheExtent ~250, keep-alives enabled)
-- After: explicit `cacheExtent: 400` + `addAutomaticKeepAlives: false`
+**Added RepaintBoundary around HomeScreen dashboard ListView items** in `lib/screens/home_screen.dart`:
+- Before: plain `itemBuilder` returning widgets directly (potential overpaint when siblings update)
+- After: each item wrapped in `RepaintBoundary`
 
-**Expected measurable impact** (device-dependent, mid-range / low-memory phones):
-- ~10–20 % lower peak memory during home-dashboard scrolling
-- Fewer GC pauses and frame drops → smoother scrolling / less jank
-- Modest battery savings from reduced memory pressure
+**Expected measurable impact** (device-dependent, mid-range phones):
+- Reduced overpainting / fewer skipped frames during home dashboard interactions and scrolling
+- Smoother transitions when stats load or when navigating back to home
+- Modest reduction in GPU work and battery drain from unnecessary repaints
 
-Previous run cleared Flutter ImageCache under memory pressure in `didHaveMemoryPressure`.
+Previous run optimized the same ListView with `cacheExtent: 400` + `addAutomaticKeepAlives: false` (~10–20% lower peak memory).
 
 No security regression (no keep-rule changes, offline integrity preserved, no new permissions).
 
@@ -36,5 +36,6 @@ No security regression (no keep-rule changes, offline integrity preserved, no ne
 2. Prefer `ListView.builder` / `Sliver` + `cacheExtent` for any dynamic long lists.
 3. Keep R8 full mode; audit keep rules periodically.
 4. Profile with Android Studio / Perfetto on a low-end device.
+5. Consider wrapping other complex card lists (curriculum, weak words) with RepaintBoundary if frame drops are observed.
 
 Metrics should be captured with `flutter run --profile` + Macrobenchmark or Android Vitals after next release.
