@@ -171,6 +171,12 @@ class _HomeScreenState extends State<HomeScreen> {
       child: SafeArea(
         child: ListView.builder(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 96),
+          // Performance: bound pre-build area beyond viewport (default ~250).
+          // Moderate value balances smoothness vs memory on the dashboard.
+          cacheExtent: 300,
+          // Pure items; no state to preserve when off-screen.
+          // Disabling keep-alives reduces memory pressure during scroll.
+          addAutomaticKeepAlives: false,
           itemCount: items.length,
           itemBuilder: (context, index) => items[index],
         ),
