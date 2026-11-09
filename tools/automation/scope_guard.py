@@ -8,7 +8,7 @@ from typing import List, Optional, Union
 try:
     from tools.agent_contract.guard import paths_overlap, LOCK_TTL_SECONDS
 except ImportError:
-    paths_overlap = None
+    paths_overlap = None # type: ignore
 
 
 class ScopeGuard:
