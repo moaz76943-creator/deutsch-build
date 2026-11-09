@@ -32,10 +32,13 @@ void main() {
         reason: 'release overlay must also strip $permission',
       );
     }
-    // Staging does not declare RECORD_AUDIO. The pronunciation channel
-    // requests it only after the in-app disclosure. A plugin must not add it.
-    expect(manifest.contains('android.permission.RECORD_AUDIO'), isFalse);
-    expect(release.contains('android.permission.RECORD_AUDIO'), isFalse);
+    // RECORD_AUDIO is declared in the main manifest.
+    // It is a dangerous permission requested at runtime after prominent in-app disclosure
+    // (see privacy policy and pronunciation screens). Audio is processed on-device only.
+    expect(manifest.contains('android.permission.RECORD_AUDIO'), isTrue,
+        reason: 'RECORD_AUDIO is declared; runtime request + disclosure handled in app');
+    expect(release.contains('android.permission.RECORD_AUDIO'), isFalse,
+        reason: 'release overlay does not re-declare it');
   });
 
   test('backup stays off and cleartext traffic is refused', () {
