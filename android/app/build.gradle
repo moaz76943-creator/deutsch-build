@@ -67,7 +67,6 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
-        buildConfigField "long", "CLOUD_PROJECT_NUMBER", "${cloudProjectNumberLong}L"
     }
 
     signingConfigs {
@@ -106,7 +105,6 @@ flutter {
 
 dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation 'com.google.android.play:integrity:1.4.0'
     // Baseline Profiles for faster startup and reduced jank (ART optimization)
     // Upgraded to 1.4.1 for multi-process support and API 35+ profile installation
     implementation 'androidx.profileinstaller:profileinstaller:1.4.1'
