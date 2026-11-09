@@ -124,7 +124,6 @@ class AdaptiveCognitiveEngine {
         final latency = m.responseLatency.inMilliseconds;
         return latency >= 0 && latency < 2000;
       });
-      final isCefrVerified = recentWindow.every((m) => m.isCefrVerified);
 
       if (allCorrect && isFast && recentWindow.length >= 3) {
         final allCefrVerified = recentWindow.every((m) => m.isCefrVerified);
