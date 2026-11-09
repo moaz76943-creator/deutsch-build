@@ -184,52 +184,6 @@ class MainActivity : FlutterActivity() {
                 result.error("UNAVAILABLE", "Cannot open TTS settings", null)
             }
         }
-=======
-    private fun captureProcessText(source: Intent?) {
-        if (source?.action != Intent.ACTION_PROCESS_TEXT) return
-        val selected = try {
-            source.getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)?.toString()?.trim()
-        } catch (_: RuntimeException) {
-            null
-        }
-        if (selected.isNullOrEmpty()) return
-        if (pendingProcessText.size >= MAX_PENDING_PROCESS_TEXT) {
-            pendingProcessText.removeFirst()
-        }
-        pendingProcessText.addLast(selected)
-        dispatchPendingProcessText()
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent)
-        captureProcessText(intent)
-    }
-
-    private fun openTtsInstaller(result: MethodChannel.Result) {
-        try {
-            val intent = Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            startActivity(intent)
-            result.success(true)
-        } catch (_: Exception) {
-            try {
-                val fallbackIntent = Intent(TTS_SETTINGS_ACTION)
-                fallbackIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                startActivity(fallbackIntent)
-                result.success(true)
-            } catch (_: Exception) {
-                result.error("UNAVAILABLE", "Cannot open TTS settings", null)
-            }
-        }
-    }
-
-    companion object {
-        private const val PROCESS_TEXT_CHANNEL = "com.deutsch_bilarabi.app/process_text"
-        private const val TTS_SETTINGS_CHANNEL = "com.deutsch_bilarabi.app/tts_settings"
-        private const val TTS_SETTINGS_ACTION = "com.android.settings.TTS_SETTINGS"
-        private const val MAX_PENDING_PROCESS_TEXT = 10
->>>>>>> origin/staging/v2-full-platform
     }
 
     companion object {
