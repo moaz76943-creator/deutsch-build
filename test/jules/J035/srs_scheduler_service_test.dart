@@ -236,4 +236,63 @@ void main() {
     );
     expect(result.isEmpty, true);
   });
+
+
+  test('Timezone and DST changes correctly preserve the UTC epoch due date', () async {
+    // A local date simulating a DST transition, e.g., summer time in Europe
+    final localReviewed = DateTime(2023, 7, 1, 12, 0, 0); // Local time
+    final utcReviewed = localReviewed.toUtc();
+
+    final schedule = await scheduler.gradeAndPersist(
+      progressDb: db,
+      lexemeId: 'lex_dst',
+      languageCode: 'de',
+      grade: 3,
+      reviewedAt: localReviewed, // Service uses toUtc() internally
+      reviewEventId: 'evt-dst-1',
+    );
+
+    // Test that the epoch is strictly based on UTC
+    final due = DateTime.fromMillisecondsSinceEpoch(
+      schedule.nextReviewEpoch * 1000,
+      isUtc: true,
+    );
+
+    // Interval for first repetition is 1 day.
+    final expectedUtc = utcReviewed.add(const Duration(days: 1));
+    expect(due.year, expectedUtc.year);
+    expect(due.month, expectedUtc.month);
+    expect(due.day, expectedUtc.day);
+    expect(due.hour, expectedUtc.hour);
+    expect(due.minute, expectedUtc.minute);
+  });
+
+
+  test('alignToCircadianDay correctly uses UTC boundaries and rollover hour', () async {
+    final reviewedAt = DateTime.utc(2023, 1, 1, 15, 0, 0); // 15:00 UTC
+
+    final schedule = await scheduler.gradeAndPersist(
+      progressDb: db,
+      lexemeId: 'lex_circadian',
+      languageCode: 'de',
+      grade: 3,
+      reviewedAt: reviewedAt,
+      reviewEventId: 'evt-circadian',
+      alignToCircadianDay: true,
+    );
+
+    final due = DateTime.fromMillisecondsSinceEpoch(
+      schedule.nextReviewEpoch * 1000,
+      isUtc: true,
+    );
+
+    // With interval=1 day, next date should be 2023-01-02.
+    // Since we aligned to circadian day, rollover hour defaults to 4.
+    expect(due.year, 2023);
+    expect(due.month, 1);
+    expect(due.day, 2);
+    expect(due.hour, 4);
+    expect(due.minute, 0);
+    expect(due.isUtc, true);
+  });
 }
