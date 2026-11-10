@@ -1804,5 +1804,298 @@ export const vocabExtra = [
     arabic: 'تذكرة',
     example: 'Das Ticket ist gültig.',
     exampleAr: 'التذكرة صالحة.'
+  },,
+
+
+  // === Added 2026-11-10 hourly session: 20 new A1/A2 items (v-extra-319..338) ===
+  {
+    id: 'v-extra-319',
+    type: 'verb',
+    infinitive: 'lieben',
+    arabic: 'يحب',
+    conjugation: {
+      ich: 'liebe',
+      du: 'liebst',
+      er: 'liebt',
+      wir: 'lieben',
+      ihr: 'liebt',
+      sie_pl: 'lieben',
+      präteritum: 'liebte',
+      perfekt: 'hat geliebt',
+      aux: 'haben'
+    },
+    example: 'Ich liebe meine Familie.',
+    exampleAr: 'أحب عائلتي.'
+  },
+  {
+    id: 'v-extra-320',
+    type: 'verb',
+    infinitive: 'mögen',
+    arabic: 'يحب / يفضل',
+    conjugation: {
+      ich: 'mag',
+      du: 'magst',
+      er: 'mag',
+      wir: 'mögen',
+      ihr: 'mögt',
+      sie_pl: 'mögen',
+      präteritum: 'mochte',
+      perfekt: 'hat gemocht',
+      aux: 'haben'
+    },
+    example: 'Ich mag Kaffee.',
+    exampleAr: 'أحب القهوة.'
+  },
+  {
+    id: 'v-extra-321',
+    type: 'verb',
+    infinitive: 'wissen',
+    arabic: 'يعرف',
+    conjugation: {
+      ich: 'weiß',
+      du: 'weißt',
+      er: 'weiß',
+      wir: 'wissen',
+      ihr: 'wisst',
+      sie_pl: 'wissen',
+      präteritum: 'wusste',
+      perfekt: 'hat gewusst',
+      aux: 'haben'
+    },
+    example: 'Ich weiß die Antwort.',
+    exampleAr: 'أعرف الإجابة.'
+  },
+  {
+    id: 'v-extra-322',
+    type: 'verb',
+    infinitive: 'können',
+    arabic: 'يستطيع',
+    conjugation: {
+      ich: 'kann',
+      du: 'kannst',
+      er: 'kann',
+      wir: 'können',
+      ihr: 'könnt',
+      sie_pl: 'können',
+      präteritum: 'konnte',
+      perfekt: 'hat gekonnt',
+      aux: 'haben'
+    },
+    example: 'Ich kann Deutsch sprechen.',
+    exampleAr: 'أستطيع التحدث بالألمانية.'
+  },
+  {
+    id: 'v-extra-323',
+    type: 'verb',
+    infinitive: 'müssen',
+    arabic: 'يجب',
+    conjugation: {
+      ich: 'muss',
+      du: 'musst',
+      er: 'muss',
+      wir: 'müssen',
+      ihr: 'müsst',
+      sie_pl: 'müssen',
+      präteritum: 'musste',
+      perfekt: 'hat gemusst',
+      aux: 'haben'
+    },
+    example: 'Ich muss zur Arbeit gehen.',
+    exampleAr: 'يجب أن أذهب إلى العمل.'
+  },
+  {
+    id: 'v-extra-324',
+    type: 'verb',
+    infinitive: 'wollen',
+    arabic: 'يريد',
+    conjugation: {
+      ich: 'will',
+      du: 'willst',
+      er: 'will',
+      wir: 'wollen',
+      ihr: 'wollt',
+      sie_pl: 'wollen',
+      präteritum: 'wollte',
+      perfekt: 'hat gewollt',
+      aux: 'haben'
+    },
+    example: 'Wir wollen nach Berlin fahren.',
+    exampleAr: 'نريد أن نذهب إلى برلين.'
+  },
+  {
+    id: 'v-extra-325',
+    type: 'verb',
+    infinitive: 'dürfen',
+    arabic: 'يُسمح',
+    conjugation: {
+      ich: 'darf',
+      du: 'darfst',
+      er: 'darf',
+      wir: 'dürfen',
+      ihr: 'dürft',
+      sie_pl: 'dürfen',
+      präteritum: 'durfte',
+      perfekt: 'hat gedurft',
+      aux: 'haben'
+    },
+    example: 'Darf ich fragen?',
+    exampleAr: 'هل يُسمح لي أن أسأل؟'
+  },
+  {
+    id: 'v-extra-326',
+    type: 'verb',
+    infinitive: 'sollen',
+    arabic: 'يجب (نصيحة)',
+    conjugation: {
+      ich: 'soll',
+      du: 'sollst',
+      er: 'soll',
+      wir: 'sollen',
+      ihr: 'sollt',
+      sie_pl: 'sollen',
+      präteritum: 'sollte',
+      perfekt: 'hat gesollt',
+      aux: 'haben'
+    },
+    example: 'Du sollst mehr lernen.',
+    exampleAr: 'يجب أن تتعلم أكثر.'
+  },
+  {
+    id: 'v-extra-327',
+    type: 'verb',
+    infinitive: 'brauchen',
+    arabic: 'يحتاج',
+    conjugation: {
+      ich: 'brauche',
+      du: 'brauchst',
+      er: 'braucht',
+      wir: 'brauchen',
+      ihr: 'braucht',
+      sie_pl: 'brauchen',
+      präteritum: 'brauchte',
+      perfekt: 'hat gebraucht',
+      aux: 'haben'
+    },
+    example: 'Ich brauche Hilfe.',
+    exampleAr: 'أحتاج مساعدة.'
+  },
+  {
+    id: 'v-extra-328',
+    type: 'verb',
+    infinitive: 'suchen',
+    arabic: 'يبحث',
+    conjugation: {
+      ich: 'suche',
+      du: 'suchst',
+      er: 'sucht',
+      wir: 'suchen',
+      ihr: 'sucht',
+      sie_pl: 'suchen',
+      präteritum: 'suchte',
+      perfekt: 'hat gesucht',
+      aux: 'haben'
+    },
+    example: 'Ich suche meinen Schlüssel.',
+    exampleAr: 'أبحث عن مفتاحي.'
+  },
+  {
+    id: 'v-extra-329',
+    type: 'noun',
+    german: 'Buch',
+    article: 'das',
+    plural: 'Bücher',
+    arabic: 'كتاب',
+    example: 'Das Buch ist interessant.',
+    exampleAr: 'الكتاب مثير للاهتمام.'
+  },
+  {
+    id: 'v-extra-330',
+    type: 'noun',
+    german: 'Auto',
+    article: 'das',
+    plural: 'Autos',
+    arabic: 'سيارة',
+    example: 'Das Auto ist schnell.',
+    exampleAr: 'السيارة سريعة.'
+  },
+  {
+    id: 'v-extra-331',
+    type: 'noun',
+    german: 'Zeit',
+    article: 'die',
+    plural: 'Zeiten',
+    arabic: 'وقت',
+    example: 'Ich habe keine Zeit.',
+    exampleAr: 'ليس لدي وقت.'
+  },
+  {
+    id: 'v-extra-332',
+    type: 'noun',
+    german: 'Arbeit',
+    article: 'die',
+    plural: 'Arbeiten',
+    arabic: 'عمل',
+    example: 'Die Arbeit beginnt um neun Uhr.',
+    exampleAr: 'العمل يبدأ في الساعة التاسعة.'
+  },
+  {
+    id: 'v-extra-333',
+    type: 'noun',
+    german: 'Zimmer',
+    article: 'das',
+    plural: 'Zimmer',
+    arabic: 'غرفة',
+    example: 'Das Zimmer ist klein.',
+    exampleAr: 'الغرفة صغيرة.'
+  },
+  {
+    id: 'v-extra-334',
+    type: 'noun',
+    german: 'Küche',
+    article: 'die',
+    plural: 'Küchen',
+    arabic: 'مطبخ',
+    example: 'Die Küche ist sauber.',
+    exampleAr: 'المطبخ نظيف.'
+  },
+  {
+    id: 'v-extra-335',
+    type: 'noun',
+    german: 'Bett',
+    article: 'das',
+    plural: 'Betten',
+    arabic: 'سرير',
+    example: 'Das Bett ist bequem.',
+    exampleAr: 'السرير مريح.'
+  },
+  {
+    id: 'v-extra-336',
+    type: 'noun',
+    german: 'Garten',
+    article: 'der',
+    plural: 'Gärten',
+    arabic: 'حديقة',
+    example: 'Der Garten ist schön.',
+    exampleAr: 'الحديقة جميلة.'
+  },
+  {
+    id: 'v-extra-337',
+    type: 'noun',
+    german: 'Hund',
+    article: 'der',
+    plural: 'Hunde',
+    arabic: 'كلب',
+    example: 'Der Hund bellt laut.',
+    exampleAr: 'الكلب ينبح بصوت عال.'
+  },
+  {
+    id: 'v-extra-338',
+    type: 'noun',
+    german: 'Katze',
+    article: 'die',
+    plural: 'Katzen',
+    arabic: 'قطة',
+    example: 'Die Katze schläft.',
+    exampleAr: 'القطة تنام.'
   },
 ];

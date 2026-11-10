@@ -1,3 +1,16 @@
+## 2026-11-10 10:10 UTC — Scheduled hourly Grok Build session
+
+- Read AGENTS.md. Auth/DB remain OFF; offline content only; directed-pair rules respected.
+- Cloned moaz76943-creator/deutsch-build (main). Ran `npm test` (test-vocab-extra.js): PASS (119 unique IDs initially).
+- No FAIL tests. No crash bugs found in content validation.
+- Added 20 new A1/A2 items to `src/lib/deutsch/content/vocab-extra.ts` (ids v-extra-319 .. v-extra-338):
+  - Verbs with full conjugation (ich/du/er/wir/ihr/sie_pl + präteritum + perfekt + aux): lieben, mögen, wissen, können, müssen, wollen, dürfen, sollen, brauchen, suchen.
+  - Nouns with article (der/die/das) + plural + natural DE example + AR translation: Buch, Auto, Zeit, Arbeit, Zimmer, Küche, Bett, Garten, Hund, Katze.
+- No id collisions. Minimal safe append. No deletions of existing items.
+- Re-ran tests: PASS (139 unique IDs, präteritum and article:'der' present).
+- Preview: no dedicated web preview server in package.json (Flutter/Android primary); content structure validated by tests. Auth/DB kept OFF.
+- Priority: stability > content correctness > learning system.
+
 ## 2026-11-10 05:09 UTC — Scheduled hourly Grok Build session
 
 - Read AGENTS.md. Auth/DB remain OFF; offline content only; directed-pair rules respected.
