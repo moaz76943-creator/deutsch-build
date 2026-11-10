@@ -27,7 +27,11 @@ class TurkishProfile(LanguageProfile):
 
     def analyze(self, word: str, analyzer: 'MorphologyAnalyzer') -> List[AnalysisResult]:
         results = []
+        state = {"nodes_visited": 0}
         def decompose(current_word: str, current_tags: List[str], depth: int):
+            state["nodes_visited"] += 1
+            if state["nodes_visited"] > 100:
+                return
             if len(results) >= analyzer.max_results:
                 return
             if depth > analyzer.max_recursion_depth:
@@ -46,6 +50,8 @@ class TurkishProfile(LanguageProfile):
         return results
 
     def _check_vowel_harmony(self, stem: str, suffix: str) -> bool:
+        stem = unicodedata.normalize('NFC', stem)
+        suffix = unicodedata.normalize('NFC', suffix)
         back_vowels = set("aıouAIOU")
         front_vowels = set("eiöüEİÖÜ")
         stem_vowels = [c for c in stem if c in back_vowels or c in front_vowels]
@@ -71,7 +77,11 @@ class FinnishProfile(LanguageProfile):
 
     def analyze(self, word: str, analyzer: 'MorphologyAnalyzer') -> List[AnalysisResult]:
         results = []
+        state = {"nodes_visited": 0}
         def decompose(current_word: str, current_tags: List[str], depth: int):
+            state["nodes_visited"] += 1
+            if state["nodes_visited"] > 100:
+                return
             if len(results) >= analyzer.max_results:
                 return
             if depth > analyzer.max_recursion_depth:
@@ -90,6 +100,8 @@ class FinnishProfile(LanguageProfile):
         return results
 
     def _check_vowel_harmony(self, stem: str, suffix: str) -> bool:
+        stem = unicodedata.normalize('NFC', stem)
+        suffix = unicodedata.normalize('NFC', suffix)
         back_vowels = set("aouAOU")
         front_vowels = set("äöyÄÖY")
         stem_vowels = [c for c in stem if c in back_vowels or c in front_vowels]
@@ -115,33 +127,6 @@ class GermanProfile(LanguageProfile):
             results.append(AnalysisResult(word, vf['infinitive'], vf['verb_id'], 'verb', [vf['tense'], vf['person']]))
         for nf in analyzer.lookup_nominal_form(word):
             results.append(AnalysisResult(word, nf['lemma'], nf['id'], nf['part_of_speech'], [nf['grammatical_case'], nf['number'], nf['definiteness']]))
-
-        if word.startswith("ge") and word.endswith("t"):
-            stem = word[2:-1]
-            if len(stem) > 0:
-                for v in analyzer.lookup_verb_lemma(stem + "en"):
-                    results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["PART_PERF"]))
-                for v in analyzer.lookup_verb_lemma(stem + "n"):
-                    results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["PART_PERF"]))
-
-        if word.startswith("ge") and word.endswith("en"):
-            stem = word[2:-2]
-            if len(stem) > 0:
-                for v in analyzer.lookup_verb_lemma(stem + "en"):
-                    results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["PART_PERF"]))
-
-        if word.endswith("n"):
-            stem1 = word[:-1]
-            if len(stem1) > 0:
-                for n in analyzer.lookup_nominal_form(stem1):
-                    if n['number'] == 'pl':
-                        results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
-        if word.endswith("en"):
-            stem2 = word[:-2]
-            if len(stem2) > 0:
-                for n in analyzer.lookup_nominal_form(stem2):
-                    if n['number'] == 'pl':
-                        results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
 
         return results
 

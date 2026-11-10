@@ -31,6 +31,12 @@
           "tense": "present",
           "person": "ich",
           "conjugated_form": "mache"
+        },
+        {
+          "conjugation_id": "de:machen:participle",
+          "tense": "PART_PERF",
+          "person": "none",
+          "conjugated_form": "gemacht"
         }
       ]
     }
