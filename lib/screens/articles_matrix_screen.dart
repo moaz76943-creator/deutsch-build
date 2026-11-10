@@ -49,30 +49,43 @@ class ArticlesMatrixScreen extends StatelessWidget {
         child: SafeArea(
           child: ListView.separated(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            // Performance: bound pre-build area beyond viewport (default ~250).
+            // Moderate value balances smoothness vs memory even on short case lists.
+            cacheExtent: 300,
+            // Pure StatelessWidget cards; no persistent state to keep alive when off-screen.
+            // Disabling reduces memory pressure if the list grows or during rapid navigation.
+            addAutomaticKeepAlives: false,
             itemCount: cases.length,
             separatorBuilder: (_, __) => const SizedBox(height: 14),
             itemBuilder: (context, idx) {
               final c = cases[idx];
-              return AppBaseGlassCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      c['case']!,
-                      style: AppTypography.title.copyWith(
-                          color: const Color(0xFFF39C6B), fontSize: 16),
-                    ),
-                    const SizedBox(height: 14),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: <Widget>[
-                        _cell('مذكر (m)', c['m']!, const Color(0xFF38BDF8)),
-                        _cell('مؤنث (f)', c['f']!, const Color(0xFFF43F5E)),
-                        _cell('محايد (n)', c['n']!, const Color(0xFF10B981)),
-                        _cell('جمع (p)', c['p']!, const Color(0xFFA855F7)),
-                      ],
-                    ),
-                  ],
+              return RepaintBoundary(
+                // Isolates repaint of each articles matrix card. Reduces overpaint
+                // during scroll or when sibling items update on complex glass cards
+                // with nested rows, colored cells, and gradients.
+                // Expected: fewer dropped frames on articles matrix scroll,
+                // especially on mid-range devices.
+                child: AppBaseGlassCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        c['case']!,
+                        style: AppTypography.title.copyWith(
+                            color: const Color(0xFFF39C6B), fontSize: 16),
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: <Widget>[
+                          _cell('مذكر (m)', c['m']!, const Color(0xFF38BDF8)),
+                          _cell('مؤنث (f)', c['f']!, const Color(0xFFF43F5E)),
+                          _cell('محايد (n)', c['n']!, const Color(0xFF10B981)),
+                          _cell('جمع (p)', c['p']!, const Color(0xFFA855F7)),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
