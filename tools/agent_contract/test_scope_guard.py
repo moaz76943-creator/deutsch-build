@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-import scope_guard
+from tools.agent_contract import scope_guard
 
 class TestScopeGuard(unittest.TestCase):
     def setUp(self):
@@ -35,7 +35,7 @@ class TestScopeGuard(unittest.TestCase):
         self.assertFalse(scope_guard.is_path_allowed("../lib/main.dart"))
         self.assertFalse(scope_guard.is_path_allowed("tools/agent_contract/../../lib/main.dart"))
 
-    @patch('scope_guard.verify_base_sha')
+    @patch('tools.agent_contract.scope_guard.verify_base_sha')
     def test_claim_success(self, mock_verify):
         mock_verify.return_value = True
         scope_guard.cmd_claim("J001", "fake_sha", ["tools/agent_contract/scope_guard.py"])
@@ -47,7 +47,7 @@ class TestScopeGuard(unittest.TestCase):
         self.assertEqual(task["base_sha"], "fake_sha")
         self.assertIn("tools/agent_contract/scope_guard.py", task["paths"])
 
-    @patch('scope_guard.verify_base_sha')
+    @patch('tools.agent_contract.scope_guard.verify_base_sha')
     def test_claim_overlapping(self, mock_verify):
         mock_verify.return_value = True
         scope_guard.cmd_claim("J001", "fake_sha", ["tools/agent_contract/scope_guard.py"])
@@ -58,7 +58,7 @@ class TestScopeGuard(unittest.TestCase):
 
         self.assertIn("Paths overlap", str(context.exception))
 
-    @patch('scope_guard.verify_base_sha')
+    @patch('tools.agent_contract.scope_guard.verify_base_sha')
     def test_claim_forbidden_path(self, mock_verify):
         mock_verify.return_value = True
         with self.assertRaises(scope_guard.ScopeGuardError) as context:
@@ -66,7 +66,7 @@ class TestScopeGuard(unittest.TestCase):
 
         self.assertIn("forbidden or outside Allowed Paths", str(context.exception))
 
-    @patch('scope_guard.verify_base_sha')
+    @patch('tools.agent_contract.scope_guard.verify_base_sha')
     def test_stale_base_sha(self, mock_verify):
         mock_verify.return_value = False
         with self.assertRaises(scope_guard.ScopeGuardError) as context:
@@ -74,7 +74,7 @@ class TestScopeGuard(unittest.TestCase):
 
         self.assertIn("invalid or stale", str(context.exception))
 
-    @patch('scope_guard.verify_base_sha')
+    @patch('tools.agent_contract.scope_guard.verify_base_sha')
     def test_transition(self, mock_verify):
         mock_verify.return_value = True
         scope_guard.cmd_claim("J005", "fake_sha", ["AGENTS.md"])
@@ -89,8 +89,8 @@ class TestScopeGuard(unittest.TestCase):
         with self.assertRaises(scope_guard.ScopeGuardError):
             scope_guard.cmd_transition("J005", "INVALID_STATE")
 
-    @patch('scope_guard.get_changed_files')
-    @patch('scope_guard.verify_base_sha')
+    @patch('tools.agent_contract.scope_guard.get_changed_files')
+    @patch('tools.agent_contract.scope_guard.verify_base_sha')
     def test_verify_success(self, mock_verify, mock_get_changed):
         mock_verify.return_value = True
         # Note: the ledger only matches literal strings or prefixes if claim has /**
@@ -101,8 +101,8 @@ class TestScopeGuard(unittest.TestCase):
         # Should not raise exception
         scope_guard.cmd_verify("J006")
 
-    @patch('scope_guard.get_changed_files')
-    @patch('scope_guard.verify_base_sha')
+    @patch('tools.agent_contract.scope_guard.get_changed_files')
+    @patch('tools.agent_contract.scope_guard.verify_base_sha')
     def test_verify_unauthorized_changes(self, mock_verify, mock_get_changed):
         mock_verify.return_value = True
         scope_guard.cmd_claim("J007", "fake_sha", ["tools/agent_contract/**"])
@@ -116,7 +116,7 @@ class TestScopeGuard(unittest.TestCase):
         self.assertIn("Unauthorized modifications", str(context.exception))
         self.assertIn("lib/main.dart", str(context.exception))
 
-    @patch('scope_guard.verify_base_sha')
+    @patch('tools.agent_contract.scope_guard.verify_base_sha')
     def test_claim_overlapping_directory(self, mock_verify):
         mock_verify.return_value = True
         scope_guard.cmd_claim("J008", "fake_sha", ["tools/agent_contract/**"])
