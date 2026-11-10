@@ -1446,4 +1446,363 @@ export const vocabExtra = [
     example: 'Meine Familie wohnt in Kairo.',
     exampleAr: 'عائلتي تسكن في القاهرة.'
   }
+
+  // === Additional A1/A2 batch 2026-11-10 hourly ===
+  {
+    id: 'v-extra-295',
+    type: 'verb',
+    infinitive: 'fragen',
+    arabic: 'يسأل',
+    conjugation: {
+      ich: 'frage',
+      du: 'fragst',
+      er: 'fragt',
+      wir: 'fragen',
+      ihr: 'fragt',
+      sie_pl: 'fragen',
+      präteritum: 'fragte',
+      perfekt: 'hat gefragt',
+      aux: 'haben'
+    },
+    example: 'Ich frage den Lehrer.',
+    exampleAr: 'أسأل المعلم.'
+  },
+  {
+    id: 'v-extra-296',
+    type: 'verb',
+    infinitive: 'erzählen',
+    arabic: 'يروي / يحكي',
+    conjugation: {
+      ich: 'erzähle',
+      du: 'erzählst',
+      er: 'erzählt',
+      wir: 'erzählen',
+      ihr: 'erzählt',
+      sie_pl: 'erzählen',
+      präteritum: 'erzählte',
+      perfekt: 'hat erzählt',
+      aux: 'haben'
+    },
+    example: 'Sie erzählt eine Geschichte.',
+    exampleAr: 'هي تحكي قصة.'
+  },
+  {
+    id: 'v-extra-297',
+    type: 'verb',
+    infinitive: 'erklären',
+    arabic: 'يشرح',
+    conjugation: {
+      ich: 'erkläre',
+      du: 'erklärst',
+      er: 'erklärt',
+      wir: 'erklären',
+      ihr: 'erklärt',
+      sie_pl: 'erklären',
+      präteritum: 'erklärte',
+      perfekt: 'hat erklärt',
+      aux: 'haben'
+    },
+    example: 'Kannst du das bitte erklären?',
+    exampleAr: 'هل يمكنك شرح ذلك من فضلك؟'
+  },
+  {
+    id: 'v-extra-298',
+    type: 'verb',
+    infinitive: 'vergessen',
+    arabic: 'ينسى',
+    conjugation: {
+      ich: 'vergesse',
+      du: 'vergisst',
+      er: 'vergisst',
+      wir: 'vergessen',
+      ihr: 'vergesst',
+      sie_pl: 'vergessen',
+      präteritum: 'vergaß',
+      perfekt: 'hat vergessen',
+      aux: 'haben'
+    },
+    example: 'Ich vergesse oft die Schlüssel.',
+    exampleAr: 'غالباً أنسى المفاتيح.'
+  },
+  {
+    id: 'v-extra-299',
+    type: 'verb',
+    infinitive: 'bekommen',
+    arabic: 'يحصل على / يتلقى',
+    conjugation: {
+      ich: 'bekomme',
+      du: 'bekommst',
+      er: 'bekommt',
+      wir: 'bekommen',
+      ihr: 'bekommt',
+      sie_pl: 'bekommen',
+      präteritum: 'bekam',
+      perfekt: 'hat bekommen',
+      aux: 'haben'
+    },
+    example: 'Ich bekomme eine E-Mail.',
+    exampleAr: 'أتلقى بريداً إلكترونياً.'
+  },
+  {
+    id: 'v-extra-300',
+    type: 'verb',
+    infinitive: 'bezahlen',
+    arabic: 'يدفع',
+    conjugation: {
+      ich: 'bezahle',
+      du: 'bezahlst',
+      er: 'bezahlt',
+      wir: 'bezahlen',
+      ihr: 'bezahlt',
+      sie_pl: 'bezahlen',
+      präteritum: 'bezahlte',
+      perfekt: 'hat bezahlt',
+      aux: 'haben'
+    },
+    example: 'Wir bezahlen die Rechnung.',
+    exampleAr: 'ندفع الفاتورة.'
+  },
+  {
+    id: 'v-extra-301',
+    type: 'verb',
+    infinitive: 'kosten',
+    arabic: 'يكلف',
+    conjugation: {
+      ich: 'koste',
+      du: 'kostest',
+      er: 'kostet',
+      wir: 'kosten',
+      ihr: 'kostet',
+      sie_pl: 'kosten',
+      präteritum: 'kostete',
+      perfekt: 'hat gekostet',
+      aux: 'haben'
+    },
+    example: 'Was kostet das?',
+    exampleAr: 'كم يكلف هذا؟'
+  },
+  {
+    id: 'v-extra-302',
+    type: 'verb',
+    infinitive: 'danken',
+    arabic: 'يشكر',
+    conjugation: {
+      ich: 'danke',
+      du: 'dankst',
+      er: 'dankt',
+      wir: 'danken',
+      ihr: 'dankt',
+      sie_pl: 'danken',
+      präteritum: 'dankte',
+      perfekt: 'hat gedankt',
+      aux: 'haben'
+    },
+    example: 'Ich danke dir sehr.',
+    exampleAr: 'أشكرك كثيراً.'
+  },
+  {
+    id: 'v-extra-303',
+    type: 'verb',
+    infinitive: 'grüßen',
+    arabic: 'يحيي / يسلم',
+    conjugation: {
+      ich: 'grüße',
+      du: 'grüßt',
+      er: 'grüßt',
+      wir: 'grüßen',
+      ihr: 'grüßt',
+      sie_pl: 'grüßen',
+      präteritum: 'grüßte',
+      perfekt: 'hat gegrüßt',
+      aux: 'haben'
+    },
+    example: 'Wir grüßen die Nachbarn.',
+    exampleAr: 'نحيي الجيران.'
+  },
+  {
+    id: 'v-extra-304',
+    type: 'verb',
+    infinitive: 'lachen',
+    arabic: 'يضحك',
+    conjugation: {
+      ich: 'lache',
+      du: 'lachst',
+      er: 'lacht',
+      wir: 'lachen',
+      ihr: 'lacht',
+      sie_pl: 'lachen',
+      präteritum: 'lachte',
+      perfekt: 'hat gelacht',
+      aux: 'haben'
+    },
+    example: 'Die Kinder lachen laut.',
+    exampleAr: 'الأطفال يضحكون بصوت عالٍ.'
+  },
+  {
+    id: 'v-extra-305',
+    type: 'verb',
+    infinitive: 'weinen',
+    arabic: 'يبكي',
+    conjugation: {
+      ich: 'weine',
+      du: 'weinst',
+      er: 'weint',
+      wir: 'weinen',
+      ihr: 'weint',
+      sie_pl: 'weinen',
+      präteritum: 'weinte',
+      perfekt: 'hat geweint',
+      aux: 'haben'
+    },
+    example: 'Das Baby weint.',
+    exampleAr: 'الطفل يبكي.'
+  },
+  {
+    id: 'v-extra-306',
+    type: 'verb',
+    infinitive: 'tanzen',
+    arabic: 'يرقص',
+    conjugation: {
+      ich: 'tanze',
+      du: 'tanzt',
+      er: 'tanzt',
+      wir: 'tanzen',
+      ihr: 'tanzt',
+      sie_pl: 'tanzen',
+      präteritum: 'tanzte',
+      perfekt: 'hat getanzt',
+      aux: 'haben'
+    },
+    example: 'Wir tanzen auf der Party.',
+    exampleAr: 'نرقص في الحفلة.'
+  },
+  {
+    id: 'v-extra-307',
+    type: 'verb',
+    infinitive: 'singen',
+    arabic: 'يغني',
+    conjugation: {
+      ich: 'singe',
+      du: 'singst',
+      er: 'singt',
+      wir: 'singen',
+      ihr: 'singt',
+      sie_pl: 'singen',
+      präteritum: 'sang',
+      perfekt: 'hat gesungen',
+      aux: 'haben'
+    },
+    example: 'Sie singt ein Lied.',
+    exampleAr: 'هي تغني أغنية.'
+  },
+  {
+    id: 'v-extra-308',
+    type: 'noun',
+    german: 'Kaffee',
+    article: 'der',
+    plural: 'Kaffees',
+    arabic: 'قهوة',
+    example: 'Ich trinke gerne Kaffee.',
+    exampleAr: 'أحب شرب القهوة.'
+  },
+  {
+    id: 'v-extra-309',
+    type: 'noun',
+    german: 'Tee',
+    article: 'der',
+    plural: 'Tees',
+    arabic: 'شاي',
+    example: 'Der Tee ist heiß.',
+    exampleAr: 'الشاي ساخن.'
+  },
+  {
+    id: 'v-extra-310',
+    type: 'noun',
+    german: 'Milch',
+    article: 'die',
+    plural: 'Milche',
+    arabic: 'حليب',
+    example: 'Die Milch ist frisch.',
+    exampleAr: 'الحليب طازج.'
+  },
+  {
+    id: 'v-extra-311',
+    type: 'noun',
+    german: 'Zucker',
+    article: 'der',
+    plural: 'Zucker',
+    arabic: 'سكر',
+    example: 'Ich nehme Zucker im Kaffee.',
+    exampleAr: 'أضع سكراً في القهوة.'
+  },
+  {
+    id: 'v-extra-312',
+    type: 'noun',
+    german: 'Salz',
+    article: 'das',
+    plural: 'Salze',
+    arabic: 'ملح',
+    example: 'Das Salz ist auf dem Tisch.',
+    exampleAr: 'الملح على الطاولة.'
+  },
+  {
+    id: 'v-extra-313',
+    type: 'noun',
+    german: 'Ei',
+    article: 'das',
+    plural: 'Eier',
+    arabic: 'بيضة',
+    example: 'Ich esse ein Ei zum Frühstück.',
+    exampleAr: 'آكل بيضة على الإفطار.'
+  },
+  {
+    id: 'v-extra-314',
+    type: 'noun',
+    german: 'Käse',
+    article: 'der',
+    plural: 'Käse',
+    arabic: 'جبن',
+    example: 'Der Käse schmeckt gut.',
+    exampleAr: 'الجبن لذيذ.'
+  },
+  {
+    id: 'v-extra-315',
+    type: 'noun',
+    german: 'Handy',
+    article: 'das',
+    plural: 'Handys',
+    arabic: 'هاتف محمول',
+    example: 'Mein Handy ist neu.',
+    exampleAr: 'هاتفي الجديد.'
+  },
+  {
+    id: 'v-extra-316',
+    type: 'noun',
+    german: 'Uhr',
+    article: 'die',
+    plural: 'Uhren',
+    arabic: 'ساعة',
+    example: 'Die Uhr zeigt drei Uhr.',
+    exampleAr: 'الساعة تشير إلى الثالثة.'
+  },
+  {
+    id: 'v-extra-317',
+    type: 'noun',
+    german: 'Geld',
+    article: 'das',
+    plural: 'Gelder',
+    arabic: 'مال',
+    example: 'Ich habe kein Geld.',
+    exampleAr: 'ليس لدي مال.'
+  },
+  {
+    id: 'v-extra-318',
+    type: 'noun',
+    german: 'Ticket',
+    article: 'das',
+    plural: 'Tickets',
+    arabic: 'تذكرة',
+    example: 'Das Ticket ist gültig.',
+    exampleAr: 'التذكرة صالحة.'
+  },
 ];
