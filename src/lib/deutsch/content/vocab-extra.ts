@@ -2407,4 +2407,296 @@ export const vocabExtra = [
     example: 'Die Stadt ist sehr schön.',
     exampleAr: 'المدينة جميلة جداً.'
   },
+
+  // === Session 2026-11-10 12:10 UTC — 20 new A1/A2 items (v-extra-360..379) ===
+  {
+    id: 'v-extra-360',
+    type: 'verb',
+    infinitive: 'lernen',
+    arabic: 'يتعلم',
+    conjugation: {
+      ich: 'lerne',
+      du: 'lernst',
+      er: 'lernt',
+      wir: 'lernen',
+      ihr: 'lernt',
+      sie_pl: 'lernen',
+      präteritum: 'lernte',
+      perfekt: 'hat gelernt',
+      aux: 'haben'
+    },
+    example: 'Ich lerne jeden Tag Deutsch.',
+    exampleAr: 'أتعلم الألمانية كل يوم.'
+  },
+  {
+    id: 'v-extra-361',
+    type: 'verb',
+    infinitive: 'kaufen',
+    arabic: 'يشتري',
+    conjugation: {
+      ich: 'kaufe',
+      du: 'kaufst',
+      er: 'kauft',
+      wir: 'kaufen',
+      ihr: 'kauft',
+      sie_pl: 'kaufen',
+      präteritum: 'kaufte',
+      perfekt: 'hat gekauft',
+      aux: 'haben'
+    },
+    example: 'Ich kaufe Brot im Supermarkt.',
+    exampleAr: 'أشتري الخبز من السوبرماركت.'
+  },
+  {
+    id: 'v-extra-362',
+    type: 'verb',
+    infinitive: 'wohnen',
+    arabic: 'يسكن / يعيش',
+    conjugation: {
+      ich: 'wohne',
+      du: 'wohnst',
+      er: 'wohnt',
+      wir: 'wohnen',
+      ihr: 'wohnt',
+      sie_pl: 'wohnen',
+      präteritum: 'wohnte',
+      perfekt: 'hat gewohnt',
+      aux: 'haben'
+    },
+    example: 'Ich wohne in Berlin.',
+    exampleAr: 'أسكن في برلين.'
+  },
+  {
+    id: 'v-extra-363',
+    type: 'verb',
+    infinitive: 'spielen',
+    arabic: 'يلعب',
+    conjugation: {
+      ich: 'spiele',
+      du: 'spielst',
+      er: 'spielt',
+      wir: 'spielen',
+      ihr: 'spielt',
+      sie_pl: 'spielen',
+      präteritum: 'spielte',
+      perfekt: 'hat gespielt',
+      aux: 'haben'
+    },
+    example: 'Die Kinder spielen im Park.',
+    exampleAr: 'الأطفال يلعبون في الحديقة.'
+  },
+  {
+    id: 'v-extra-364',
+    type: 'verb',
+    infinitive: 'schlafen',
+    arabic: 'ينام',
+    conjugation: {
+      ich: 'schlafe',
+      du: 'schläfst',
+      er: 'schläft',
+      wir: 'schlafen',
+      ihr: 'schlaft',
+      sie_pl: 'schlafen',
+      präteritum: 'schlief',
+      perfekt: 'hat geschlafen',
+      aux: 'haben'
+    },
+    example: 'Ich schlafe acht Stunden.',
+    exampleAr: 'أنام ثماني ساعات.'
+  },
+  {
+    id: 'v-extra-365',
+    type: 'verb',
+    infinitive: 'aufstehen',
+    arabic: 'ينهض / يستيقظ',
+    conjugation: {
+      ich: 'stehe auf',
+      du: 'stehst auf',
+      er: 'steht auf',
+      wir: 'stehen auf',
+      ihr: 'steht auf',
+      sie_pl: 'stehen auf',
+      präteritum: 'stand auf',
+      perfekt: 'ist aufgestanden',
+      aux: 'sein'
+    },
+    example: 'Ich stehe früh auf.',
+    exampleAr: 'أنهض مبكراً.'
+  },
+  {
+    id: 'v-extra-366',
+    type: 'verb',
+    infinitive: 'anrufen',
+    arabic: 'يتصل هاتفياً',
+    conjugation: {
+      ich: 'rufe an',
+      du: 'rufst an',
+      er: 'ruft an',
+      wir: 'rufen an',
+      ihr: 'ruft an',
+      sie_pl: 'rufen an',
+      präteritum: 'rief an',
+      perfekt: 'hat angerufen',
+      aux: 'haben'
+    },
+    example: 'Ich rufe meine Mutter an.',
+    exampleAr: 'أتصل بأمي.'
+  },
+  {
+    id: 'v-extra-367',
+    type: 'verb',
+    infinitive: 'besuchen',
+    arabic: 'يزور',
+    conjugation: {
+      ich: 'besuche',
+      du: 'besuchst',
+      er: 'besucht',
+      wir: 'besuchen',
+      ihr: 'besucht',
+      sie_pl: 'besuchen',
+      präteritum: 'besuchte',
+      perfekt: 'hat besucht',
+      aux: 'haben'
+    },
+    example: 'Wir besuchen unsere Freunde.',
+    exampleAr: 'نزر أصدقاءنا.'
+  },
+  {
+    id: 'v-extra-368',
+    type: 'verb',
+    infinitive: 'reisen',
+    arabic: 'يسافر',
+    conjugation: {
+      ich: 'reise',
+      du: 'reist',
+      er: 'reist',
+      wir: 'reisen',
+      ihr: 'reist',
+      sie_pl: 'reisen',
+      präteritum: 'reiste',
+      perfekt: 'ist gereist',
+      aux: 'sein'
+    },
+    example: 'Ich reise nach Deutschland.',
+    exampleAr: 'أسافر إلى ألمانيا.'
+  },
+  {
+    id: 'v-extra-369',
+    type: 'verb',
+    infinitive: 'fliegen',
+    arabic: 'يطير / يسافر بالطائرة',
+    conjugation: {
+      ich: 'fliege',
+      du: 'fliegst',
+      er: 'fliegt',
+      wir: 'fliegen',
+      ihr: 'fliegt',
+      sie_pl: 'fliegen',
+      präteritum: 'flog',
+      perfekt: 'ist geflogen',
+      aux: 'sein'
+    },
+    example: 'Das Flugzeug fliegt nach Kairo.',
+    exampleAr: 'الطائرة تطير إلى القاهرة.'
+  },
+  {
+    id: 'v-extra-370',
+    type: 'noun',
+    german: 'Schule',
+    article: 'die',
+    plural: 'Schulen',
+    arabic: 'مدرسة',
+    example: 'Die Schule beginnt um acht Uhr.',
+    exampleAr: 'تبدأ المدرسة في الساعة الثامنة.'
+  },
+  {
+    id: 'v-extra-371',
+    type: 'noun',
+    german: 'Lehrer',
+    article: 'der',
+    plural: 'Lehrer',
+    arabic: 'معلم',
+    example: 'Der Lehrer erklärt die Grammatik.',
+    exampleAr: 'المعلم يشرح القواعد.'
+  },
+  {
+    id: 'v-extra-372',
+    type: 'noun',
+    german: 'Freund',
+    article: 'der',
+    plural: 'Freunde',
+    arabic: 'صديق',
+    example: 'Mein Freund kommt aus Syrien.',
+    exampleAr: 'صديقي يأتي من سوريا.'
+  },
+  {
+    id: 'v-extra-373',
+    type: 'noun',
+    german: 'Familie',
+    article: 'die',
+    plural: 'Familien',
+    arabic: 'عائلة',
+    example: 'Meine Familie wohnt in Kairo.',
+    exampleAr: 'عائلتي تسكن في القاهرة.'
+  },
+  {
+    id: 'v-extra-374',
+    type: 'noun',
+    german: 'Essen',
+    article: 'das',
+    plural: 'Essen',
+    arabic: 'طعام / وجبة',
+    example: 'Das Essen schmeckt sehr gut.',
+    exampleAr: 'الطعام لذيذ جداً.'
+  },
+  {
+    id: 'v-extra-375',
+    type: 'noun',
+    german: 'Wasser',
+    article: 'das',
+    plural: 'Wässer',
+    arabic: 'ماء',
+    example: 'Ich trinke viel Wasser.',
+    exampleAr: 'أشرب الكثير من الماء.'
+  },
+  {
+    id: 'v-extra-376',
+    type: 'noun',
+    german: 'Milch',
+    article: 'die',
+    plural: 'Milche',
+    arabic: 'حليب',
+    example: 'Die Milch ist kalt.',
+    exampleAr: 'الحليب بارد.'
+  },
+  {
+    id: 'v-extra-377',
+    type: 'noun',
+    german: 'Brot',
+    article: 'das',
+    plural: 'Brote',
+    arabic: 'خبز',
+    example: 'Ich kaufe frisches Brot.',
+    exampleAr: 'أشتري خبزاً طازجاً.'
+  },
+  {
+    id: 'v-extra-378',
+    type: 'noun',
+    german: 'Apfel',
+    article: 'der',
+    plural: 'Äpfel',
+    arabic: 'تفاحة',
+    example: 'Der Apfel ist rot und süß.',
+    exampleAr: 'التفاحة حمراء وحلوة.'
+  },
+  {
+    id: 'v-extra-379',
+    type: 'noun',
+    german: 'Straße',
+    article: 'die',
+    plural: 'Straßen',
+    arabic: 'شارع',
+    example: 'Die Straße ist lang und breit.',
+    exampleAr: 'الشارع طويل وواسع.'
+  },
 ];
