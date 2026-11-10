@@ -44,7 +44,7 @@ class DeterministicAudioCache {
     double speed = 1.0,
     String voiceId = 'default',
   }) {
-    final raw = '$languageIso:$voiceId:${speed.toStringAsFixed(2)}:${text.trim().toLowerCase()}';
+    final raw = '${languageIso.toLowerCase()}:$voiceId:${speed.toStringAsFixed(2)}:${text.trim().toLowerCase()}';
     return sha256.convert(utf8.encode(raw)).toString();
   }
 
