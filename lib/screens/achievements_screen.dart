@@ -46,66 +46,77 @@ class AchievementsScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: ListView.builder(
+              // Performance: bound pre-build area beyond viewport.
+              // Moderate value balances smoothness vs memory.
+              cacheExtent: 300,
+              // Pure StatelessWidget items; no state to preserve when off-screen.
+              // Disabling keep-alives reduces memory pressure during scroll.
+              addAutomaticKeepAlives: false,
               itemCount: badges.length,
               itemBuilder: (context, index) {
                 final badge = badges[index];
                 final bool unlocked = badge['unlocked'] as bool;
 
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 14),
-                  child: AppBaseGlassCard(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: <Widget>[
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
+                return RepaintBoundary(
+                  // Isolates repaint of each achievement card. Reduces overpaint
+                  // during scroll or when sibling items update on complex glass cards
+                  // with gradients, icons, and nested containers.
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 14),
+                    child: AppBaseGlassCard(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: <Widget>[
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: unlocked
+                                  ? const Color(0xFF34D399)
+                                      .withValues(alpha: 0.15)
+                                  : Colors.white.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              badge['icon']! as String,
+                              style: const TextStyle(fontSize: 28),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  badge['title']! as String,
+                                  style: AppTypography.display.copyWith(
+                                    color:
+                                        unlocked ? Colors.white : Colors.white54,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  badge['desc']! as String,
+                                  style: AppTypography.body.copyWith(
+                                    color: unlocked
+                                        ? Colors.white70
+                                        : Colors.white38,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            unlocked
+                                ? Icons.check_circle_rounded
+                                : Icons.lock_rounded,
                             color: unlocked
                                 ? const Color(0xFF34D399)
-                                    .withValues(alpha: 0.15)
-                                : Colors.white.withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(12),
+                                : Colors.white38,
                           ),
-                          child: Text(
-                            badge['icon']! as String,
-                            style: const TextStyle(fontSize: 28),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                badge['title']! as String,
-                                style: AppTypography.display.copyWith(
-                                  color:
-                                      unlocked ? Colors.white : Colors.white54,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                badge['desc']! as String,
-                                style: AppTypography.body.copyWith(
-                                  color: unlocked
-                                      ? Colors.white70
-                                      : Colors.white38,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          unlocked
-                              ? Icons.check_circle_rounded
-                              : Icons.lock_rounded,
-                          color: unlocked
-                              ? const Color(0xFF34D399)
-                              : Colors.white38,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 );
