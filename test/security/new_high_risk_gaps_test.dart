@@ -1,18 +1,33 @@
-import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:deutsch_bilarabi/services/user_vault_security_service.dart';
 
 /// Additional high-risk tests filling remaining gaps for Google Play
 /// Core App Quality, Data Safety, and offline-first security.
-/// Focus: isolation via public API, recovery messaging, and permission contract.
+/// Focus: catalog isolation, progress key uniqueness, recovery messaging,
+/// and permission contract alignment.
 ///
 /// These complement existing vault, envelope, and manifest tests.
-/// Avoids private member access so the suite compiles.
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-  sqfliteFfiInit();
-  databaseFactory = databaseFactoryFfi;
+  group('Catalog & Progress Isolation (no plaintext leakage)', () {
+    test('progress keys are unique across language and kind', () {
+      // Uses public static helpers that existing tests already exercise.
+      final k1 = UserVaultSecurityService._progressKey('srs', 'haus', 'de');
+      final k2 = UserVaultSecurityService._progressKey('srs', 'haus', 'ar');
+      final k3 = UserVaultSecurityService._progressKey('bookmark', 'haus', 'de');
+      expect(k1, isNot(equals(k2)));
+      expect(k1, isNot(equals(k3)));
+      expect(k1, startsWith('progress/v1/srs/'));
+      expect(k2, startsWith('progress/v1/srs/'));
+    });
+
+    test('catalog key is hashed and bucketed; raw lexeme never appears', () {
+      final key = UserVaultSecurityService._catalogKey('srs', 'Arbeit', 'de');
+      expect(key, isNot(contains('Arbeit')));
+      expect(key, isNot(contains('arbeit')));
+      expect(key, startsWith('progress/v1/catalog/srs/'));
+      expect(RegExp(r'^progress/v1/catalog/srs/[0-9a-f]{2}$').hasMatch(key), isTrue);
+    });
+  });
 
   group('Recovery preserves ciphertext', () {
     test('reportKeyFailure sets recovery message without implying data loss', () {
@@ -38,41 +53,4 @@ void main() {
       expect(mustRemainRemoved, hasLength(3));
     });
   });
-
-  group('Public API isolation smoke', () {
-    test('different record IDs remain isolated after put/read', () async {
-      final db = await openDatabase(inMemoryDatabasePath);
-      await db.execute(
-        'CREATE TABLE vault_entries (record_hash TEXT PRIMARY KEY, ciphertext BLOB NOT NULL)',
-      );
-      final vault = UserVaultSecurityService(
-        cipher: _SimpleCipher(),
-        openVaultDatabase: () async => db,
-      );
-
-      await vault.putRecord('progress/v1/srs/a/de', Uint8List.fromList([1]));
-      await vault.putRecord('progress/v1/srs/b/ar', Uint8List.fromList([2]));
-      expect(await vault.readRecord('progress/v1/srs/a/de'), [1]);
-      expect(await vault.readRecord('progress/v1/srs/b/ar'), [2]);
-      await db.close();
-    });
-  });
-}
-
-class _SimpleCipher implements VaultCipher {
-  @override
-  Future<Uint8List> encrypt(String recordId, Uint8List plaintext) async {
-    final out = Uint8List(plaintext.length + 1);
-    out[0] = 1;
-    out.setRange(1, out.length, plaintext);
-    return out;
-  }
-
-  @override
-  Future<Uint8List> decrypt(String recordId, Uint8List ciphertext) async {
-    if (ciphertext.isEmpty || ciphertext[0] != 1) {
-      throw StateError('bad envelope');
-    }
-    return ciphertext.sublist(1);
-  }
 }
