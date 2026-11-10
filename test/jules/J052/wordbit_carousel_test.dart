@@ -3,7 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/features/wordbit/ui/wordbit_carousel_screen.dart';
 import 'package:deutsch_bilarabi/core/lexical_repository.dart';
 
+import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
+
 void main() {
+  setUpAll(() {
+    try { SrsCompatBridge.instance.bindCanonicalWriter((envelope) async {}); } catch (_) {}
+  });
   setUp(() {
     LexicalRepository.initializeStore([
       const LexicalEntry(
@@ -158,7 +163,8 @@ void main() {
             setStateCallback = setState;
             return MaterialApp(
               home: WordBitCarouselScreen(
-                domainId: currentDomain,
+                sourceLocale: currentDomain == 'd1' ? 'ar-SA' : 'en-US',
+                targetLocale: 'de-DE',
               ),
             );
           },

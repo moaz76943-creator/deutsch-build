@@ -9,9 +9,11 @@ import '../../../core/srs/bridge/srs_compat_bridge.dart';
 class WordBitCarouselScreen extends StatefulWidget {
   final String sourceLocale;
   final String targetLocale;
+  final int assetVersion;
 
   const WordBitCarouselScreen(
-      {super.key, this.sourceLocale = 'ar-SA', this.targetLocale = 'de-DE'});
+      {super.key, this.sourceLocale = 'ar-SA', this.targetLocale = 'de-DE',
+      this.assetVersion = 1});
 
   @override
   State<WordBitCarouselScreen> createState() => _WordBitCarouselScreenState();
@@ -28,7 +30,8 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
   @override
   void initState() {
     super.initState();
-    refreshCards();
+    PaintingBinding.instance.imageCache.maximumSize = 50; // Bound cache
+    refreshCards(resetPosition: true);
   }
 
   @override
@@ -37,11 +40,17 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
     if (oldWidget.sourceLocale != widget.sourceLocale ||
         oldWidget.targetLocale != widget.targetLocale) {
       OfflineAudioDispatcher.stopCurrentAudio();
-      refreshCards();
+      PaintingBinding.instance.imageCache.clear();
+      PaintingBinding.instance.imageCache.clearLiveImages();
+      refreshCards(resetPosition: true);
+    } else if (oldWidget.assetVersion != widget.assetVersion) {
+      PaintingBinding.instance.imageCache.clear();
+      PaintingBinding.instance.imageCache.clearLiveImages();
+      refreshCards(resetPosition: false);
     }
   }
 
-  void refreshCards() {
+  void refreshCards({bool resetPosition = true}) {
     final entries = LexicalRepository.getEntriesForPair(
       sourceLocale: widget.sourceLocale,
       targetLocale: widget.targetLocale,
@@ -62,8 +71,14 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
                 sourceLocale: e.sourceLocale,
               ))
           .toList();
-      _currentIndex = 0;
-      _isFlipped = false;
+      if (resetPosition) {
+        _currentIndex = 0;
+        _isFlipped = false;
+      } else {
+        if (_currentIndex >= _cards.length) {
+          _currentIndex = math.max(0, _cards.length - 1);
+        }
+      }
     });
   }
 
@@ -234,19 +249,29 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
                     decoration: BoxDecoration(
                         color: Colors.black26,
                         borderRadius: BorderRadius.circular(16)),
-                    child: SingleChildScrollView(
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                          const Icon(Icons.image_not_supported,
-                              color: Colors.white38,
-                              size: 40,
-                              semanticLabel: 'Concept illustration absent'),
-                          const SizedBox(height: 8),
-                          Text(card.id,
-                              style: const TextStyle(
-                                  color: Colors.white38, fontSize: 10)),
-                        ]))),
+                    child: Image.asset(
+                      'assets/vectors/v${widget.assetVersion}/${card.id}.png',
+                      key: ValueKey('${card.id}_v${widget.assetVersion}'),
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return SingleChildScrollView(
+                            child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                              const Icon(Icons.image_not_supported,
+                                  color: Colors.white38,
+                                  size: 40,
+                                  semanticLabel: 'Concept illustration absent'),
+                              const SizedBox(height: 8),
+                              Text(widget.sourceLocale.startsWith('ar') ? 'صورة غير متوفرة' : 'Image unavailable',
+                                  style: const TextStyle(
+                                      color: Colors.white38, fontSize: 10)),
+                              Text(card.id,
+                                  style: const TextStyle(
+                                      color: Colors.white38, fontSize: 10)),
+                            ]));
+                      },
+                    )),
                 const SizedBox(height: 24),
                 Directionality(
                   textDirection: targetDir,
