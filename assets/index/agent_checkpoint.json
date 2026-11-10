@@ -1,12 +1,12 @@
 {
-  "last_completed_task": 4891,
+  "last_completed_task": 4892,
   "batch_tasks_executed": 1,
   "volume": 115,
-  "subsystem_index": 1320,
-  "status": "TASK_4891_KONJUNKTIV_TWO_ENGINE_SEALED",
+  "subsystem_index": 1330,
+  "status": "TASK_4892_PASSIVE_VOICE_ENGINE_SEALED",
   "remediated_findings": [
-    "LING-014 (German Konjunktiv II Conditional Syntax & Polite Request Builder)"
+    "LING-015 (German Passive Voice Rule Engine for Vorgangspassiv & Zustandspassiv)"
   ],
   "verification_mode": "REAL_FUNCTIONAL_IMPLEMENTATION",
-  "timestamp": "2026-11-09T21:39:00Z"
+  "timestamp": "2026-11-09T22:50:00Z"
 }
