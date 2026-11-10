@@ -33,6 +33,16 @@ class MainActivity : FlutterActivity() {
         MethodChannel(messenger, AndroidGamificationClockIntegritySource.CHANNEL_NAME)
             .setMethodCallHandler(AndroidGamificationClockIntegritySource(this))
 
+        // Device integrity (root + debugger) — offline, no new permissions
+        MethodChannel(messenger, "com.deutschbilarabi.app/device_integrity")
+            .setMethodCallHandler { call, result ->
+                if (call.method == "isCompromised") {
+                    result.success(AndroidDeviceIntegrityGuard(this).isCompromised())
+                } else {
+                    result.notImplemented()
+                }
+            }
+
         pronunciationSignalProbe = AndroidPronunciationSignalProbe(this)
         MethodChannel(messenger, AndroidPronunciationSignalProbe.CHANNEL_NAME)
             .setMethodCallHandler(pronunciationSignalProbe)
