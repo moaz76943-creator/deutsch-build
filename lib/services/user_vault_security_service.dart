@@ -1,1 +1,1 @@
-$(cat /tmp/fixed_vault.dart)
+PLACEHOLDER_TO_BE_REPLACED
