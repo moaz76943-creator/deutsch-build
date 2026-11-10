@@ -7,6 +7,8 @@ import 'app_typography.dart';
 class AppTheme {
   /// Builds a Material 3 theme that prefers dynamic (Material You) colors
   /// when available, otherwise falls back to the brand seed.
+  /// Enhanced for accessibility (TalkBack, contrast, font scaling), dark mode,
+  /// and smoother animations.
   static ThemeData build({
     required Brightness brightness,
     ColorScheme? dynamicScheme,
@@ -24,22 +26,23 @@ class AppTheme {
           background: isDark ? const Color(0xFF0B1F4D) : const Color(0xFFF8FAFC),
         );
 
-    // Slightly boost contrast for accessibility (TalkBack + low-vision users)
+    // Boost contrast for WCAG AA+ accessibility (TalkBack + low-vision users)
     final adjustedScheme = colorScheme.copyWith(
-      onSurface: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF0F172A),
+      onSurface: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A),
       onSurfaceVariant: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
       surfaceContainerHighest: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+      outline: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
     );
 
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.light,
+      brightness: brightness, // Fixed: was always light
       fontFamily: 'Cairo',
       fontFamilyFallback: AppTypography.fallbackFontFamilies,
       colorScheme: adjustedScheme,
       scaffoldBackgroundColor: adjustedScheme.background,
       textTheme: _buildTextTheme(adjustedScheme),
-      // Larger touch targets for TalkBack and motor accessibility
+      // Larger touch targets (min 48dp) for TalkBack and motor accessibility
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           minimumSize: const Size(64, 48),
@@ -59,12 +62,7 @@ class AppTheme {
           minimumSize: const Size(64, 48),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      ),
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size(64, 48),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          side: BorderSide(color: adjustedScheme.outline, width: 1.5),
         ),
       ),
       iconButtonTheme: IconButtonThemeData(
@@ -77,6 +75,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         color: adjustedScheme.surface,
         surfaceTintColor: adjustedScheme.surfaceTint,
+        margin: const EdgeInsets.symmetric(vertical: 4),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: adjustedScheme.surface,
@@ -84,14 +83,42 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 2,
         centerTitle: true,
+        titleTextStyle: AppTypography.h2.copyWith(color: adjustedScheme.onSurface),
       ),
       navigationBarTheme: NavigationBarThemeData(
         height: 72,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        indicatorColor: adjustedScheme.secondaryContainer,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: adjustedScheme.surfaceContainerHighest.withOpacity(0.5),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: adjustedScheme.outline),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: adjustedScheme.outline),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: adjustedScheme.primary, width: 2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        labelStyle: TextStyle(color: adjustedScheme.onSurfaceVariant),
+      ),
+      // Smoother page transitions for better perceived performance
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: ZoomPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
       ),
       visualDensity: VisualDensity.adaptivePlatformDensity,
-      // Respect system font scaling for accessibility
+      // Respect system font scaling for accessibility (no textScaleFactor override)
       materialTapTargetSize: MaterialTapTargetSize.padded,
+      splashFactory: InkSparkle.splashFactory, // Modern Material 3 ripple
     );
   }
 
