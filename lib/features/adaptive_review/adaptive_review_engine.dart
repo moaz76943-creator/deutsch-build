@@ -13,7 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Sensitive metrics and card schedules stored encrypted via FlutterSecureStorage.
 /// Offline-first; no network required. Client-side gating is best-effort only.
 class AdaptiveReviewEngine {
-  static final AdaptiveReviewEngine instance = AdaptiveReviewEngine.instance;
+  static final AdaptiveReviewEngine instance = AdaptiveReviewEngine._();
   AdaptiveReviewEngine._();
 
   final _secureStorage = const FlutterSecureStorage(
