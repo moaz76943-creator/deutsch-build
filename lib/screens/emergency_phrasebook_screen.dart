@@ -41,66 +41,77 @@ class EmergencyPhrasebookScreen extends StatelessWidget {
         child: SafeArea(
           child: ListView.builder(
             padding: const EdgeInsets.all(16),
+            // Performance: bound pre-build area beyond viewport (default ~250).
+            // Moderate value balances smoothness vs memory even on short phrase lists.
+            cacheExtent: 300,
+            // Pure StatelessWidget items; no state to preserve when off-screen.
+            // Disabling keep-alives reduces memory pressure during scroll.
+            addAutomaticKeepAlives: false,
             itemCount: phrases.length,
             itemBuilder: (context, index) {
               final item = phrases[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Semantics(
-                  button: true,
-                  child: AppBaseGlassCard(
-                    padding: const EdgeInsets.all(16),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => EmergencyPhrasebookDetailScreen(
-                            item: item,
+              return RepaintBoundary(
+                // Isolates repaint of each phrase card. Reduces overpaint
+                // during scroll or when navigating to detail on complex glass cards
+                // with gradients, icons, and nested text.
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Semantics(
+                    button: true,
+                    child: AppBaseGlassCard(
+                      padding: const EdgeInsets.all(16),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => EmergencyPhrasebookDetailScreen(
+                              item: item,
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                    child: Directionality(
-                      textDirection: TextDirection.rtl,
-                      child: Row(
-                        children: <Widget>[
-                          Hero(
-                            tag: _emergencyPhraseHeroTag(item),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: Text(
-                                item['icon']!,
-                                style: const TextStyle(fontSize: 32),
+                        );
+                      },
+                      child: Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: Row(
+                          children: <Widget>[
+                            Hero(
+                              tag: _emergencyPhraseHeroTag(item),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: Text(
+                                  item['icon']!,
+                                  style: const TextStyle(fontSize: 32),
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Text(
-                                  item['title']!,
-                                  softWrap: true,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    item['title']!,
+                                    softWrap: true,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  item['trans']!,
-                                  textDirection: TextDirection.ltr,
-                                  softWrap: true,
-                                  style: const TextStyle(
-                                    color: Color(0xFF34D399),
-                                    fontSize: 14,
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    item['trans']!,
+                                    textDirection: TextDirection.ltr,
+                                    softWrap: true,
+                                    style: const TextStyle(
+                                      color: Color(0xFF34D399),
+                                      fontSize: 14,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
