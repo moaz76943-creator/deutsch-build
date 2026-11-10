@@ -18,7 +18,7 @@ class DataIntegritySigner {
   }
 
   static bool verifyManifest(Map<String, dynamic>? manifest, String? payload) {
-    if (manifest == null || payload == null) return false;
+    if (manifest == null || payload == null || payload.isEmpty) return false;
 
     // Check for approved key
     final keyId = manifest['keyId'];
