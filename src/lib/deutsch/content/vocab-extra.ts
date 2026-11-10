@@ -1155,5 +1155,295 @@ export const vocabExtra = [
     arabic: 'شارع',
     example: 'Die Straße ist lang und breit.',
     exampleAr: 'الشارع طويل وواسع.'
+  },
+{
+    id: 'v-extra-275',
+    type: 'verb',
+    infinitive: 'suchen',
+    arabic: 'يبحث',
+    conjugation: {
+      ich: 'suche',
+      du: 'suchst',
+      er: 'sucht',
+      wir: 'suchen',
+      ihr: 'sucht',
+      sie_pl: 'suchen',
+      präteritum: 'suchte',
+      perfekt: 'hat gesucht',
+      aux: 'haben'
+    },
+    example: 'Ich suche meinen Schlüssel.',
+    exampleAr: 'أبحث عن مفتاحي.'
+  },
+  {
+    id: 'v-extra-276',
+    type: 'verb',
+    infinitive: 'dürfen',
+    arabic: 'يُسمح له / يجوز',
+    conjugation: {
+      ich: 'darf',
+      du: 'darfst',
+      er: 'darf',
+      wir: 'dürfen',
+      ihr: 'dürft',
+      sie_pl: 'dürfen',
+      präteritum: 'durfte',
+      perfekt: 'hat gedurft',
+      aux: 'haben'
+    },
+    example: 'Darf ich hereinkommen?',
+    exampleAr: 'هل يجوز لي الدخول؟'
+  },
+  {
+    id: 'v-extra-277',
+    type: 'verb',
+    infinitive: 'sollen',
+    arabic: 'ينبغي / يجب',
+    conjugation: {
+      ich: 'soll',
+      du: 'sollst',
+      er: 'soll',
+      wir: 'sollen',
+      ihr: 'sollt',
+      sie_pl: 'sollen',
+      präteritum: 'sollte',
+      perfekt: 'hat gesollt',
+      aux: 'haben'
+    },
+    example: 'Du sollst mehr lernen.',
+    exampleAr: 'ينبغي أن تتعلم أكثر.'
+  },
+  {
+    id: 'v-extra-278',
+    type: 'verb',
+    infinitive: 'meinen',
+    arabic: 'يعني / يقصد',
+    conjugation: {
+      ich: 'meine',
+      du: 'meinst',
+      er: 'meint',
+      wir: 'meinen',
+      ihr: 'meint',
+      sie_pl: 'meinen',
+      präteritum: 'meinte',
+      perfekt: 'hat gemeint',
+      aux: 'haben'
+    },
+    example: 'Was meinst du damit?',
+    exampleAr: 'ماذا تقصد بذلك؟'
+  },
+  {
+    id: 'v-extra-279',
+    type: 'verb',
+    infinitive: 'glauben',
+    arabic: 'يعتقد / يؤمن',
+    conjugation: {
+      ich: 'glaube',
+      du: 'glaubst',
+      er: 'glaubt',
+      wir: 'glauben',
+      ihr: 'glaubt',
+      sie_pl: 'glauben',
+      präteritum: 'glaubte',
+      perfekt: 'hat geglaubt',
+      aux: 'haben'
+    },
+    example: 'Ich glaube dir.',
+    exampleAr: 'أنا أصدقك.'
+  },
+  {
+    id: 'v-extra-280',
+    type: 'verb',
+    infinitive: 'hoffen',
+    arabic: 'يأمل',
+    conjugation: {
+      ich: 'hoffe',
+      du: 'hoffst',
+      er: 'hofft',
+      wir: 'hoffen',
+      ihr: 'hofft',
+      sie_pl: 'hoffen',
+      präteritum: 'hoffte',
+      perfekt: 'hat gehofft',
+      aux: 'haben'
+    },
+    example: 'Ich hoffe auf gutes Wetter.',
+    exampleAr: 'آمل أن يكون الطقس جيداً.'
+  },
+  {
+    id: 'v-extra-281',
+    type: 'verb',
+    infinitive: 'zeigen',
+    arabic: 'يُري / يظهر',
+    conjugation: {
+      ich: 'zeige',
+      du: 'zeigst',
+      er: 'zeigt',
+      wir: 'zeigen',
+      ihr: 'zeigt',
+      sie_pl: 'zeigen',
+      präteritum: 'zeigte',
+      perfekt: 'hat gezeigt',
+      aux: 'haben'
+    },
+    example: 'Kannst du mir den Weg zeigen?',
+    exampleAr: 'هل يمكنك أن تريني الطريق؟'
+  },
+  {
+    id: 'v-extra-282',
+    type: 'verb',
+    infinitive: 'bringen',
+    arabic: 'يجلب / يحضر',
+    conjugation: {
+      ich: 'bringe',
+      du: 'bringst',
+      er: 'bringt',
+      wir: 'bringen',
+      ihr: 'bringt',
+      sie_pl: 'bringen',
+      präteritum: 'brachte',
+      perfekt: 'hat gebracht',
+      aux: 'haben'
+    },
+    example: 'Bring mir bitte das Buch.',
+    exampleAr: 'أحضر لي الكتاب من فضلك.'
+  },
+  {
+    id: 'v-extra-283',
+    type: 'verb',
+    infinitive: 'holen',
+    arabic: 'يجلب / يحضر',
+    conjugation: {
+      ich: 'hole',
+      du: 'holst',
+      er: 'holt',
+      wir: 'holen',
+      ihr: 'holt',
+      sie_pl: 'holen',
+      präteritum: 'holte',
+      perfekt: 'hat geholt',
+      aux: 'haben'
+    },
+    example: 'Ich hole das Essen.',
+    exampleAr: 'سأجلب الطعام.'
+  },
+  {
+    id: 'v-extra-284',
+    type: 'verb',
+    infinitive: 'schwimmen',
+    arabic: 'يسبح',
+    conjugation: {
+      ich: 'schwimme',
+      du: 'schwimmst',
+      er: 'schwimmt',
+      wir: 'schwimmen',
+      ihr: 'schwimmt',
+      sie_pl: 'schwimmen',
+      präteritum: 'schwamm',
+      perfekt: 'ist geschwommen',
+      aux: 'sein'
+    },
+    example: 'Wir schwimmen im See.',
+    exampleAr: 'نحن نسبح في البحيرة.'
+  },
+  {
+    id: 'v-extra-285',
+    type: 'noun',
+    german: 'Buch',
+    article: 'das',
+    plural: 'Bücher',
+    arabic: 'كتاب',
+    example: 'Das Buch ist interessant.',
+    exampleAr: 'الكتاب مثير للاهتمام.'
+  },
+  {
+    id: 'v-extra-286',
+    type: 'noun',
+    german: 'Bus',
+    article: 'der',
+    plural: 'Busse',
+    arabic: 'حافلة',
+    example: 'Der Bus kommt gleich.',
+    exampleAr: 'الحافلة قادمة قريباً.'
+  },
+  {
+    id: 'v-extra-287',
+    type: 'noun',
+    german: 'Zug',
+    article: 'der',
+    plural: 'Züge',
+    arabic: 'قطار',
+    example: 'Der Zug fährt um acht Uhr.',
+    exampleAr: 'القطار يغادر في الساعة الثامنة.'
+  },
+  {
+    id: 'v-extra-288',
+    type: 'noun',
+    german: 'Fahrrad',
+    article: 'das',
+    plural: 'Fahrräder',
+    arabic: 'دراجة هوائية',
+    example: 'Ich fahre mit dem Fahrrad zur Schule.',
+    exampleAr: 'أذهب إلى المدرسة بالدراجة.'
+  },
+  {
+    id: 'v-extra-289',
+    type: 'noun',
+    german: 'Katze',
+    article: 'die',
+    plural: 'Katzen',
+    arabic: 'قطة',
+    example: 'Die Katze schläft auf dem Sofa.',
+    exampleAr: 'القطة تنام على الأريكة.'
+  },
+  {
+    id: 'v-extra-290',
+    type: 'noun',
+    german: 'Vogel',
+    article: 'der',
+    plural: 'Vögel',
+    arabic: 'طائر',
+    example: 'Der Vogel singt schön.',
+    exampleAr: 'الطائر يغني بشكل جميل.'
+  },
+  {
+    id: 'v-extra-291',
+    type: 'noun',
+    german: 'Blume',
+    article: 'die',
+    plural: 'Blumen',
+    arabic: 'زهرة',
+    example: 'Die Blumen im Garten sind bunt.',
+    exampleAr: 'الزهور في الحديقة ملونة.'
+  },
+  {
+    id: 'v-extra-292',
+    type: 'noun',
+    german: 'Baum',
+    article: 'der',
+    plural: 'Bäume',
+    arabic: 'شجرة',
+    example: 'Der Baum ist sehr alt.',
+    exampleAr: 'الشجرة قديمة جداً.'
+  },
+  {
+    id: 'v-extra-293',
+    type: 'noun',
+    german: 'Sonne',
+    article: 'die',
+    plural: 'Sonnen',
+    arabic: 'شمس',
+    example: 'Die Sonne scheint heute.',
+    exampleAr: 'الشمس تشرق اليوم.'
+  },
+  {
+    id: 'v-extra-294',
+    type: 'noun',
+    german: 'Familie',
+    article: 'die',
+    plural: 'Familien',
+    arabic: 'عائلة',
+    example: 'Meine Familie wohnt in Kairo.',
+    exampleAr: 'عائلتي تسكن في القاهرة.'
   }
 ];

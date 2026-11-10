@@ -1,3 +1,15 @@
+## 2026-11-10 05:09 UTC — Scheduled hourly Grok Build session
+
+- Read AGENTS.md. Auth/DB remain OFF; offline content only; directed-pair rules respected.
+- Cloned moaz76943-creator/deutsch-build (main). Tests already PASS (75 unique v-extra-* IDs, präteritum and article:'der' present).
+- Added 20 new A1/A2 items (ids v-extra-275 .. v-extra-294) in src/lib/deutsch/content/vocab-extra.ts.
+  - 10 verbs with full conjugation (ich/du/er/wir/ihr/sie_pl + präteritum + perfekt + aux): suchen, dürfen, sollen, meinen, glauben, hoffen, zeigen, bringen, holen, schwimmen.
+  - 10 nouns with article (der/die/das) + plural + natural DE example + AR translation: Buch, Bus, Zug, Fahrrad, Katze, Vogel, Blume, Baum, Sonne, Familie.
+- No id collisions. Minimal safe append. No auto-deletion of similar items.
+- Re-ran tests: PASS (95 unique IDs).
+- Preview: package.json has only `npm test`; no dedicated web preview port (Flutter/Android primary). Auth/DB kept OFF.
+- Priority: stability (tests green) > content correctness > learning system.
+
 ## 2026-11-10 04:08 UTC — Scheduled hourly Grok Build session
 
 - Read AGENTS.md. Auth/DB remain OFF; offline content only; directed-pair rules respected.
