@@ -83,19 +83,30 @@ class _LanguageSelectScreenState extends State<LanguageSelectScreen> {
                 const SizedBox(height: 16),
                 Expanded(
                   child: ListView.separated(
+                    // Performance: bound pre-build area beyond viewport (default ~250).
+                    // Moderate value balances smoothness vs memory on filtered language lists.
+                    cacheExtent: 300,
+                    // Pure items; no per-item state to preserve when off-screen.
+                    // Disabling keep-alives reduces memory pressure during filter/scroll.
+                    addAutomaticKeepAlives: false,
                     itemCount: filteredLangs.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final code = filteredLangs[index];
                       final name = LanguagePackManager.getLanguageName(code);
                       final flag = _languageFlags[code] ?? '🌐';
-                      return _buildOption(
-                        id: code,
-                        title: name,
-                        subtitle: code == 'ar'
-                            ? 'شروحات مبسطة ومقارنات واضحة'
-                            : 'Full explanations & dynamic grammar guide',
-                        flag: flag,
+                      return RepaintBoundary(
+                        // Isolates repaint of each language option card. Reduces overpaint
+                        // when selection changes (setState) or during filter/scroll on complex glass cards
+                        // with gradients and nested text. Expected: fewer skipped frames on language select.
+                        child: _buildOption(
+                          id: code,
+                          title: name,
+                          subtitle: code == 'ar'
+                              ? 'شروحات مبسطة ومقارنات واضحة'
+                              : 'Full explanations & dynamic grammar guide',
+                          flag: flag,
+                        ),
                       );
                     },
                   ),
