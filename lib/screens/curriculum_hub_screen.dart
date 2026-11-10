@@ -76,30 +76,36 @@ class _CurriculumHubScreenState extends State<CurriculumHubScreen> {
                 final item = _missions[index] is Map
                     ? Map<String, dynamic>.from(_missions[index] as Map)
                     : <String, dynamic>{};
-                return AppBaseGlassCard(
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor:
-                          const Color(0xFF4F46E5).withValues(alpha: 0.1),
-                      child: Text(
-                        '${item['level'] ?? 'A1'}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
+                return RepaintBoundary(
+                  // Isolates repaint of each mission card. Reduces overpaint
+                  // when sibling items update or during scroll on complex glass cards.
+                  // Expected: fewer dropped frames on curriculum list scroll,
+                  // especially on mid-range devices.
+                  child: AppBaseGlassCard(
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor:
+                            const Color(0xFF4F46E5).withValues(alpha: 0.1),
+                        child: Text(
+                          '${item['level'] ?? 'A1'}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
+                      title: Text('${item['titleAr'] ?? ''}',
+                          style: const TextStyle(fontWeight: FontWeight.w600)),
+                      subtitle: Text('${item['titleDe'] ?? ''}'),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('بدء التدريب: ${item['titleAr']}'),
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                      },
                     ),
-                    title: Text('${item['titleAr'] ?? ''}',
-                        style: const TextStyle(fontWeight: FontWeight.w600)),
-                    subtitle: Text('${item['titleDe'] ?? ''}'),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('بدء التدريب: ${item['titleAr']}'),
-                          duration: const Duration(seconds: 1),
-                        ),
-                      );
-                    },
                   ),
                 );
               },
