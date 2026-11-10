@@ -41,9 +41,6 @@ class MainActivity : FlutterActivity() {
         MethodChannel(messenger, AndroidOfflineVoiceCapabilityProbe.CHANNEL_NAME)
             .setMethodCallHandler(offlineVoiceProbe)
 
-        MethodChannel(messenger, AndroidPlayIntegrityManager.CHANNEL_NAME)
-            .setMethodCallHandler(AndroidPlayIntegrityManager(this))
-
         processTextChannel = MethodChannel(messenger, PROCESS_TEXT_CHANNEL)
         processTextChannel?.setMethodCallHandler { call, result ->
             when (call.method) {
