@@ -1,12 +1,12 @@
 {
-  "last_completed_task": 4892,
+  "last_completed_task": 4893,
   "batch_tasks_executed": 1,
   "volume": 115,
-  "subsystem_index": 1330,
-  "status": "TASK_4892_PASSIVE_VOICE_ENGINE_SEALED",
+  "subsystem_index": 1340,
+  "status": "TASK_4893_INDIRECT_SPEECH_ENGINE_SEALED",
   "remediated_findings": [
-    "LING-015 (German Passive Voice Rule Engine for Vorgangspassiv & Zustandspassiv)"
+    "LING-016 (German Indirect Speech / Konjunktiv I Engine with Ambiguity Fallbacks)"
   ],
   "verification_mode": "REAL_FUNCTIONAL_IMPLEMENTATION",
-  "timestamp": "2026-11-09T22:50:00Z"
+  "timestamp": "2026-11-09T23:18:00Z"
 }
