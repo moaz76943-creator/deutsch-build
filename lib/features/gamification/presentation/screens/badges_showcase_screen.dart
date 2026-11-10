@@ -19,7 +19,7 @@ class BadgesShowcaseScreen extends StatelessWidget {
       backgroundColor:
           dark ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: AppBar(
-        title: Text('شارات الإنجاز', style: AppTypography.title),
+        title: const Text('شارات الإنجاز', style: AppTypography.title),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
