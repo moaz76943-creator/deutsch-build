@@ -846,4 +846,314 @@ export const vocabExtra = [
     example: 'Der Hund bellt laut.',
     exampleAr: 'الكلب ينبح بصوت عالٍ.'
   }
+  ,
+  // === Additional A1/A2 batch 2026-11-10 hourly ===
+  {
+    id: 'v-extra-255',
+    type: 'verb',
+    infinitive: 'sagen',
+    arabic: 'يقول',
+    conjugation: {
+      ich: 'sage',
+      du: 'sagst',
+      er: 'sagt',
+      wir: 'sagen',
+      ihr: 'sagt',
+      sie_pl: 'sagen',
+      präteritum: 'sagte',
+      perfekt: 'hat gesagt',
+      aux: 'haben'
+    },
+    example: 'Was sagst du dazu?',
+    exampleAr: 'ماذا تقول عن ذلك؟'
+  },
+  {
+    id: 'v-extra-256',
+    type: 'verb',
+    infinitive: 'denken',
+    arabic: 'يفكر',
+    conjugation: {
+      ich: 'denke',
+      du: 'denkst',
+      er: 'denkt',
+      wir: 'denken',
+      ihr: 'denkt',
+      sie_pl: 'denken',
+      präteritum: 'dachte',
+      perfekt: 'hat gedacht',
+      aux: 'haben'
+    },
+    example: 'Ich denke an meine Familie.',
+    exampleAr: 'أفكر في عائلتي.'
+  },
+  {
+    id: 'v-extra-257',
+    type: 'verb',
+    infinitive: 'wissen',
+    arabic: 'يعرف',
+    conjugation: {
+      ich: 'weiß',
+      du: 'weißt',
+      er: 'weiß',
+      wir: 'wissen',
+      ihr: 'wisst',
+      sie_pl: 'wissen',
+      präteritum: 'wusste',
+      perfekt: 'hat gewusst',
+      aux: 'haben'
+    },
+    example: 'Ich weiß die Antwort nicht.',
+    exampleAr: 'لا أعرف الإجابة.'
+  },
+  {
+    id: 'v-extra-258',
+    type: 'verb',
+    infinitive: 'können',
+    arabic: 'يستطيع / يمكنه',
+    conjugation: {
+      ich: 'kann',
+      du: 'kannst',
+      er: 'kann',
+      wir: 'können',
+      ihr: 'könnt',
+      sie_pl: 'können',
+      präteritum: 'konnte',
+      perfekt: 'hat gekonnt',
+      aux: 'haben'
+    },
+    example: 'Kannst du Deutsch sprechen?',
+    exampleAr: 'هل تستطيع التحدث بالألمانية؟'
+  },
+  {
+    id: 'v-extra-259',
+    type: 'verb',
+    infinitive: 'müssen',
+    arabic: 'يجب عليه',
+    conjugation: {
+      ich: 'muss',
+      du: 'musst',
+      er: 'muss',
+      wir: 'müssen',
+      ihr: 'müsst',
+      sie_pl: 'müssen',
+      präteritum: 'musste',
+      perfekt: 'hat gemusst',
+      aux: 'haben'
+    },
+    example: 'Ich muss heute arbeiten.',
+    exampleAr: 'يجب أن أعمل اليوم.'
+  },
+  {
+    id: 'v-extra-260',
+    type: 'verb',
+    infinitive: 'wollen',
+    arabic: 'يريد',
+    conjugation: {
+      ich: 'will',
+      du: 'willst',
+      er: 'will',
+      wir: 'wollen',
+      ihr: 'wollt',
+      sie_pl: 'wollen',
+      präteritum: 'wollte',
+      perfekt: 'hat gewollt',
+      aux: 'haben'
+    },
+    example: 'Ich will nach Deutschland reisen.',
+    exampleAr: 'أريد السفر إلى ألمانيا.'
+  },
+  {
+    id: 'v-extra-261',
+    type: 'verb',
+    infinitive: 'mögen',
+    arabic: 'يحب / يفضل',
+    conjugation: {
+      ich: 'mag',
+      du: 'magst',
+      er: 'mag',
+      wir: 'mögen',
+      ihr: 'mögt',
+      sie_pl: 'mögen',
+      präteritum: 'mochte',
+      perfekt: 'hat gemocht',
+      aux: 'haben'
+    },
+    example: 'Ich mag Kaffee sehr.',
+    exampleAr: 'أحب القهوة كثيراً.'
+  },
+  {
+    id: 'v-extra-262',
+    type: 'verb',
+    infinitive: 'brauchen',
+    arabic: 'يحتاج',
+    conjugation: {
+      ich: 'brauche',
+      du: 'brauchst',
+      er: 'braucht',
+      wir: 'brauchen',
+      ihr: 'braucht',
+      sie_pl: 'brauchen',
+      präteritum: 'brauchte',
+      perfekt: 'hat gebraucht',
+      aux: 'haben'
+    },
+    example: 'Ich brauche Hilfe.',
+    exampleAr: 'أحتاج مساعدة.'
+  },
+  {
+    id: 'v-extra-263',
+    type: 'verb',
+    infinitive: 'öffnen',
+    arabic: 'يفتح',
+    conjugation: {
+      ich: 'öffne',
+      du: 'öffnest',
+      er: 'öffnet',
+      wir: 'öffnen',
+      ihr: 'öffnet',
+      sie_pl: 'öffnen',
+      präteritum: 'öffnete',
+      perfekt: 'hat geöffnet',
+      aux: 'haben'
+    },
+    example: 'Kannst du das Fenster öffnen?',
+    exampleAr: 'هل يمكنك فتح النافذة؟'
+  },
+  {
+    id: 'v-extra-264',
+    type: 'verb',
+    infinitive: 'schließen',
+    arabic: 'يغلق',
+    conjugation: {
+      ich: 'schließe',
+      du: 'schließt',
+      er: 'schließt',
+      wir: 'schließen',
+      ihr: 'schließt',
+      sie_pl: 'schließen',
+      präteritum: 'schloss',
+      perfekt: 'hat geschlossen',
+      aux: 'haben'
+    },
+    example: 'Bitte schließe die Tür.',
+    exampleAr: 'من فضلك أغلق الباب.'
+  },
+  {
+    id: 'v-extra-265',
+    type: 'verb',
+    infinitive: 'waschen',
+    arabic: 'يغسل',
+    conjugation: {
+      ich: 'wasche',
+      du: 'wäschst',
+      er: 'wäscht',
+      wir: 'waschen',
+      ihr: 'wascht',
+      sie_pl: 'waschen',
+      präteritum: 'wusch',
+      perfekt: 'hat gewaschen',
+      aux: 'haben'
+    },
+    example: 'Ich wasche mir die Hände.',
+    exampleAr: 'أغسل يدي.'
+  },
+  {
+    id: 'v-extra-266',
+    type: 'verb',
+    infinitive: 'kochen',
+    arabic: 'يطبخ',
+    conjugation: {
+      ich: 'koche',
+      du: 'kochst',
+      er: 'kocht',
+      wir: 'kochen',
+      ihr: 'kocht',
+      sie_pl: 'kochen',
+      präteritum: 'kochte',
+      perfekt: 'hat gekocht',
+      aux: 'haben'
+    },
+    example: 'Meine Mutter kocht gut.',
+    exampleAr: 'أمي تطبخ جيداً.'
+  },
+  {
+    id: 'v-extra-267',
+    type: 'noun',
+    german: 'Tisch',
+    article: 'der',
+    plural: 'Tische',
+    arabic: 'طاولة',
+    example: 'Der Tisch ist aus Holz.',
+    exampleAr: 'الطاولة من الخشب.'
+  },
+  {
+    id: 'v-extra-268',
+    type: 'noun',
+    german: 'Stuhl',
+    article: 'der',
+    plural: 'Stühle',
+    arabic: 'كرسي',
+    example: 'Der Stuhl steht neben dem Tisch.',
+    exampleAr: 'الكرسي يقف بجانب الطاولة.'
+  },
+  {
+    id: 'v-extra-269',
+    type: 'noun',
+    german: 'Fenster',
+    article: 'das',
+    plural: 'Fenster',
+    arabic: 'نافذة',
+    example: 'Das Fenster ist offen.',
+    exampleAr: 'النافذة مفتوحة.'
+  },
+  {
+    id: 'v-extra-270',
+    type: 'noun',
+    german: 'Tür',
+    article: 'die',
+    plural: 'Türen',
+    arabic: 'باب',
+    example: 'Die Tür ist geschlossen.',
+    exampleAr: 'الباب مغلق.'
+  },
+  {
+    id: 'v-extra-271',
+    type: 'noun',
+    german: 'Küche',
+    article: 'die',
+    plural: 'Küchen',
+    arabic: 'مطبخ',
+    example: 'In der Küche koche ich gerne.',
+    exampleAr: 'في المطبخ أحب الطبخ.'
+  },
+  {
+    id: 'v-extra-272',
+    type: 'noun',
+    german: 'Bett',
+    article: 'das',
+    plural: 'Betten',
+    arabic: 'سرير',
+    example: 'Das Bett ist sehr bequem.',
+    exampleAr: 'السرير مريح جداً.'
+  },
+  {
+    id: 'v-extra-273',
+    type: 'noun',
+    german: 'Garten',
+    article: 'der',
+    plural: 'Gärten',
+    arabic: 'حديقة',
+    example: 'Der Garten ist voller Blumen.',
+    exampleAr: 'الحديقة مليئة بالزهور.'
+  },
+  {
+    id: 'v-extra-274',
+    type: 'noun',
+    german: 'Straße',
+    article: 'die',
+    plural: 'Straßen',
+    arabic: 'شارع',
+    example: 'Die Straße ist lang und breit.',
+    exampleAr: 'الشارع طويل وواسع.'
+  }
 ];
