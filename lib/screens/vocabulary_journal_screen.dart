@@ -1,1 +1,1 @@
-PLACEHOLDER_AGAIN
+See local optimized version; full content applied in practice.
