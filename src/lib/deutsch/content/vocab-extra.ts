@@ -2098,4 +2098,313 @@ export const vocabExtra = [
     example: 'Die Katze schläft.',
     exampleAr: 'القطة تنام.'
   },
+{
+    id: 'v-extra-339',
+    type: 'verb',
+    infinitive: 'arbeiten',
+    arabic: 'يعمل',
+    conjugation: {
+      ich: 'arbeite',
+      du: 'arbeitest',
+      er: 'arbeitet',
+      wir: 'arbeiten',
+      ihr: 'arbeitet',
+      sie_pl: 'arbeiten',
+      präteritum: 'arbeitete',
+      perfekt: 'hat gearbeitet',
+      aux: 'haben'
+    },
+    example: 'Ich arbeite in einem Büro.',
+    exampleAr: 'أنا أعمل في مكتب.'
+  },
+  {
+    id: 'v-extra-340',
+    type: 'verb',
+    infinitive: 'essen',
+    arabic: 'يأكل',
+    conjugation: {
+      ich: 'esse',
+      du: 'isst',
+      er: 'isst',
+      wir: 'essen',
+      ihr: 'esst',
+      sie_pl: 'essen',
+      präteritum: 'aß',
+      perfekt: 'hat gegessen',
+      aux: 'haben'
+    },
+    example: 'Wir essen zusammen zu Abend.',
+    exampleAr: 'نحن نأكل العشاء معاً.'
+  },
+  {
+    id: 'v-extra-341',
+    type: 'verb',
+    infinitive: 'trinken',
+    arabic: 'يشرب',
+    conjugation: {
+      ich: 'trinke',
+      du: 'trinkst',
+      er: 'trinkt',
+      wir: 'trinken',
+      ihr: 'trinkt',
+      sie_pl: 'trinken',
+      präteritum: 'trank',
+      perfekt: 'hat getrunken',
+      aux: 'haben'
+    },
+    example: 'Ich trinke gerne Kaffee.',
+    exampleAr: 'أحب شرب القهوة.'
+  },
+  {
+    id: 'v-extra-342',
+    type: 'verb',
+    infinitive: 'lesen',
+    arabic: 'يقرأ',
+    conjugation: {
+      ich: 'lese',
+      du: 'liest',
+      er: 'liest',
+      wir: 'lesen',
+      ihr: 'lest',
+      sie_pl: 'lesen',
+      präteritum: 'las',
+      perfekt: 'hat gelesen',
+      aux: 'haben'
+    },
+    example: 'Sie liest ein interessantes Buch.',
+    exampleAr: 'هي تقرأ كتاباً مثيراً للاهتمام.'
+  },
+  {
+    id: 'v-extra-343',
+    type: 'verb',
+    infinitive: 'schreiben',
+    arabic: 'يكتب',
+    conjugation: {
+      ich: 'schreibe',
+      du: 'schreibst',
+      er: 'schreibt',
+      wir: 'schreiben',
+      ihr: 'schreibt',
+      sie_pl: 'schreiben',
+      präteritum: 'schrieb',
+      perfekt: 'hat geschrieben',
+      aux: 'haben'
+    },
+    example: 'Er schreibt eine E-Mail.',
+    exampleAr: 'هو يكتب بريداً إلكترونياً.'
+  },
+  {
+    id: 'v-extra-344',
+    type: 'verb',
+    infinitive: 'sprechen',
+    arabic: 'يتكلم',
+    conjugation: {
+      ich: 'spreche',
+      du: 'sprichst',
+      er: 'spricht',
+      wir: 'sprechen',
+      ihr: 'sprecht',
+      sie_pl: 'sprechen',
+      präteritum: 'sprach',
+      perfekt: 'hat gesprochen',
+      aux: 'haben'
+    },
+    example: 'Wir sprechen Deutsch.',
+    exampleAr: 'نحن نتكلم الألمانية.'
+  },
+  {
+    id: 'v-extra-345',
+    type: 'verb',
+    infinitive: 'sehen',
+    arabic: 'يرى',
+    conjugation: {
+      ich: 'sehe',
+      du: 'siehst',
+      er: 'sieht',
+      wir: 'sehen',
+      ihr: 'seht',
+      sie_pl: 'sehen',
+      präteritum: 'sah',
+      perfekt: 'hat gesehen',
+      aux: 'haben'
+    },
+    example: 'Ich sehe den Film.',
+    exampleAr: 'أنا أشاهد الفيلم.'
+  },
+  {
+    id: 'v-extra-346',
+    type: 'verb',
+    infinitive: 'hören',
+    arabic: 'يسمع',
+    conjugation: {
+      ich: 'höre',
+      du: 'hörst',
+      er: 'hört',
+      wir: 'hören',
+      ihr: 'hört',
+      sie_pl: 'hören',
+      präteritum: 'hörte',
+      perfekt: 'hat gehört',
+      aux: 'haben'
+    },
+    example: 'Hörst du die Musik?',
+    exampleAr: 'هل تسمع الموسيقى؟'
+  },
+  {
+    id: 'v-extra-347',
+    type: 'verb',
+    infinitive: 'helfen',
+    arabic: 'يساعد',
+    conjugation: {
+      ich: 'helfe',
+      du: 'hilfst',
+      er: 'hilft',
+      wir: 'helfen',
+      ihr: 'helft',
+      sie_pl: 'helfen',
+      präteritum: 'half',
+      perfekt: 'hat geholfen',
+      aux: 'haben'
+    },
+    example: 'Kannst du mir helfen?',
+    exampleAr: 'هل يمكنك مساعدتي؟'
+  },
+  {
+    id: 'v-extra-348',
+    type: 'verb',
+    infinitive: 'fahren',
+    arabic: 'يقود / يسافر',
+    conjugation: {
+      ich: 'fahre',
+      du: 'fährst',
+      er: 'fährt',
+      wir: 'fahren',
+      ihr: 'fahrt',
+      sie_pl: 'fahren',
+      präteritum: 'fuhr',
+      perfekt: 'ist gefahren',
+      aux: 'sein'
+    },
+    example: 'Wir fahren nach Berlin.',
+    exampleAr: 'نحن نسافر إلى برلين.'
+  },
+  {
+    id: 'v-extra-349',
+    type: 'verb',
+    infinitive: 'verstehen',
+    arabic: 'يفهم',
+    conjugation: {
+      ich: 'verstehe',
+      du: 'verstehst',
+      er: 'versteht',
+      wir: 'verstehen',
+      ihr: 'versteht',
+      sie_pl: 'verstehen',
+      präteritum: 'verstand',
+      perfekt: 'hat verstanden',
+      aux: 'haben'
+    },
+    example: 'Verstehst du die Frage?',
+    exampleAr: 'هل تفهم السؤال؟'
+  },
+  {
+    id: 'v-extra-350',
+    type: 'noun',
+    german: 'Buch',
+    article: 'das',
+    plural: 'Bücher',
+    arabic: 'كتاب',
+    example: 'Das Buch ist spannend.',
+    exampleAr: 'الكتاب مثير.'
+  },
+  {
+    id: 'v-extra-351',
+    type: 'noun',
+    german: 'Auto',
+    article: 'das',
+    plural: 'Autos',
+    arabic: 'سيارة',
+    example: 'Das Auto ist schnell.',
+    exampleAr: 'السيارة سريعة.'
+  },
+  {
+    id: 'v-extra-352',
+    type: 'noun',
+    german: 'Haus',
+    article: 'das',
+    plural: 'Häuser',
+    arabic: 'منزل / بيت',
+    example: 'Das Haus ist groß.',
+    exampleAr: 'المنزل كبير.'
+  },
+  {
+    id: 'v-extra-353',
+    type: 'noun',
+    german: 'Freundin',
+    article: 'die',
+    plural: 'Freundinnen',
+    arabic: 'صديقة',
+    example: 'Meine Freundin kommt heute.',
+    exampleAr: 'صديقتي تأتي اليوم.'
+  },
+  {
+    id: 'v-extra-354',
+    type: 'noun',
+    german: 'Bruder',
+    article: 'der',
+    plural: 'Brüder',
+    arabic: 'أخ',
+    example: 'Mein Bruder spielt Fußball.',
+    exampleAr: 'أخي يلعب كرة القدم.'
+  },
+  {
+    id: 'v-extra-355',
+    type: 'noun',
+    german: 'Schwester',
+    article: 'die',
+    plural: 'Schwestern',
+    arabic: 'أخت',
+    example: 'Meine Schwester lernt Deutsch.',
+    exampleAr: 'أختي تتعلم الألمانية.'
+  },
+  {
+    id: 'v-extra-356',
+    type: 'noun',
+    german: 'Vater',
+    article: 'der',
+    plural: 'Väter',
+    arabic: 'أب',
+    example: 'Der Vater arbeitet viel.',
+    exampleAr: 'الأب يعمل كثيراً.'
+  },
+  {
+    id: 'v-extra-357',
+    type: 'noun',
+    german: 'Mutter',
+    article: 'die',
+    plural: 'Mütter',
+    arabic: 'أم',
+    example: 'Die Mutter kocht das Essen.',
+    exampleAr: 'الأم تطبخ الطعام.'
+  },
+  {
+    id: 'v-extra-358',
+    type: 'noun',
+    german: 'Kind',
+    article: 'das',
+    plural: 'Kinder',
+    arabic: 'طفل',
+    example: 'Das Kind spielt im Garten.',
+    exampleAr: 'الطفل يلعب في الحديقة.'
+  },
+  {
+    id: 'v-extra-359',
+    type: 'noun',
+    german: 'Stadt',
+    article: 'die',
+    plural: 'Städte',
+    arabic: 'مدينة',
+    example: 'Die Stadt ist sehr schön.',
+    exampleAr: 'المدينة جميلة جداً.'
+  },
 ];
