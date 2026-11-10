@@ -209,10 +209,19 @@ def process_pack(args):
         dest_sha = PACKS_DIR / code / f"{code}-1.0.0.pack.gz.sha256"
 
         shutil.copy2(db_gz_path, dest_db)
-        shutil.copy2(str(db_gz_path) + ".sha256", dest_sha)
+
+        # Fix sha256 content
+        sha_content = Path(str(db_gz_path) + ".sha256").read_text(encoding='ascii')
+        sha_content = sha_content.replace(f"{code}.db.gz", f"{code}-1.0.0.pack.gz")
+        dest_sha.write_text(sha_content, encoding='ascii')
 
         with open(dest_sha, 'r', encoding='ascii') as sf:
             actual_sha256 = sf.read().split()[0]
+
+        # Remove legacy sqlite schema files
+        legacy_sqlite = PACKS_DIR / code / "sqlite" / f"{code}-1.0.0.sqlite"
+        if legacy_sqlite.exists():
+            legacy_sqlite.unlink()
 
         pack_info['size_bytes'] = size
         pack_info['sha256'] = actual_sha256
