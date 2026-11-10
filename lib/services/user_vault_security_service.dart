@@ -184,6 +184,9 @@ class UserVaultSecurityService {
     if (ciphertext.length < 29 || (ciphertext[0] != 1 && ciphertext[0] != 2)) {
       throw CorruptRecordException('Invalid encrypted vault envelope');
     }
+    if (listEquals(ciphertext, plaintext)) {
+      throw CorruptRecordException('Plaintext downgrade detected');
+    }
     final database = await _db;
     await database.insert(
         'vault_entries',
@@ -209,7 +212,14 @@ class UserVaultSecurityService {
         (encrypted[0] != 1 && encrypted[0] != 2)) {
       throw CorruptRecordException('Vault record is corrupt');
     }
-    return _cipher.decrypt(id, encrypted);
+    try {
+      return await _cipher.decrypt(id, encrypted);
+    } catch (e) {
+      if (e is KeyUnavailableException || e is CorruptRecordException) {
+        rethrow;
+      }
+      throw TamperedRecordException('Vault record was tampered with');
+    }
   }
 
   Future<void> deleteRecord(String id) async {
@@ -384,59 +394,59 @@ class UserVaultSecurityService {
     _checkRecoveryLock();
     _isRecovering = true;
     try {
-    return (await _db).transaction((txn) async {
-      await _ensureFreshReady(txn);
-      var inserted = 0, updated = 0, unchanged = 0;
-      var bookmarkInserted = 0, bookmarkUpdated = 0;
-      for (final incoming in srs) {
-        final id = incoming['lexeme_id'] as String;
-        final lang = incoming['target_language_code'] as String;
-        final key = _progressKey('srs', id, lang);
-        final previous = await _readEncryptedFrom(txn, key);
-        if (previous != null &&
-            !incomingWins(Map<String, Object?>.from(_decodeProgress(previous)),
-                incoming)) {
-          unchanged++;
-          continue;
+      return await (await _db).transaction((txn) async {
+        await _ensureFreshReady(txn);
+        var inserted = 0, updated = 0, unchanged = 0;
+        var bookmarkInserted = 0, bookmarkUpdated = 0;
+        for (final incoming in srs) {
+          final id = incoming['lexeme_id'] as String;
+          final lang = incoming['target_language_code'] as String;
+          final key = _progressKey('srs', id, lang);
+          final previous = await _readEncryptedFrom(txn, key);
+          if (previous != null &&
+              !incomingWins(Map<String, Object?>.from(_decodeProgress(previous)),
+                  incoming)) {
+            unchanged++;
+            continue;
+          }
+          await _writeEncrypted(
+              txn, key, Uint8List.fromList(utf8.encode(jsonEncode(incoming))),
+              replace: true);
+          await _catalogMutation(txn, 'srs', id, lang, add: true);
+          if (previous == null) {
+            inserted++;
+          } else {
+            updated++;
+          }
         }
-        await _writeEncrypted(
-            txn, key, Uint8List.fromList(utf8.encode(jsonEncode(incoming))),
-            replace: true);
-        await _catalogMutation(txn, 'srs', id, lang, add: true);
-        if (previous == null) {
-          inserted++;
-        } else {
-          updated++;
+        for (final item in bookmarks) {
+          final id = item['id'] as String;
+          final lang = item['language_code'] as String;
+          final data = Map<String, dynamic>.from(item['data'] as Map);
+          final key = _progressKey('bookmark', id, lang);
+          final previous = await _readEncryptedFrom(txn, key);
+          if (previous != null &&
+              jsonEncode(_decodeProgress(previous)) == jsonEncode(data)) {
+            continue;
+          }
+          await _writeEncrypted(
+              txn, key, Uint8List.fromList(utf8.encode(jsonEncode(data))),
+              replace: true);
+          await _catalogMutation(txn, 'bookmark', id, lang, add: true);
+          if (previous == null) {
+            bookmarkInserted++;
+          } else {
+            bookmarkUpdated++;
+          }
         }
-      }
-      for (final item in bookmarks) {
-        final id = item['id'] as String;
-        final lang = item['language_code'] as String;
-        final data = Map<String, dynamic>.from(item['data'] as Map);
-        final key = _progressKey('bookmark', id, lang);
-        final previous = await _readEncryptedFrom(txn, key);
-        if (previous != null &&
-            jsonEncode(_decodeProgress(previous)) == jsonEncode(data)) {
-          continue;
-        }
-        await _writeEncrypted(
-            txn, key, Uint8List.fromList(utf8.encode(jsonEncode(data))),
-            replace: true);
-        await _catalogMutation(txn, 'bookmark', id, lang, add: true);
-        if (previous == null) {
-          bookmarkInserted++;
-        } else {
-          bookmarkUpdated++;
-        }
-      }
-      return {
-        'inserted': inserted,
-        'updated': updated,
-        'unchanged': unchanged,
-        'bookmarksInserted': bookmarkInserted,
-        'bookmarksUpdated': bookmarkUpdated,
-      };
-    });
+        return {
+          'inserted': inserted,
+          'updated': updated,
+          'unchanged': unchanged,
+          'bookmarksInserted': bookmarkInserted,
+          'bookmarksUpdated': bookmarkUpdated,
+        };
+      });
     } finally {
       _isRecovering = false;
     }
@@ -444,11 +454,20 @@ class UserVaultSecurityService {
 
   // Archive encryption uses the same hardware/software AES vault key.
   // Archives are device-bound (not cross-device password backups).
-  Future<Uint8List> sealArchiveChunk(int index, Uint8List data) =>
-      _cipher.encrypt('progress-backup/v2/chunk/$index', data);
+  Future<Uint8List> sealArchiveChunk(int index, Uint8List data) async {
+    final ciphertext = await _cipher.encrypt('progress-backup/v2/chunk/$index', data);
+    if (ciphertext.length < 29 || (ciphertext[0] != 1 && ciphertext[0] != 2)) {
+      throw CorruptRecordException('Invalid encrypted vault envelope');
+    }
+    return ciphertext;
+  }
 
-  Future<Uint8List> unsealArchiveChunk(int index, Uint8List data) =>
-      _cipher.decrypt('progress-backup/v2/chunk/$index', data);
+  Future<Uint8List> unsealArchiveChunk(int index, Uint8List data) async {
+    if (data.length < 29 || (data[0] != 1 && data[0] != 2)) {
+      throw CorruptRecordException('Vault record is corrupt');
+    }
+    return _cipher.decrypt('progress-backup/v2/chunk/$index', data);
+  }
 
   static String _progressKey(String kind, String id, String languageCode) {
     if (id.trim().isEmpty || languageCode.trim().isEmpty) {
@@ -657,58 +676,58 @@ class UserVaultSecurityService {
     _checkRecoveryLock();
     _isRecovering = true;
     try {
-    await (await _db).transaction((txn) async {
-      if (await _readEncryptedFrom(txn, _operationalReadyId) != null) return;
-      final manifestBytes = await _readEncryptedFrom(txn, _manifestId);
-      if (manifestBytes == null) {
-        throw StateError('Archived vault manifest missing');
-      }
-      final manifest = _decodeProgress(manifestBytes);
-      if (manifest['format'] != 'legacy-sqlite-snapshot-v1' ||
-          manifest['tables'] is! List) {
-        throw StateError('Archived vault manifest is not supported');
-      }
-      final tables = manifest['tables'] as List;
-      final counts = <String, int>{};
-      var total = 0;
-      for (final item in tables) {
-        final record = Map<String, dynamic>.from(item as Map);
-        final name = record['name'];
-        final count = record['count'];
-        if (name is! String || count is! int || count < 0) {
-          throw StateError('Archived vault table is malformed');
+      await (await _db).transaction((txn) async {
+        if (await _readEncryptedFrom(txn, _operationalReadyId) != null) return;
+        final manifestBytes = await _readEncryptedFrom(txn, _manifestId);
+        if (manifestBytes == null) {
+          throw StateError('Archived vault manifest missing');
         }
-        total += count;
-        if (total > _maximumLegacyRows) {
-          throw StateError('Archived vault exceeds safe migration limit');
+        final manifest = _decodeProgress(manifestBytes);
+        if (manifest['format'] != 'legacy-sqlite-snapshot-v1' ||
+            manifest['tables'] is! List) {
+          throw StateError('Archived vault manifest is not supported');
         }
-        counts[name] = count;
-      }
-      await _verifyLegacySnapshot(txn, counts);
-      for (var t = 0; t < tables.length; t++) {
-        final table = Map<String, dynamic>.from(tables[t] as Map);
-        final name = table['name'] as String;
-        if (name != 'srs_progress' &&
-            name != 'bookmarks' &&
-            name != 'vault_bookmarks') {
-          continue;
+        final tables = manifest['tables'] as List;
+        final counts = <String, int>{};
+        var total = 0;
+        for (final item in tables) {
+          final record = Map<String, dynamic>.from(item as Map);
+          final name = record['name'];
+          final count = record['count'];
+          if (name is! String || count is! int || count < 0) {
+            throw StateError('Archived vault table is malformed');
+          }
+          total += count;
+          if (total > _maximumLegacyRows) {
+            throw StateError('Archived vault exceeds safe migration limit');
+          }
+          counts[name] = count;
         }
-        for (var index = 0; index < (table['count'] as int); index++) {
-          final plain = await _readEncryptedFrom(txn, _rowId(t, index));
-          if (plain == null) throw StateError('Archived vault row missing');
-          await _hydrateOperationalRow(txn, name, _decodeProgress(plain));
+        await _verifyLegacySnapshot(txn, counts);
+        for (var t = 0; t < tables.length; t++) {
+          final table = Map<String, dynamic>.from(tables[t] as Map);
+          final name = table['name'] as String;
+          if (name != 'srs_progress' &&
+              name != 'bookmarks' &&
+              name != 'vault_bookmarks') {
+            continue;
+          }
+          for (var index = 0; index < (table['count'] as int); index++) {
+            final plain = await _readEncryptedFrom(txn, _rowId(t, index));
+            if (plain == null) throw StateError('Archived vault row missing');
+            await _hydrateOperationalRow(txn, name, _decodeProgress(plain));
+          }
         }
-      }
-      await _writeEncrypted(
-          txn,
-          _operationalReadyId,
-          Uint8List.fromList(utf8.encode(jsonEncode(
-              {'format': 'operational-progress-v1', 'origin': 'migrated'}))));
-    });
-  }
+        await _writeEncrypted(
+            txn,
+            _operationalReadyId,
+            Uint8List.fromList(utf8.encode(jsonEncode(
+                {'format': 'operational-progress-v1', 'origin': 'migrated'}))));
+      });
     } finally {
       _isRecovering = false;
     }
+  }
 
   /// Transfers every user-owned SQLite table (including SRS, history and
   /// bookmarks) into an encrypted, recoverable snapshot. This is explicitly
@@ -751,6 +770,9 @@ class UserVaultSecurityService {
     if (cipher.length < 29 || (cipher[0] != 1 && cipher[0] != 2)) {
       throw CorruptRecordException('Vault cipher returned an invalid envelope');
     }
+    if (listEquals(cipher, plaintext)) {
+      throw CorruptRecordException('Plaintext downgrade detected');
+    }
     await destination.insert(
         'vault_entries',
         <String, Object>{
@@ -776,7 +798,14 @@ class UserVaultSecurityService {
         (encrypted[0] != 1 && encrypted[0] != 2)) {
       throw CorruptRecordException('Vault record is corrupt');
     }
-    return _cipher.decrypt(id, encrypted);
+    try {
+      return await _cipher.decrypt(id, encrypted);
+    } catch (e) {
+      if (e is KeyUnavailableException || e is CorruptRecordException) {
+        rethrow;
+      }
+      throw TamperedRecordException('Vault record was tampered with');
+    }
   }
 
   Future<void> _verifyLegacySnapshot(
@@ -822,140 +851,139 @@ class UserVaultSecurityService {
     _checkRecoveryLock();
     _isRecovering = true;
     try {
-    final oldFile = File(await _legacyDatabasePath());
-    if (!await oldFile.exists()) {
-      return const LegacyProgressMigrationResult(
-        migrated: false,
-        tableRowCounts: <String, int>{},
-      );
-    }
-    final backup = File('${oldFile.path}.migrated');
-    if (await backup.exists()) {
-      throw StateError('Previous migrated backup must not be overwritten');
-    }
-
-    final destination = await _db;
-    if ((await destination.query('vault_entries',
-            columns: ['record_hash'],
-            where: 'record_hash = ?',
-            whereArgs: [_index(_manifestId)],
-            limit: 1))
-        .isNotEmpty) {
-      throw StateError('A previous legacy vault snapshot already exists');
-    }
-
-    // Opening a non-existent path here would create a database; existence was
-    // checked first. singleInstance:false avoids reusing a cached connection.
-    final source = await openDatabase(oldFile.path, singleInstance: false);
-    final counts = <String, int>{};
-    try {
-      await destination.transaction((vaultTxn) async {
-        await source.transaction((legacyTxn) async {
-          final objects = await legacyTxn.rawQuery(
-            "SELECT type, name, tbl_name, sql FROM sqlite_master "
-            "WHERE name NOT LIKE 'sqlite_%' AND sql IS NOT NULL "
-            "ORDER BY type, name",
-          );
-          final definitions = objects
-              .where((entry) => entry['type'] == 'table')
-              .toList()
-            ..sort((left, right) =>
-                (left['name'] as String).compareTo(right['name'] as String));
-          final tables = <Map<String, Object?>>[];
-          var totalRows = 0;
-          for (var t = 0; t < definitions.length; t++) {
-            final definition = definitions[t];
-            final name = definition['name'] as String;
-            final quoted = '"${name.replaceAll('"', '""')}"';
-            final count = Sqflite.firstIntValue(
-                  await legacyTxn.rawQuery('SELECT COUNT(*) FROM $quoted'),
-                ) ??
-                0;
-            totalRows += count;
-            if (totalRows > _maximumLegacyRows) {
-              throw StateError('Legacy database exceeds safe migration limit');
-            }
-            counts[name] = count;
-            final rowDigests = StringBuffer();
-            for (var offset = 0; offset < count; offset += _migrationPageSize) {
-              final block = await legacyTxn.query(name,
-                  limit: _migrationPageSize, offset: offset);
-              final expected = count - offset < _migrationPageSize
-                  ? count - offset
-                  : _migrationPageSize;
-              if (block.length != expected) {
-                throw StateError('Legacy snapshot changed during migration');
-              }
-              for (var r = 0; r < block.length; r++) {
-                final row = <String, Object?>{
-                  for (final entry in block[r].entries)
-                    entry.key: _encodeSqliteValue(entry.value),
-                };
-                final bytes = Uint8List.fromList(utf8.encode(jsonEncode(row)));
-                rowDigests.write(sha256.convert(bytes).toString());
-                await _writeEncrypted(vaultTxn, _rowId(t, offset + r), bytes);
-                // The imported active index and snapshot commit together.
-                await _hydrateOperationalRow(vaultTxn, name, row);
-              }
-            }
-            tables.add(<String, Object?>{
-              'name': name,
-              'sql': definition['sql'],
-              'count': count,
-              'digest':
-                  sha256.convert(utf8.encode(rowDigests.toString())).toString(),
-            });
-          }
-
-          final manifest = <String, Object?>{
-            'format': 'legacy-sqlite-snapshot-v1',
-            'tables': tables,
-            // Preserve index/trigger/view DDL as well as user table rows.
-            'schema_objects': objects,
-            'total_rows': totalRows,
-          };
-          await _writeEncrypted(vaultTxn, _manifestId,
-              Uint8List.fromList(utf8.encode(jsonEncode(manifest))));
-          await _writeEncrypted(
-              vaultTxn,
-              _operationalReadyId,
-              Uint8List.fromList(utf8
-                  .encode(jsonEncode({'format': 'operational-progress-v1'}))));
-        });
-        // Do not commit a vault snapshot until every record decrypts and its
-        // counts and digests match the original SQLite read transaction.
-        await _verifyLegacySnapshot(vaultTxn, counts);
-      });
-
-      // Flush any journaled transactions before moving just the SQLite file.
-      // Fail closed if another connection prevents a full checkpoint.
-      final checkpoint =
-          await source.rawQuery('PRAGMA wal_checkpoint(TRUNCATE)');
-      if (checkpoint.isNotEmpty &&
-          (checkpoint.first['busy'] as num?) != null &&
-          (checkpoint.first['busy'] as num) != 0) {
-        throw StateError('Legacy SQLite database is busy');
+      final oldFile = File(await _legacyDatabasePath());
+      if (!await oldFile.exists()) {
+        return const LegacyProgressMigrationResult(
+          migrated: false,
+          tableRowCounts: <String, int>{},
+        );
       }
-    } finally {
-      if (source.isOpen) await source.close();
-    }
+      final backup = File('${oldFile.path}.migrated');
+      if (await backup.exists()) {
+        throw StateError('Previous migrated backup must not be overwritten');
+      }
 
-    // A nonempty WAL might still hold committed records from another writer.
-    final wal = File('${oldFile.path}-wal');
-    if (await wal.exists() && await wal.length() > 0) {
-      throw StateError('Legacy WAL is not empty; migration not finalized');
-    }
-    if (await backup.exists() || !await oldFile.exists()) {
-      throw StateError('Legacy DB changed before atomic rename');
-    }
-    await oldFile.rename(backup.path);
-    return LegacyProgressMigrationResult(
-      migrated: true,
-      tableRowCounts: Map<String, int>.unmodifiable(counts),
-    );
-  }
+      final destination = await _db;
+      if ((await destination.query('vault_entries',
+              columns: ['record_hash'],
+              where: 'record_hash = ?',
+              whereArgs: [_index(_manifestId)],
+              limit: 1))
+          .isNotEmpty) {
+        throw StateError('A previous legacy vault snapshot already exists');
+      }
+
+      // Opening a non-existent path here would create a database; existence was
+      // checked first. singleInstance:false avoids reusing a cached connection.
+      final source = await openDatabase(oldFile.path, singleInstance: false);
+      final counts = <String, int>{};
+      try {
+        await destination.transaction((vaultTxn) async {
+          await source.transaction((legacyTxn) async {
+            final objects = await legacyTxn.rawQuery(
+              "SELECT type, name, tbl_name, sql FROM sqlite_master "
+              "WHERE name NOT LIKE 'sqlite_%' AND sql IS NOT NULL "
+              "ORDER BY type, name",
+            );
+            final definitions = objects
+                .where((entry) => entry['type'] == 'table')
+                .toList()
+              ..sort((left, right) =>
+                  (left['name'] as String).compareTo(right['name'] as String));
+            final tables = <Map<String, Object?>>[];
+            var totalRows = 0;
+            for (var t = 0; t < definitions.length; t++) {
+              final definition = definitions[t];
+              final name = definition['name'] as String;
+              final quoted = '"${name.replaceAll('"', '""')}"';
+              final count = Sqflite.firstIntValue(
+                    await legacyTxn.rawQuery('SELECT COUNT(*) FROM $quoted'),
+                  ) ??
+                  0;
+              totalRows += count;
+              if (totalRows > _maximumLegacyRows) {
+                throw StateError('Legacy database exceeds safe migration limit');
+              }
+              counts[name] = count;
+              final rowDigests = StringBuffer();
+              for (var offset = 0; offset < count; offset += _migrationPageSize) {
+                final block = await legacyTxn.query(name,
+                    limit: _migrationPageSize, offset: offset);
+                final expected = count - offset < _migrationPageSize
+                    ? count - offset
+                    : _migrationPageSize;
+                if (block.length != expected) {
+                  throw StateError('Legacy snapshot changed during migration');
+                }
+                for (var r = 0; r < block.length; r++) {
+                  final row = <String, Object?>{
+                    for (final entry in block[r].entries)
+                      entry.key: _encodeSqliteValue(entry.value),
+                  };
+                  final bytes = Uint8List.fromList(utf8.encode(jsonEncode(row)));
+                  rowDigests.write(sha256.convert(bytes).toString());
+                  await _writeEncrypted(vaultTxn, _rowId(t, offset + r), bytes);
+                  // The imported active index and snapshot commit together.
+                  await _hydrateOperationalRow(vaultTxn, name, row);
+                }
+              }
+              tables.add(<String, Object?>{
+                'name': name,
+                'sql': definition['sql'],
+                'count': count,
+                'digest':
+                    sha256.convert(utf8.encode(rowDigests.toString())).toString(),
+              });
+            }
+
+            final manifest = <String, Object?>{
+              'format': 'legacy-sqlite-snapshot-v1',
+              'tables': tables,
+              // Preserve index/trigger/view DDL as well as user table rows.
+              'schema_objects': objects,
+              'total_rows': totalRows,
+            };
+            await _writeEncrypted(vaultTxn, _manifestId,
+                Uint8List.fromList(utf8.encode(jsonEncode(manifest))));
+            await _writeEncrypted(
+                vaultTxn,
+                _operationalReadyId,
+                Uint8List.fromList(utf8
+                    .encode(jsonEncode({'format': 'operational-progress-v1'}))));
+          });
+          // Do not commit a vault snapshot until every record decrypts and its
+          // counts and digests match the original SQLite read transaction.
+          await _verifyLegacySnapshot(vaultTxn, counts);
+        });
+
+        // Flush any journaled transactions before moving just the SQLite file.
+        // Fail closed if another connection prevents a full checkpoint.
+        final checkpoint =
+            await source.rawQuery('PRAGMA wal_checkpoint(TRUNCATE)');
+        if (checkpoint.isNotEmpty &&
+            (checkpoint.first['busy'] as num?) != null &&
+            (checkpoint.first['busy'] as num) != 0) {
+          throw StateError('Legacy SQLite database is busy');
+        }
+      } finally {
+        if (source.isOpen) await source.close();
+      }
+
+      // A nonempty WAL might still hold committed records from another writer.
+      final wal = File('${oldFile.path}-wal');
+      if (await wal.exists() && await wal.length() > 0) {
+        throw StateError('Legacy WAL is not empty; migration not finalized');
+      }
+      if (await backup.exists() || !await oldFile.exists()) {
+        throw StateError('Legacy DB changed before atomic rename');
+      }
+      await oldFile.rename(backup.path);
+      return LegacyProgressMigrationResult(
+        migrated: true,
+        tableRowCounts: Map<String, int>.unmodifiable(counts),
+      );
     } finally {
       _isRecovering = false;
     }
+  }
 }
-
