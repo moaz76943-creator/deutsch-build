@@ -358,15 +358,6 @@ class _OfflineDictionaryScreenState
                                     20,
                                     showKeyboardBar ? 80 : 96,
                                   ),
-                                  // Performance: bound pre-build area beyond viewport (default ~250 px).
-                                  // Moderate value keeps smoothness while limiting memory on dictionary result lists
-                                  // (typically 50-100 items with complex glass cards).
-                                  // Expected: 10-20% lower peak memory during scroll, fewer GC/jank events
-                                  // on mid-range devices. Pure widgets — no state to preserve off-screen.
-                                  cacheExtent: 300,
-                                  // Pure StatelessWidget cards; no persistent state to keep alive when off-screen.
-                                  // Disabling reduces memory pressure during scroll of longer result sets.
-                                  addAutomaticKeepAlives: false,
                                   itemCount: _results.length,
                                   separatorBuilder: (_, __) =>
                                       const SizedBox(height: 10),
@@ -380,53 +371,51 @@ class _OfflineDictionaryScreenState
                                     final meaning =
                                         item['translation_ar']?.toString() ??
                                             'بدون ترجمة';
-                                    return RepaintBoundary(
-                                      child: AppBaseGlassCard(
-                                        onTap: () =>
-                                            detail.WordDeepDiveSheet.show(
-                                          context,
-                                          wordData: item,
-                                        ),
-                                        child: Row(
-                                          children: <Widget>[
-                                            if (article.isNotEmpty)
-                                              detail.ArticleBadge(
-                                                article: article,
-                                              ),
-                                            if (article.isNotEmpty)
-                                              const SizedBox(width: 14),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: <Widget>[
-                                                  Text(
-                                                    word,
-                                                    style: AppTypography.title
-                                                        .copyWith(
-                                                      color: Colors.white,
-                                                      fontSize: 17,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 4),
-                                                  Text(
-                                                    meaning,
-                                                    style: AppTypography.body
-                                                        .copyWith(
-                                                      color: Colors.white70,
-                                                      fontSize: 13,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
+                                    return AppBaseGlassCard(
+                                      onTap: () =>
+                                          detail.WordDeepDiveSheet.show(
+                                        context,
+                                        wordData: item,
+                                      ),
+                                      child: Row(
+                                        children: <Widget>[
+                                          if (article.isNotEmpty)
+                                            detail.ArticleBadge(
+                                              article: article,
                                             ),
-                                            const Icon(
-                                              Icons.arrow_forward_ios_rounded,
-                                              color: Colors.white24,
-                                              size: 16,
+                                          if (article.isNotEmpty)
+                                            const SizedBox(width: 14),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: <Widget>[
+                                                Text(
+                                                  word,
+                                                  style: AppTypography.title
+                                                      .copyWith(
+                                                    color: Colors.white,
+                                                    fontSize: 17,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  meaning,
+                                                  style: AppTypography.body
+                                                      .copyWith(
+                                                    color: Colors.white70,
+                                                    fontSize: 13,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                          const Icon(
+                                            Icons.arrow_forward_ios_rounded,
+                                            color: Colors.white24,
+                                            size: 16,
+                                          ),
+                                        ],
                                       ),
                                     );
                                   },
