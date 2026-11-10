@@ -38,13 +38,13 @@ void main() {
       expect(priorities, isEmpty);
     });
 
-    test('rejects empty or injection-like pattern strings', () async {
-      // Patterns are free-form but storage must remain safe
+    test('rejects empty patterns and accepts safe path-like keys', () async {
       await engine.recordErrorPattern('', weight: 1);
       await engine.recordErrorPattern('../path', weight: 1);
       final priorities = await engine.getPriorityPatterns();
-      // Empty is stored; path is just a key
-      expect(priorities, isNotEmpty);
+      // Empty is rejected; path-like is stored as key
+      expect(priorities, contains('../path'));
+      expect(priorities, isNot(contains('')));
     });
   });
 
