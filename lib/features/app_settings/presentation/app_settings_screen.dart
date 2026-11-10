@@ -67,29 +67,33 @@ final class _AppSettingsScreenState extends State<AppSettingsScreen> {
             }
 
             return ListView(
+              // Performance: moderate cacheExtent for settings sections with glass cards
+              cacheExtent: 300,
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
               children: <Widget>[
                 const _SectionHeader(
                   title: 'الصوت والنطق',
                   subtitle: 'اضبط سرعة النطق الألماني لكل الجلسات.',
                 ),
-                GlassSliderTile(
-                  title: 'سرعة النطق',
-                  subtitle: 'بطيء للتدريب الدقيق أو عادي للاستماع الطبيعي.',
-                  value: preferences.speechRate,
-                  valueLabel:
-                      preferences.speechRatePreset == SpeechRatePreset.slow
-                          ? 'بطيء 0.75×'
-                          : 'عادي 1.0×',
-                  minimum: 0.75,
-                  maximum: 1.0,
-                  divisions: 1,
-                  icon: Icons.record_voice_over_outlined,
-                  onChanged: (value) => _runSave(
-                    notifier.setSpeechRatePreset(
-                      value <= 0.875
-                          ? SpeechRatePreset.slow
-                          : SpeechRatePreset.normal,
+                RepaintBoundary(
+                  child: GlassSliderTile(
+                    title: 'سرعة النطق',
+                    subtitle: 'بطيء للتدريب الدقيق أو عادي للاستماع الطبيعي.',
+                    value: preferences.speechRate,
+                    valueLabel:
+                        preferences.speechRatePreset == SpeechRatePreset.slow
+                            ? 'بطيء 0.75×'
+                            : 'عادي 1.0×',
+                    minimum: 0.75,
+                    maximum: 1.0,
+                    divisions: 1,
+                    icon: Icons.record_voice_over_outlined,
+                    onChanged: (value) => _runSave(
+                      notifier.setSpeechRatePreset(
+                        value <= 0.875
+                            ? SpeechRatePreset.slow
+                            : SpeechRatePreset.normal,
+                      ),
                     ),
                   ),
                 ),
@@ -98,63 +102,77 @@ final class _AppSettingsScreenState extends State<AppSettingsScreen> {
                   title: 'الخط والعرض',
                   subtitle: 'غيّر حجم النص والترجمة فورًا على مستوى التطبيق.',
                 ),
-                GlassSliderTile(
-                  title: 'حجم النص',
-                  subtitle:
-                      'تدرج ثابت يحافظ على قابلية القراءة دون كسر التخطيط.',
-                  value: preferences.textScaleFactor,
-                  valueLabel:
-                      '${(preferences.textScaleFactor * 100).round()}%',
-                  minimum: LearningPreferences.minimumTextScale,
-                  maximum: LearningPreferences.maximumTextScale,
-                  divisions: 9,
-                  icon: Icons.text_fields_outlined,
-                  onChanged: (value) => _runSave(
-                    notifier.setTextScaleFactor(value),
+                RepaintBoundary(
+                  child: GlassSliderTile(
+                    title: 'حجم النص',
+                    subtitle:
+                        'تدرج ثابت يحافظ على قابلية القراءة دون كسر التخطيط.',
+                    value: preferences.textScaleFactor,
+                    valueLabel:
+                        '${(preferences.textScaleFactor * 100).round()}%',
+                    minimum: LearningPreferences.minimumTextScale,
+                    maximum: LearningPreferences.maximumTextScale,
+                    divisions: 9,
+                    icon: Icons.text_fields_outlined,
+                    onChanged: (value) => _runSave(
+                      notifier.setTextScaleFactor(value),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
-                _TranslationGlassTile(
-                  value: preferences.showAutomaticTranslation,
-                  onChanged: (value) => _runSave(
-                    notifier.setShowAutomaticTranslation(value),
+                RepaintBoundary(
+                  child: _TranslationGlassTile(
+                    value: preferences.showAutomaticTranslation,
+                    onChanged: (value) => _runSave(
+                      notifier.setShowAutomaticTranslation(value),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
-                _CognitiveAccessibilityGlassTile(
-                  value: widget.cognitiveAccessibilityEnabled(),
-                  onChanged: (value) => _runSave(
-                    widget.onCognitiveAccessibilityChanged(value),
+                RepaintBoundary(
+                  child: _CognitiveAccessibilityGlassTile(
+                    value: widget.cognitiveAccessibilityEnabled(),
+                    onChanged: (value) => _runSave(
+                      widget.onCognitiveAccessibilityChanged(value),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
-                _PreviewCard(preferences: preferences),
+                RepaintBoundary(
+                  child: _PreviewCard(preferences: preferences),
+                ),
                 const SizedBox(height: 20),
                 const _SectionHeader(
                   title: 'إدارة البيانات',
                   subtitle: 'عمليات محلية فقط مع تأكيد صريح قبل حذف التقدم.',
                 ),
-                _MetricsCard(notifier: notifier),
-                const SizedBox(height: 12),
-                GlassActionRow(
-                  icon: Icons.cleaning_services_outlined,
-                  title: 'تفريغ الذاكرة المؤقتة',
-                  subtitle:
-                      'يمسح نسخة الإعدادات المؤقتة ويحتفظ بخياراتك المحفوظة.',
-                  actionLabel: 'تفريغ',
-                  busy: notifier.isBusy,
-                  onPressed: notifier.isBusy ? null : _clearCache,
+                RepaintBoundary(
+                  child: _MetricsCard(notifier: notifier),
                 ),
                 const SizedBox(height: 12),
-                GlassActionRow(
-                  icon: Icons.restart_alt,
-                  title: 'إعادة ضبط تقدم التعلم',
-                  subtitle:
-                      'يحذف XP والمراجعات والمحاولات والمفضلة المحلية عبر المستودع الرسمي.',
-                  actionLabel: 'إعادة ضبط',
-                  destructive: true,
-                  busy: notifier.isBusy,
-                  onPressed: notifier.isBusy ? null : _confirmProgressReset,
+                RepaintBoundary(
+                  child: GlassActionRow(
+                    icon: Icons.cleaning_services_outlined,
+                    title: 'تفريغ الذاكرة المؤقتة',
+                    subtitle:
+                        'يمسح نسخة الإعدادات المؤقتة ويحتفظ بخياراتك المحفوظة.',
+                    actionLabel: 'تفريغ',
+                    busy: notifier.isBusy,
+                    onPressed: notifier.isBusy ? null : _clearCache,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                RepaintBoundary(
+                  child: GlassActionRow(
+                    icon: Icons.restart_alt,
+                    title: 'إعادة ضبط تقدم التعلم',
+                    subtitle:
+                        'يحذف XP والمراجعات والمحاولات والمفضلة المحلية عبر المستودع الرسمي.',
+                    actionLabel: 'إعادة ضبط',
+                    destructive: true,
+                    busy: notifier.isBusy,
+                    onPressed: notifier.isBusy ? null : _confirmProgressReset,
+                  ),
                 ),
                 if (notifier.hasError) ...<Widget>[
                   const SizedBox(height: 12),
@@ -258,6 +276,7 @@ final class _AppSettingsScreenState extends State<AppSettingsScreen> {
   }
 }
 
+// ... (rest of the classes remain the same as original)
 final class _SectionHeader extends StatelessWidget {
   const _SectionHeader({
     required this.title,
