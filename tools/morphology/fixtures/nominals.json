@@ -4,7 +4,8 @@
       "id": "de:Kind", "lemma": "Kind", "part_of_speech": "noun",
       "gender": "neu", "number": "sg",
       "declensions": [
-        {"id": "de:Kind:nom:pl", "grammatical_case": "nom", "number": "pl", "definiteness": "def", "inflected_form": "Kinder"}
+        {"id": "de:Kind:nom:pl", "grammatical_case": "nom", "number": "pl", "definiteness": "def", "inflected_form": "Kinder"},
+        {"id": "de:Kind:dat:pl", "grammatical_case": "dat", "number": "pl", "definiteness": "def", "inflected_form": "Kindern"}
       ]
     },
     {
@@ -12,7 +13,8 @@
       "gender": "neu", "number": "sg",
       "declensions": [
         {"id": "de:Tor1:nom:sg", "grammatical_case": "nom", "number": "sg", "definiteness": "def", "inflected_form": "Tor"},
-        {"id": "de:Tor1:nom:pl", "grammatical_case": "nom", "number": "pl", "definiteness": "def", "inflected_form": "Tore"}
+        {"id": "de:Tor1:nom:pl", "grammatical_case": "nom", "number": "pl", "definiteness": "def", "inflected_form": "Tore"},
+        {"id": "de:Tor1:dat:pl", "grammatical_case": "dat", "number": "pl", "definiteness": "def", "inflected_form": "Toren"}
       ]
     },
     {
@@ -27,7 +29,9 @@
       "id": "de:Boden", "lemma": "Boden", "part_of_speech": "noun",
       "gender": "masc", "number": "sg",
       "declensions": [
-        {"id": "de:Boden:nom:sg", "grammatical_case": "nom", "number": "sg", "definiteness": "def", "inflected_form": "Bode"}
+        {"id": "de:Boden:nom:sg", "grammatical_case": "nom", "number": "sg", "definiteness": "def", "inflected_form": "Boden"},
+        {"id": "de:Boden:nom:pl", "grammatical_case": "nom", "number": "pl", "definiteness": "def", "inflected_form": "Böden"},
+        {"id": "de:Boden:dat:pl", "grammatical_case": "dat", "number": "pl", "definiteness": "def", "inflected_form": "Böden"}
       ]
     },
     {
