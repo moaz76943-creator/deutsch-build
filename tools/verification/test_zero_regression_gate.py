@@ -25,28 +25,60 @@ class TestZeroRegressionGate(unittest.TestCase):
         self.assertEqual(res.status, gate.STATUS_PASS)
 
     @patch('pathlib.Path.rglob')
-    def test_missing_sqlite_tests_not_run(self, mock_rglob):
+    def test_missing_sqlite_tests_blocked(self, mock_rglob):
         mock_rglob.return_value = iter([])
         res = gate.run_sqlite_check(self.root)
         self.assertEqual(res.status, gate.STATUS_BLOCKED)
 
     @patch('pathlib.Path.rglob')
-    def test_missing_benchmark_fts5_not_run(self, mock_rglob):
+    def test_missing_benchmark_fts5_blocked(self, mock_rglob):
         mock_rglob.return_value = iter([])
         res = gate.run_benchmark_fts5(self.root)
         self.assertEqual(res.status, gate.STATUS_BLOCKED)
 
     @patch('pathlib.Path.exists')
-    def test_missing_memory_benchmark_not_run(self, mock_exists):
+    def test_missing_memory_benchmark_blocked(self, mock_exists):
         mock_exists.return_value = False
         res = gate.run_benchmark_memory(self.root)
-        self.assertEqual(res.status, gate.STATUS_NOT_RUN)
+        self.assertEqual(res.status, gate.STATUS_BLOCKED)
 
     @patch('pathlib.Path.exists')
-    def test_missing_startup_tests_not_run(self, mock_exists):
+    def test_missing_startup_tests_blocked(self, mock_exists):
         mock_exists.return_value = False
         res = gate.run_startup_tests(self.root)
-        self.assertEqual(res.status, gate.STATUS_NOT_RUN)
+        self.assertEqual(res.status, gate.STATUS_BLOCKED)
+
+    @patch('pathlib.Path.exists')
+    @patch('tools.verification.zero_regression_gate.run_command')
+    def test_benchmark_memory_missing_toolchain(self, mock_run, mock_exists):
+        mock_exists.return_value = True
+        mock_run.return_value = (-1, "", "Command not found")
+        res = gate.run_benchmark_memory(self.root)
+        self.assertEqual(res.status, gate.STATUS_BLOCKED)
+
+    @patch('pathlib.Path.exists')
+    @patch('tools.verification.zero_regression_gate.run_command')
+    def test_benchmark_memory_missing_metrics(self, mock_run, mock_exists):
+        mock_exists.return_value = True
+        mock_run.return_value = (0, "No metrics here", "")
+        res = gate.run_benchmark_memory(self.root)
+        self.assertEqual(res.status, gate.STATUS_BLOCKED)
+
+    @patch('pathlib.Path.exists')
+    @patch('tools.verification.zero_regression_gate.run_command')
+    def test_startup_tests_missing_toolchain(self, mock_run, mock_exists):
+        mock_exists.return_value = True
+        mock_run.return_value = (-1, "", "Command not found")
+        res = gate.run_startup_tests(self.root)
+        self.assertEqual(res.status, gate.STATUS_BLOCKED)
+
+    @patch('pathlib.Path.exists')
+    @patch('tools.verification.zero_regression_gate.run_command')
+    def test_startup_tests_missing_metrics(self, mock_run, mock_exists):
+        mock_exists.return_value = True
+        mock_run.return_value = (0, "No metrics here", "")
+        res = gate.run_startup_tests(self.root)
+        self.assertEqual(res.status, gate.STATUS_BLOCKED)
 
     def test_manifest_generation(self):
         results = {
