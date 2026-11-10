@@ -1,7 +1,7 @@
 # Google Play Compliance Status – Deutsch بالعربي (November 10, 2026)
 
 ## Summary
-The app meets current Google Play requirements for target API level, Core App Quality, Data safety, permissions, privacy policy, signing, and security standards. Risk of rejection is low for the checked areas. One compliance improvement applied: explicit status documentation for audit trail.
+The app meets current Google Play requirements for target API level, Core App Quality, Data safety, permissions, privacy policy content, signing, and security standards. Risk of rejection is low for most areas once the public privacy policy URL is live. One compliance improvement applied this run: corrected the privacy policy health-check workflow URL so CI accurately monitors the required public policy location.
 
 ## Target SDK
 - `targetSdk 36` / `compileSdk 36` in `android/app/build.gradle`.
@@ -16,8 +16,10 @@ The app meets current Google Play requirements for target API level, Core App Qu
 - Aligns with minimum-scope principles and upcoming 2027 location/contacts policy changes (not applicable here).
 
 ## Privacy Policy & Data Safety
-- Public privacy policy at https://moaz76943-creator.github.io/deutsch-bilarabi-privacy/privacy.html
-- In-app link present (Profile screen).
+- Public privacy policy intended at https://moaz76943-creator.github.io/deutsch-bilarabi-privacy/privacy.html
+- **Current status (verified 2026-11-10): 404 — GitHub Pages not enabled on the deutsch-bilarabi-privacy repository.** This is the primary remaining rejection risk.
+- Content is complete, accurate, and matches the offline design + on-device microphone processing.
+- In-app link present (Profile screen) pointing to the correct URL.
 - Policy explicitly covers on-device microphone processing (not collection/sharing), local storage only, no network, deletion via uninstall.
 - Data safety form answers provided in policy: no collection, no sharing. Matches binary (no INTERNET permission).
 - Account deletion path documented (uninstall sufficient; no remote data).
@@ -35,10 +37,10 @@ The app meets current Google Play requirements for target API level, Core App Qu
 - No ads, no tracking, clear value for language learning.
 
 ## Remaining Recommendations (future runs)
-1. Complete Permissions declaration form in Play Console for RECORD_AUDIO with core-functionality justification (pronunciation practice).
-2. Ensure Data safety form is filled exactly as documented.
-3. Run pre-launch report and monitor vitals (crash/ANR thresholds).
-4. Confirm GitHub Pages is public for the privacy URL.
+1. **Enable GitHub Pages** on the deutsch-bilarabi-privacy repository (Settings → Pages → Deploy from branch `main` / root). Verify the URL returns 200. This clears the main rejection risk.
+2. Complete Permissions declaration form in Play Console for RECORD_AUDIO with core-functionality justification (pronunciation practice).
+3. Ensure Data safety form is filled exactly as documented (no collection/sharing).
+4. Run pre-launch report and monitor vitals (crash/ANR thresholds).
 5. Test on API 36 devices for behavior changes (edge-to-edge, predictive back).
 
-**Status: Ready for production release submission.**
+**Status: Nearly ready for production release. Enable GitHub Pages for the privacy policy URL before submitting.**
