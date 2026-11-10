@@ -13,7 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Sensitive metrics and card schedules stored encrypted via FlutterSecureStorage.
 /// Offline-first; no network required. Client-side gating is best-effort only.
 class AdaptiveReviewEngine {
-  static final AdaptiveReviewEngine instance = AdaptiveReviewEngine._();
+  static final AdaptiveReviewEngine instance = AdaptiveReviewEngine.instance;
   AdaptiveReviewEngine._();
 
   final _secureStorage = const FlutterSecureStorage(
@@ -23,6 +23,19 @@ class AdaptiveReviewEngine {
   static const _errorPatternsKey = 'adaptive_error_patterns_v1';
   static const _sessionMetricsKey = 'adaptive_session_metrics_v1';
   static const _cardSchedulesKey = 'adaptive_card_schedules_v1';
+
+  Map<String, dynamic> _safeJsonDecode(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return {};
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map<String, dynamic>) return decoded;
+      if (decoded is Map) return Map<String, dynamic>.from(decoded);
+      return {};
+    } catch (e) {
+      debugPrint('[AdaptiveReview] Malformed JSON recovered: $e');
+      return {};
+    }
+  }
 
   /// Check if advanced adaptive features are available.
   /// Offline-safe: returns false when no integrity token (expected in release).
@@ -39,9 +52,10 @@ class AdaptiveReviewEngine {
 
   /// Record an error pattern for personalization (e.g. 'gender_der', 'plural_s').
   Future<void> recordErrorPattern(String pattern, {int weight = 1}) async {
+    if (pattern.trim().isEmpty) return;
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_errorPatternsKey) ?? '{}';
-    final Map<String, dynamic> patterns = jsonDecode(raw);
+    final raw = prefs.getString(_errorPatternsKey);
+    final Map<String, dynamic> patterns = _safeJsonDecode(raw);
     patterns[pattern] = (patterns[pattern] as int? ?? 0) + weight;
     await prefs.setString(_errorPatternsKey, jsonEncode(patterns));
 
@@ -54,18 +68,19 @@ class AdaptiveReviewEngine {
   /// Get prioritized review items based on error patterns.
   Future<List<String>> getPriorityPatterns({int limit = 5}) async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_errorPatternsKey) ?? '{}';
-    final Map<String, dynamic> patterns = jsonDecode(raw);
+    final raw = prefs.getString(_errorPatternsKey);
+    final Map<String, dynamic> patterns = _safeJsonDecode(raw);
     final sorted = patterns.entries.toList()
-      ..sort((a, b) => (b.value as int).compareTo(a.value as int));
-    return sorted.take(limit).map((e) => e.key).toList();
+      ..sort((a, b) => ((b.value as num?) ?? 0).compareTo((a.value as num?) ?? 0));
+    return sorted.take(limit).map((e) => e.key.toString()).toList();
   }
 
   /// Simplified FSRS-like schedule for a card.
   /// Stores next review date and stability in encrypted storage.
   Future<void> scheduleCard(String cardId, {required bool recalled, double difficulty = 0.5}) async {
-    final raw = await _secureStorage.read(key: _cardSchedulesKey) ?? '{}';
-    final Map<String, dynamic> schedules = jsonDecode(raw);
+    if (cardId.trim().isEmpty) return;
+    final raw = await _secureStorage.read(key: _cardSchedulesKey);
+    final Map<String, dynamic> schedules = _safeJsonDecode(raw);
 
     final now = DateTime.now().millisecondsSinceEpoch;
     final current = schedules[cardId] as Map<String, dynamic>? ?? {
@@ -75,7 +90,7 @@ class AdaptiveReviewEngine {
       'intervalDays': 1,
     };
 
-    double stability = (current['stability'] as num).toDouble();
+    double stability = (current['stability'] as num?)?.toDouble() ?? 1.0;
     if (recalled) {
       stability *= 1.5 + (1 - difficulty); // Increase stability on success
     } else {
@@ -96,14 +111,15 @@ class AdaptiveReviewEngine {
 
   /// Get cards due for review (basic).
   Future<List<String>> getDueCards({int limit = 10}) async {
-    final raw = await _secureStorage.read(key: _cardSchedulesKey) ?? '{}';
-    final Map<String, dynamic> schedules = jsonDecode(raw);
+    final raw = await _secureStorage.read(key: _cardSchedulesKey);
+    final Map<String, dynamic> schedules = _safeJsonDecode(raw);
     final now = DateTime.now().millisecondsSinceEpoch;
 
     final due = <String>[];
     schedules.forEach((id, data) {
+      if (data is! Map) return;
       final next = (data['nextReview'] as num?)?.toInt() ?? 0;
-      if (next <= now) due.add(id);
+      if (next <= now) due.add(id.toString());
     });
     due.sort();
     return due.take(limit).toList();
