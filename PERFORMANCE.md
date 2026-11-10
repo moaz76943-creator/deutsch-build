@@ -15,20 +15,20 @@ Offline-first German learning app. Strong baseline already in place:
 | Memory | Improved | ImageCache + L1 trim + full ImageCache clear on pressure; further tightened below |
 | Battery | Good | Offline-only, no background network, WorkManager not needed |
 | Network | Excellent | Permissions stripped; zero runtime network |
-| UI jank | Improved | ListView.builder + RepaintBoundary on dashboard, curriculum hub, grammar guide, articles matrix, achievements, vocabulary journal, and offline dictionary; CI guard against blocking build() |
+| UI jank | Improved | ListView.builder + RepaintBoundary on dashboard, curriculum hub, grammar guide, articles matrix, achievements, vocabulary journal, offline dictionary, and language select; CI guard against blocking build() |
 
 ## Concrete Improvement (this run — 2026-11-10)
-**Added RepaintBoundary + cacheExtent: 300 + addAutomaticKeepAlives: false around OfflineDictionaryScreen ListView.separated items** in `lib/screens/offline_dictionary_screen.dart`:
-- Before: plain `itemBuilder` returning AppBaseGlassCard directly (potential overpaint on complex glass cards during scroll of search results; default cacheExtent and keep-alives)
+**Added RepaintBoundary + cacheExtent: 300 + addAutomaticKeepAlives: false around LanguageSelectScreen ListView.separated items** in `lib/screens/language_select_screen.dart`:
+- Before: plain `itemBuilder` returning AppBaseGlassCard via `_buildOption` (potential overpaint on complex glass cards during selection setState or filter/scroll; default cacheExtent and keep-alives)
 - After: each item wrapped in `RepaintBoundary`; cacheExtent: 300; addAutomaticKeepAlives: false
 
-**Expected measurable impact** (device-dependent, mid-range phones, especially with longer dictionary result sets of 50-100 items):
-- Reduced overpainting / fewer skipped frames during dictionary result scrolling
-- Smoother interactions on lists with nested complex glass cards (gradients, badges, text)
-- Modest reduction in GPU work, memory pressure, and battery drain from unnecessary repaints and keep-alives
-- Better consistency with other optimized list screens (home, curriculum, grammar, articles, achievements, vocabulary journal)
+**Expected measurable impact** (device-dependent, mid-range phones, especially during language selection or filtering):
+- Reduced overpainting / fewer skipped frames when selection changes (setState rebuilds list) or during scroll of language options
+- Smoother interactions on lists with nested complex glass cards (gradients, flags, text)
+- Modest reduction in GPU work and memory pressure from unnecessary repaints and keep-alives
+- Better consistency with other optimized list screens (home, curriculum, grammar, articles, achievements, vocabulary journal, offline dictionary)
 
-Previous runs optimized HomeScreen, CurriculumHubScreen, GrammarGuideScreen, ArticlesMatrixScreen, AchievementsScreen, and VocabularyJournalScreen ListViews with RepaintBoundary + cacheExtent/addAutomaticKeepAlives, ImageCache limits, and JSON compute isolation.
+Previous runs optimized HomeScreen, CurriculumHubScreen, GrammarGuideScreen, ArticlesMatrixScreen, AchievementsScreen, VocabularyJournalScreen, and OfflineDictionaryScreen ListViews with RepaintBoundary + cacheExtent/addAutomaticKeepAlives, ImageCache limits, and JSON compute isolation.
 
 No security regression (no keep-rule changes, offline integrity preserved, no new permissions).
 
@@ -37,6 +37,6 @@ No security regression (no keep-rule changes, offline integrity preserved, no ne
 2. Prefer `ListView.builder` / `Sliver` + `cacheExtent` for any dynamic long lists.
 3. Keep R8 full mode; audit keep rules periodically.
 4. Profile with Android Studio / Perfetto on a low-end device.
-5. Consider wrapping remaining complex card lists (emergency phrasebook if expanded, other journals, flashcards) with RepaintBoundary if frame drops are observed.
+5. Consider wrapping remaining complex card lists (emergency phrasebook if expanded, other journals, flashcards, phonetics) with RepaintBoundary if frame drops are observed.
 
 Metrics should be captured with `flutter run --profile` + Macrobenchmark or Android Vitals after next release.
