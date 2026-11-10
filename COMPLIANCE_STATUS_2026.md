@@ -1,7 +1,7 @@
-# Google Play Compliance Status – Deutsch بالعربي (November 10, 2026)
+# Google Play Compliance Status – Deutsch بالعربي (November 10, 2026 – afternoon verification)
 
 ## Summary
-The app meets current Google Play requirements for target API level, Core App Quality, Data safety, permissions, privacy policy content, signing, and security standards. Risk of rejection is low for most areas once the public privacy policy URL is live. **Primary remaining rejection risk (verified 2026-11-10): privacy policy URL returns 404 because GitHub Pages is not enabled on the deutsch-bilarabi-privacy repository.** One compliance improvement applied this run: updated this status document with fresh verification of the live URL status and confirmed the health-check workflow is correctly configured.
+The app meets current Google Play requirements for target API level, Core App Quality, Data safety, permissions, privacy policy content, signing, and security standards. Risk of rejection is low for most areas once the public privacy policy URL is live. **Primary remaining rejection risk (re-verified 2026-11-10 ~14:02 UTC+3 via direct HTTP request): privacy policy URL returns 404 because GitHub Pages is not enabled on the deutsch-bilarabi-privacy repository.** One compliance improvement applied this run: re-verified the live URL status (still 404) and updated this status document with the latest check timestamp plus clearer manual enable steps.
 
 ## Target SDK
 - `targetSdk 36` / `compileSdk 36` in `android/app/build.gradle`.
@@ -17,7 +17,7 @@ The app meets current Google Play requirements for target API level, Core App Qu
 
 ## Privacy Policy & Data Safety
 - Public privacy policy intended at https://moaz76943-creator.github.io/deutsch-bilarabi-privacy/privacy.html
-- **Current status (verified 2026-11-10 via direct request): 404 — "There isn't a GitHub Pages site here." GitHub Pages not enabled on the deutsch-bilarabi-privacy repository.** This is the primary remaining rejection risk.
+- **Current status (re-verified 2026-11-10 via direct request): 404 — "There isn't a GitHub Pages site here." GitHub Pages not enabled on the deutsch-bilarabi-privacy repository.** This is the primary remaining rejection risk.
 - Content is complete, accurate, and matches the offline design + on-device microphone processing.
 - In-app link present (Profile screen) pointing to the correct URL.
 - Policy explicitly covers on-device microphone processing (not collection/sharing), local storage only, no network, deletion via uninstall.
@@ -38,10 +38,14 @@ The app meets current Google Play requirements for target API level, Core App Qu
 - No ads, no tracking, clear value for language learning.
 
 ## Remaining Recommendations (future runs)
-1. **Enable GitHub Pages** on the deutsch-bilarabi-privacy repository (Settings → Pages → Deploy from branch `main` / root). Verify the URL returns 200. This clears the main rejection risk. (Manual step required; cannot be automated via current tools without interactive login.)
+1. **Enable GitHub Pages (ACTION REQUIRED NOW)** on the deutsch-bilarabi-privacy repository:
+   - Go to the repository → Settings → Pages.
+   - Source: Deploy from a branch → Branch: `main` → Folder: `/ (root)`.
+   - Click Save. Wait 1–2 minutes, then verify https://moaz76943-creator.github.io/deutsch-bilarabi-privacy/privacy.html returns 200 and shows the policy HTML.
+   - This is the sole major remaining rejection risk. Manual step required (GitHub UI; cannot be automated via current API tools without interactive login).
 2. Complete Permissions declaration form in Play Console for RECORD_AUDIO with core-functionality justification (pronunciation practice).
 3. Ensure Data safety form is filled exactly as documented (no collection/sharing).
 4. Run pre-launch report and monitor vitals (crash/ANR thresholds).
 5. Test on API 36 devices for behavior changes (edge-to-edge, predictive back).
 
-**Status: Nearly ready for production release. Enable GitHub Pages for the privacy policy URL before submitting.**
+**Status: Nearly ready for production release. Enable GitHub Pages for the privacy policy URL before submitting — this is the final blocker.**
