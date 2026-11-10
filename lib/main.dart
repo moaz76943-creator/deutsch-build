@@ -14,6 +14,7 @@ import 'package:deutsch_bilarabi/core/lifecycle/runtime_lifecycle_registry.dart'
 import 'package:deutsch_bilarabi/core/registry/feature_capability_registry.dart';
 import 'package:deutsch_bilarabi/core/resilience/crash_loop_guard.dart';
 import 'package:deutsch_bilarabi/core/l1_cache.dart';
+import 'package:deutsch_bilarabi/core/persistence/shared_preferences_adapter.dart';
 
 /// UI gate shown when crash loop is detected. Prevents further data damage.
 class SafeModeRecoveryGate extends StatelessWidget {
@@ -215,10 +216,12 @@ class _ResilientAppRootState extends State<ResilientAppRoot> with WidgetsBinding
 
   Future<void> bootstrap() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final guard = CrashLoopGuard(prefs);
+      // Use the persistence adapter early for architecture compliance (no direct SP outside adapter).
+      // This centralizes access, aids security against leaks/tampering, and keeps bootstrap fast.
+      final persistence = await SharedPreferencesAdapter.create();
+      final guard = CrashLoopGuard(persistence);
 
-      if (guard.isCrashLoopDetected()) {
+      if (await guard.isCrashLoopDetected()) {
         setState(() {
           isSafeMode = true;
           isBootstrapping = false;
@@ -227,6 +230,9 @@ class _ResilientAppRootState extends State<ResilientAppRoot> with WidgetsBinding
       }
 
       await guard.recordFailure();
+
+      // Still need prefs for SessionRecovery for now (next optimization target).
+      final prefs = await SharedPreferences.getInstance();
 
       // Lightweight bootstrap steps – keep critical ones only for speed and reliability
       final pipeline = IsolatedBootstrapPipeline([
