@@ -20,10 +20,6 @@
 -keep class com.tekartik.sqflite.** { *; }
 -dontwarn com.tekartik.sqflite.**
 
-# Play Integrity (kept for future activation; currently inactive due to offline-first)
--keep class com.google.android.play.core.integrity.** { *; }
--dontwarn com.google.android.play.core.**
-
 # App-specific: keep only MethodChannel entry points and public API surface
 # (broad -keep on entire package was removed to allow full R8 obfuscation of internal logic)
 -keep class com.deutschbilarabi.app.AndroidGamificationClockIntegritySource { *; }
