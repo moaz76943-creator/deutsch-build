@@ -222,11 +222,17 @@ class _VerbConjugationPageState extends State<VerbConjugationPage> {
       ),
       body: ListView.builder(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 24),
+        // Performance: bound pre-build area beyond viewport for complex cards.
+        // Moderate value balances smoothness vs memory on the verb list.
+        cacheExtent: 400,
+        // Cards are mostly pure; disabling keep-alives reduces memory during scroll.
+        addAutomaticKeepAlives: false,
         itemCount: _items.length,
         itemBuilder: (context, index) {
           final item = _items[index];
+          Widget child;
           if (item is _HeaderItem) {
-            return Card(
+            child = Card(
               child: Padding(
                 padding: const EdgeInsets.all(14),
                 child: Text(
@@ -235,7 +241,7 @@ class _VerbConjugationPageState extends State<VerbConjugationPage> {
               ),
             );
           } else if (item is _GroupHeaderItem) {
-            return Padding(
+            child = Padding(
               padding: const EdgeInsets.fromLTRB(4, 14, 4, 8),
               child: Text(
                 item.group,
@@ -246,9 +252,13 @@ class _VerbConjugationPageState extends State<VerbConjugationPage> {
               ),
             );
           } else if (item is _VerbCardItem) {
-            return _verbCard(c, item.verb);
+            child = _verbCard(c, item.verb);
+          } else {
+            child = const SizedBox.shrink();
           }
-          return const SizedBox.shrink();
+          // Isolates repaint of each list item (headers or complex verb cards).
+          // Reduces overpaint during scroll on lists with nested text, icons, and containers.
+          return RepaintBoundary(child: child);
         },
       ),
     );
@@ -304,63 +314,68 @@ class VerbFavoritesPage extends StatelessWidget {
             )
           : ListView.builder(
               padding: const EdgeInsets.all(12),
+              // Performance for favorites list as well.
+              cacheExtent: 300,
+              addAutomaticKeepAlives: false,
               itemCount: selected.length,
               itemBuilder: (context, index) {
                 final v = selected[index];
-                return Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                v.infinitive,
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w900,
+                return RepaintBoundary(
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  v.infinitive,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                  textDirection: TextDirection.ltr,
                                 ),
-                                textDirection: TextDirection.ltr,
                               ),
-                            ),
-                            IconButton(
-                              tooltip: 'نطق الفعل',
-                              onPressed: () => speak(v.infinitive),
-                              icon: const Icon(Icons.volume_up_outlined),
-                            ),
-                          ],
-                        ),
-                        Text(v.arabic),
-                        const SizedBox(height: 8),
-                        Text(
-                          '${v.person} — ${v.form}',
-                          style: const TextStyle(fontWeight: FontWeight.w800),
-                          textDirection: TextDirection.ltr,
-                        ),
-                        Text(v.personAr),
-                        const SizedBox(height: 6),
-                        Text(
-                          'الماضي: ${v.past}',
-                          textDirection: TextDirection.ltr,
-                        ),
-                        Text(v.pastArabic),
-                        const SizedBox(height: 8),
-                        Text(
-                          v.example,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                          textDirection: TextDirection.ltr,
-                        ),
-                        Text(v.exampleAr),
-                        const SizedBox(height: 6),
-                        Text(
-                          v.pastExample,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                          textDirection: TextDirection.ltr,
-                        ),
-                        Text(v.pastExampleAr),
-                      ],
+                              IconButton(
+                                tooltip: 'نطق الفعل',
+                                onPressed: () => speak(v.infinitive),
+                                icon: const Icon(Icons.volume_up_outlined),
+                              ),
+                            ],
+                          ),
+                          Text(v.arabic),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${v.person} — ${v.form}',
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                            textDirection: TextDirection.ltr,
+                          ),
+                          Text(v.personAr),
+                          const SizedBox(height: 6),
+                          Text(
+                            'الماضي: ${v.past}',
+                            textDirection: TextDirection.ltr,
+                          ),
+                          Text(v.pastArabic),
+                          const SizedBox(height: 8),
+                          Text(
+                            v.example,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                            textDirection: TextDirection.ltr,
+                          ),
+                          Text(v.exampleAr),
+                          const SizedBox(height: 6),
+                          Text(
+                            v.pastExample,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                            textDirection: TextDirection.ltr,
+                          ),
+                          Text(v.pastExampleAr),
+                        ],
+                      ),
                     ),
                   ),
                 );
