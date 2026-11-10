@@ -1,12 +1,12 @@
 {
-  "last_completed_task": 4893,
+  "last_completed_task": 4894,
   "batch_tasks_executed": 1,
   "volume": 115,
-  "subsystem_index": 1340,
-  "status": "TASK_4893_INDIRECT_SPEECH_ENGINE_SEALED",
+  "subsystem_index": 1350,
+  "status": "TASK_4894_PARTICIPIAL_ATTRIBUTE_ENGINE_SEALED",
   "remediated_findings": [
-    "LING-016 (German Indirect Speech / Konjunktiv I Engine with Ambiguity Fallbacks)"
+    "LING-017 (Extended German Participial Attribute Engine & Relative Clause Conversion)"
   ],
   "verification_mode": "REAL_FUNCTIONAL_IMPLEMENTATION",
-  "timestamp": "2026-11-09T23:18:00Z"
+  "timestamp": "2026-11-10T00:24:00Z"
 }
