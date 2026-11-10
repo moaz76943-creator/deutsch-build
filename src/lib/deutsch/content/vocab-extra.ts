@@ -534,6 +534,316 @@ export const vocabExtra = [
     plural: 'Städte',
     arabic: 'مدينة',
     example: 'Die Stadt ist groß.',
-    exampleAr: 'المدينة كبيرة.'
+    exampleAr: 'المدينة كبيرة.',
+  },
+
+  // === Added 2026-11-10 hourly session: 20 new A1/A2 items (v-extra-235..254) ===
+  {
+    id: 'v-extra-235',
+    type: 'verb',
+    infinitive: 'verstehen',
+    arabic: 'يفهم',
+    conjugation: {
+      ich: 'verstehe',
+      du: 'verstehst',
+      er: 'versteht',
+      wir: 'verstehen',
+      ihr: 'versteht',
+      sie_pl: 'verstehen',
+      präteritum: 'verstand',
+      perfekt: 'hat verstanden',
+      aux: 'haben'
+    },
+    example: 'Ich verstehe die Frage.',
+    exampleAr: 'أفهم السؤال.'
+  },
+  {
+    id: 'v-extra-236',
+    type: 'verb',
+    infinitive: 'antworten',
+    arabic: 'يجيب',
+    conjugation: {
+      ich: 'antworte',
+      du: 'antwortest',
+      er: 'antwortet',
+      wir: 'antworten',
+      ihr: 'antwortet',
+      sie_pl: 'antworten',
+      präteritum: 'antwortete',
+      perfekt: 'hat geantwortet',
+      aux: 'haben'
+    },
+    example: 'Du antwortest schnell.',
+    exampleAr: 'أنت تجيب بسرعة.'
+  },
+  {
+    id: 'v-extra-237',
+    type: 'verb',
+    infinitive: 'beginnen',
+    arabic: 'يبدأ',
+    conjugation: {
+      ich: 'beginne',
+      du: 'beginnst',
+      er: 'beginnt',
+      wir: 'beginnen',
+      ihr: 'beginnt',
+      sie_pl: 'beginnen',
+      präteritum: 'begann',
+      perfekt: 'hat begonnen',
+      aux: 'haben'
+    },
+    example: 'Die Schule beginnt um acht Uhr.',
+    exampleAr: 'المدرسة تبدأ في الساعة الثامنة.'
+  },
+  {
+    id: 'v-extra-238',
+    type: 'verb',
+    infinitive: 'finden',
+    arabic: 'يجد',
+    conjugation: {
+      ich: 'finde',
+      du: 'findest',
+      er: 'findet',
+      wir: 'finden',
+      ihr: 'findet',
+      sie_pl: 'finden',
+      präteritum: 'fand',
+      perfekt: 'hat gefunden',
+      aux: 'haben'
+    },
+    example: 'Ich finde meinen Schlüssel.',
+    exampleAr: 'أجد مفتاحي.'
+  },
+  {
+    id: 'v-extra-239',
+    type: 'verb',
+    infinitive: 'geben',
+    arabic: 'يعطي',
+    conjugation: {
+      ich: 'gebe',
+      du: 'gibst',
+      er: 'gibt',
+      wir: 'geben',
+      ihr: 'gebt',
+      sie_pl: 'geben',
+      präteritum: 'gab',
+      perfekt: 'hat gegeben',
+      aux: 'haben'
+    },
+    example: 'Sie gibt dem Kind ein Buch.',
+    exampleAr: 'هي تعطي الطفل كتاباً.'
+  },
+  {
+    id: 'v-extra-240',
+    type: 'verb',
+    infinitive: 'nehmen',
+    arabic: 'يأخذ',
+    conjugation: {
+      ich: 'nehme',
+      du: 'nimmst',
+      er: 'nimmt',
+      wir: 'nehmen',
+      ihr: 'nehmt',
+      sie_pl: 'nehmen',
+      präteritum: 'nahm',
+      perfekt: 'hat genommen',
+      aux: 'haben'
+    },
+    example: 'Ich nehme den Bus zur Arbeit.',
+    exampleAr: 'آخذ الحافلة إلى العمل.'
+  },
+  {
+    id: 'v-extra-241',
+    type: 'verb',
+    infinitive: 'bleiben',
+    arabic: 'يبقى',
+    conjugation: {
+      ich: 'bleibe',
+      du: 'bleibst',
+      er: 'bleibt',
+      wir: 'bleiben',
+      ihr: 'bleibt',
+      sie_pl: 'bleiben',
+      präteritum: 'blieb',
+      perfekt: 'ist geblieben',
+      aux: 'sein'
+    },
+    example: 'Wir bleiben heute zu Hause.',
+    exampleAr: 'نبقى اليوم في المنزل.'
+  },
+  {
+    id: 'v-extra-242',
+    type: 'verb',
+    infinitive: 'fahren',
+    arabic: 'يذهب / يقود',
+    conjugation: {
+      ich: 'fahre',
+      du: 'fährst',
+      er: 'fährt',
+      wir: 'fahren',
+      ihr: 'fahrt',
+      sie_pl: 'fahren',
+      präteritum: 'fuhr',
+      perfekt: 'ist gefahren',
+      aux: 'sein'
+    },
+    example: 'Er fährt mit dem Zug nach Berlin.',
+    exampleAr: 'هو يذهب بالقطار إلى برلين.'
+  },
+  {
+    id: 'v-extra-243',
+    type: 'verb',
+    infinitive: 'laufen',
+    arabic: 'يجري / يمشي',
+    conjugation: {
+      ich: 'laufe',
+      du: 'läufst',
+      er: 'läuft',
+      wir: 'laufen',
+      ihr: 'lauft',
+      sie_pl: 'laufen',
+      präteritum: 'lief',
+      perfekt: 'ist gelaufen',
+      aux: 'sein'
+    },
+    example: 'Das Kind läuft im Park.',
+    exampleAr: 'الطفل يجري في الحديقة.'
+  },
+  {
+    id: 'v-extra-244',
+    type: 'verb',
+    infinitive: 'stehen',
+    arabic: 'يقف',
+    conjugation: {
+      ich: 'stehe',
+      du: 'stehst',
+      er: 'steht',
+      wir: 'stehen',
+      ihr: 'steht',
+      sie_pl: 'stehen',
+      präteritum: 'stand',
+      perfekt: 'hat gestanden',
+      aux: 'haben'
+    },
+    example: 'Der Mann steht vor dem Haus.',
+    exampleAr: 'الرجل يقف أمام البيت.'
+  },
+  {
+    id: 'v-extra-245',
+    type: 'verb',
+    infinitive: 'sitzen',
+    arabic: 'يجلس',
+    conjugation: {
+      ich: 'sitze',
+      du: 'sitzt',
+      er: 'sitzt',
+      wir: 'sitzen',
+      ihr: 'sitzt',
+      sie_pl: 'sitzen',
+      präteritum: 'saß',
+      perfekt: 'hat gesessen',
+      aux: 'haben'
+    },
+    example: 'Wir sitzen am Tisch.',
+    exampleAr: 'نجلس على الطاولة.'
+  },
+  {
+    id: 'v-extra-246',
+    type: 'verb',
+    infinitive: 'helfen',
+    arabic: 'يساعد',
+    conjugation: {
+      ich: 'helfe',
+      du: 'hilfst',
+      er: 'hilft',
+      wir: 'helfen',
+      ihr: 'helft',
+      sie_pl: 'helfen',
+      präteritum: 'half',
+      perfekt: 'hat geholfen',
+      aux: 'haben'
+    },
+    example: 'Ich helfe meiner Mutter.',
+    exampleAr: 'أساعد أمي.'
+  },
+  {
+    id: 'v-extra-247',
+    type: 'noun',
+    german: 'Apfel',
+    article: 'der',
+    plural: 'Äpfel',
+    arabic: 'تفاحة',
+    example: 'Der Apfel ist rot und süß.',
+    exampleAr: 'التفاحة حمراء وحلوة.'
+  },
+  {
+    id: 'v-extra-248',
+    type: 'noun',
+    german: 'Wasser',
+    article: 'das',
+    plural: 'Wasser',
+    arabic: 'ماء',
+    example: 'Das Wasser ist kalt.',
+    exampleAr: 'الماء بارد.'
+  },
+  {
+    id: 'v-extra-249',
+    type: 'noun',
+    german: 'Brot',
+    article: 'das',
+    plural: 'Brote',
+    arabic: 'خبز',
+    example: 'Ich esse Brot zum Frühstück.',
+    exampleAr: 'آكل خبزاً في الإفطار.'
+  },
+  {
+    id: 'v-extra-250',
+    type: 'noun',
+    german: 'Zeit',
+    article: 'die',
+    plural: 'Zeiten',
+    arabic: 'وقت',
+    example: 'Ich habe keine Zeit.',
+    exampleAr: 'ليس لدي وقت.'
+  },
+  {
+    id: 'v-extra-251',
+    type: 'noun',
+    german: 'Arbeit',
+    article: 'die',
+    plural: 'Arbeiten',
+    arabic: 'عمل',
+    example: 'Die Arbeit beginnt um neun.',
+    exampleAr: 'العمل يبدأ في التاسعة.'
+  },
+  {
+    id: 'v-extra-252',
+    type: 'noun',
+    german: 'Auto',
+    article: 'das',
+    plural: 'Autos',
+    arabic: 'سيارة',
+    example: 'Das Auto ist neu.',
+    exampleAr: 'السيارة جديدة.'
+  },
+  {
+    id: 'v-extra-253',
+    type: 'noun',
+    german: 'Zimmer',
+    article: 'das',
+    plural: 'Zimmer',
+    arabic: 'غرفة',
+    example: 'Das Zimmer ist klein aber gemütlich.',
+    exampleAr: 'الغرفة صغيرة لكن مريحة.'
+  },
+  {
+    id: 'v-extra-254',
+    type: 'noun',
+    german: 'Hund',
+    article: 'der',
+    plural: 'Hunde',
+    arabic: 'كلب',
+    example: 'Der Hund bellt laut.',
+    exampleAr: 'الكلب ينبح بصوت عالٍ.'
   }
 ];
