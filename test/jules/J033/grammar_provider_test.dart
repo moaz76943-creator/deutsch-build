@@ -131,9 +131,9 @@ void main() {
       final english = EnglishGrammarProvider();
 
       expect(english.languageCode, 'en');
-      expect(english.supportsFeature(GrammarFeature.analytic), isTrue);
-      expect(english.supportsFeature(GrammarFeature.gender), isFalse);
-      expect(english.supportsFeature(GrammarFeature.rootPattern), isFalse);
+      expect(english.profile.supports(GrammarFeature.analytic), isTrue);
+      expect(english.profile.supports(GrammarFeature.gender), isFalse);
+      expect(english.profile.supports(GrammarFeature.rootPattern), isFalse);
       expect(english.profile.supportsNumber(GrammaticalNumber.plural), isTrue);
 
       // determineGender should return none
@@ -150,8 +150,8 @@ void main() {
       final arabic = ArabicGrammarProvider();
 
       expect(arabic.languageCode, 'ar');
-      expect(arabic.supportsFeature(GrammarFeature.rootPattern), isTrue);
-      expect(arabic.supportsFeature(GrammarFeature.gender), isTrue);
+      expect(arabic.profile.supports(GrammarFeature.rootPattern), isTrue);
+      expect(arabic.profile.supports(GrammarFeature.gender), isTrue);
       expect(arabic.profile.supportsNumber(GrammaticalNumber.dual), isTrue);
 
       // determineGender works according to specific language logic
@@ -166,8 +166,8 @@ void main() {
       final turkish = TurkishGrammarProvider();
 
       expect(turkish.languageCode, 'tr');
-      expect(turkish.supportsFeature(GrammarFeature.agglutinative), isTrue);
-      expect(turkish.supportsFeature(GrammarFeature.gender), isFalse);
+      expect(turkish.profile.supports(GrammarFeature.agglutinative), isTrue);
+      expect(turkish.profile.supports(GrammarFeature.gender), isFalse);
       expect(turkish.profile.supportsCase(GrammaticalCase.locative), isTrue);
 
       // gender returns none

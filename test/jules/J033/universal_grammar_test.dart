@@ -6,7 +6,7 @@ class MockSemiticGrammarProvider extends LanguageGrammarRuleProvider {
   String get languageCode => 'ar';
 
   @override
-  GrammarCapabilityProfile get profile => const GrammarCapabilityProfile(
+  GrammarProfile get profile => const GrammarProfile(
         supportedGenders: {GrammaticalGender.masculine, GrammaticalGender.feminine},
         supportedNumbers: {GrammaticalNumber.singular, GrammaticalNumber.dual, GrammaticalNumber.plural},
         morphologyType: MorphologyType.rootPattern,
@@ -42,7 +42,7 @@ class MockGermanicGrammarProvider extends LanguageGrammarRuleProvider {
   String get languageCode => 'de';
 
   @override
-  GrammarCapabilityProfile get profile => const GrammarCapabilityProfile(
+  GrammarProfile get profile => const GrammarProfile(
         supportedGenders: {GrammaticalGender.masculine, GrammaticalGender.feminine, GrammaticalGender.neuter},
         supportedCases: {GrammaticalCase.nominative, GrammaticalCase.accusative, GrammaticalCase.dative, GrammaticalCase.genitive},
         morphologyType: MorphologyType.inflectional,
@@ -76,7 +76,7 @@ class MockAnalyticGrammarProvider extends LanguageGrammarRuleProvider {
   String get languageCode => 'zh';
 
   @override
-  GrammarCapabilityProfile get profile => const GrammarCapabilityProfile(
+  GrammarProfile get profile => const GrammarProfile(
         morphologyType: MorphologyType.analytic,
         supportsAgreement: false,
       );
@@ -159,6 +159,7 @@ void main() {
 }
 
 class _DefaultGrammarProvider extends LanguageGrammarRuleProvider {
+  VerifiedGrammarEvidence getVerifiedEvidence(String word) => const VerifiedGrammarEvidence.unsupported();
   @override
   String get languageCode => 'xx';
 

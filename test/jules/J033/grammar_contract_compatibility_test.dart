@@ -51,7 +51,7 @@ void main() {
       GrammarFeature.caseSystem
     ]) {
       final profile = GrammarProfile(supportedFeatures: {feature});
-      expect(profile.supports(GrammarCapability.caseSystem), isTrue);
+      expect(profile.supports(GrammarFeature.caseSystem), isTrue);
       expect(profile.supportsFeature(GrammarFeature.grammaticalCase), isTrue);
       expect(profile.supportsFeature(GrammarFeature.gender), isFalse);
     }

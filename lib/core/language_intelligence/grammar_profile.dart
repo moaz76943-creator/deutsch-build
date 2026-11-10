@@ -4,7 +4,7 @@ import 'language_grammar_rule_provider.dart'
 
 class GrammarProfile {
   final String languageCode;
-  final Set<GrammarCapability> capabilities;
+  final Set<GrammarFeature> capabilities;
   final Set<GrammarFeature> supportedFeatures;
   final Set<GrammaticalGender> supportedGenders;
   final Set<GrammaticalNumber> supportedNumbers;
@@ -23,7 +23,7 @@ class GrammarProfile {
     this.supportsAgreement = false,
   });
 
-  bool supports(GrammarCapability capability) => supportsFeature(capability);
+  bool supports(GrammarFeature feature) => supportsFeature(feature);
 
   bool supportsFeature(GrammarFeature feature) {
     if (capabilities.contains(feature) || supportedFeatures.contains(feature)) {
