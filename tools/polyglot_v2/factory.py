@@ -17,115 +17,7 @@ SPEC_PATH = 'assets/database/master_100_languages_spec.json'
 PACKS_DIR = Path('assets/content/packs')
 MAX_SIZE = 25 * 1024 * 1024
 
-def convert_v1_to_v2(lang_code, name_native, name_ar, v1_data):
-    v2 = {
-        "schema_version": 2,
-        "language": {
-            "language_code": lang_code,
-            "name_native": name_native,
-            "name_ar": name_ar,
-            "direction": "ltr" if lang_code != "ar" else "rtl"
-        },
-        "concepts": [],
-        "lexemes": [],
-        "example_groups": [],
-        "examples": []
-    }
-
-    # We map topics to concepts
-    concepts_seen = set()
-    concept_idx = 1
-
-    lexicon = v1_data.get('lexicon', [])
-    for entry in lexicon:
-        fields = entry.get('fields', {})
-        topic = fields.get('topic', 'General')
-        if topic not in concepts_seen:
-            concepts_seen.add(topic)
-            concept_id = f"concept.{lang_code}.{concept_idx}"
-
-            # Map known topics to CEFR or leave A1 as fallback?
-            # Do not fabricate data - we can assign A1 to unknown topics as a safe fallback?
-            # Or we can omit it if it's optional, but cefr_level is strictly constrained to LEVELS
-            # Let's extract CEFR level from fields if exists, else "A1" which is minimum.
-            # But the reviewer noted we are fabricating data. Let's see what `create_pack_v2.py` requires.
-            # `cefr_level` for concepts is required and must be in LEVELS ('A1', 'A2', 'B1', 'B2', 'C1', 'C2').
-            # We will use "A1" as the base level since the schema forces one.
-            v2['concepts'].append({
-                "concept_id": concept_id,
-                "category": topic,
-                "cefr_level": "A1", # The schema strictly requires this
-                "priority": 1
-            })
-            concept_idx += 1
-
-    topic_to_concept_id = {c['category']: c['concept_id'] for c in v2['concepts']}
-
-    lexeme_idx = 1
-    for entry in lexicon:
-        fields = entry.get('fields', {})
-        topic = fields.get('topic', 'General')
-        concept_id = topic_to_concept_id[topic]
-
-        # Extract only existing fields, do not fabricate.
-        part_of_speech = entry.get('partOfSpeech')
-        if not part_of_speech: part_of_speech = 'noun' # Required field in schema
-
-        surface = entry.get('surface', fields.get('german', fields.get('english', fields.get('text', ''))))
-
-        lemma = surface
-        display_text = surface
-        if fields.get('article'):
-            display_text = f"{fields['article']} {lemma}"
-
-        sense_id = entry.get('id', f"sense_{lexeme_idx}")
-        lexeme_id = f"lex.{lang_code}.{lexeme_idx}"
-
-        grammar = {}
-        if fields.get('plural'):
-            grammar['plural'] = fields['plural']
-
-        lexeme = {
-            "lexeme_id": lexeme_id,
-            "concept_id": concept_id,
-            "language_code": lang_code,
-            "sense_id": sense_id,
-            "part_of_speech": part_of_speech,
-            "lemma": lemma,
-            "display_text": display_text
-        }
-
-        if fields.get('gender'):
-            lexeme['gender'] = fields['gender']
-        if fields.get('article'):
-            lexeme['article'] = fields['article']
-        if grammar:
-            lexeme['grammar'] = grammar
-
-        v2['lexemes'].append(lexeme)
-
-        sentence = fields.get('sentence', '').strip()
-        sentence_ar = fields.get('sentenceAr', '').strip()
-        if sentence:
-            group_id = f"exg.{lang_code}.{lexeme_idx}"
-            v2['example_groups'].append({
-                "group_id": group_id,
-                "concept_id": concept_id,
-                "context_type": "daily" # Required by schema
-            })
-            v2['examples'].append({
-                "example_id": f"ex.{lang_code}.{lexeme_idx}",
-                "group_id": group_id,
-                "sentence": sentence,
-                "translation_ar": sentence_ar
-            })
-
-        lexeme_idx += 1
-
-    return v2
-
 def validate_pack(pack_path, expected_language):
-    # Requirements: Validate schema, row counts, language identity, decompressibility and SQLite integrity.
     with gzip.open(pack_path, 'rb') as f:
         raw_db = f.read()
 
@@ -163,7 +55,7 @@ def validate_pack(pack_path, expected_language):
 
 
 def process_pack(args):
-    code, pack_info, name_native, name_ar = args
+    code, pack_info = args
 
     if "CC BY-SA 4.0" not in pack_info.get("license", ""):
         return code, f"[{code}] LICENSE_BLOCKED", None
@@ -173,25 +65,21 @@ def process_pack(args):
     if not canonical_path.exists():
         return code, f"[{code}] SOURCE_MISSING: {canonical_path}", None
 
+    # Load source to check schema version without converting and fabricating data
     try:
         with open(canonical_path, 'r', encoding='utf-8') as f:
-            v1_data = json.load(f)
+            source_data = json.load(f)
+            if source_data.get('schema_version') != 2:
+                # Instead of throwing exception and losing the pack info, we just skip it
+                # returning None to preserve the existing manifest entry, while reporting INVALID
+                return code, f"[{code}] INVALID: schema_version_must_be_2", None
     except Exception as e:
-        return code, f"[{code}] INVALID: {canonical_path} - {e}", None
-
-    lexicon = v1_data.get('lexicon', [])
-    if not lexicon:
-        return code, f"[{code}] INVALID: No lexicon entries found", None
-
-    v2_data = convert_v1_to_v2(code, name_native, name_ar, v1_data)
+        return code, f"[{code}] INVALID: {e}", None
 
     with tempfile.TemporaryDirectory(prefix='polyglot_factory_') as tmpdir:
-        tmp_json = Path(tmpdir) / f"{code}_v2.json"
-        tmp_json.write_text(json.dumps(v2_data, ensure_ascii=False), encoding='utf-8')
-
         out_dir = Path(tmpdir) / "out"
         try:
-            db_gz_path = build(str(tmp_json), str(out_dir))
+            db_gz_path = build(str(canonical_path), str(out_dir))
         except Exception as e:
             return code, f"[{code}] INVALID build: {e}", None
 
@@ -209,15 +97,23 @@ def process_pack(args):
         dest_sha = PACKS_DIR / code / f"{code}-1.0.0.pack.gz.sha256"
 
         shutil.copy2(db_gz_path, dest_db)
-        shutil.copy2(str(db_gz_path) + ".sha256", dest_sha)
 
-        with open(dest_sha, 'r', encoding='ascii') as sf:
-            actual_sha256 = sf.read().split()[0]
+        # Fix sha256 content
+        actual_sha256 = hashlib.sha256(dest_db.read_bytes()).hexdigest()
+        sha_content = f"{actual_sha256}  {code}-1.0.0.pack.gz\n"
+        dest_sha.write_text(sha_content, encoding='ascii')
 
-        pack_info['size_bytes'] = size
-        pack_info['sha256'] = actual_sha256
+        # Remove legacy sqlite schema files created by previous bad runs
+        legacy_sqlite = PACKS_DIR / code / "sqlite" / f"{code}-1.0.0.sqlite"
+        if legacy_sqlite.exists():
+            legacy_sqlite.unlink()
 
-        return code, f"[{code}] READY: {dest_db} ({size} bytes)", pack_info
+        new_pack_info = pack_info.copy()
+        new_pack_info['size_bytes'] = size
+        new_pack_info['sha256'] = actual_sha256
+
+        return code, f"[{code}] READY: {dest_db} ({size} bytes)", new_pack_info
+
 
 def process():
     if not os.path.exists(SPEC_PATH):
@@ -234,18 +130,15 @@ def process():
     with open(MANIFEST_PATH, 'r', encoding='utf-8') as f:
         manifest = json.load(f)
 
-    language_catalog = {lang['code']: lang for lang in spec.get('languages', [])}
     packs = manifest.get('packs', {})
 
     tasks = []
-    for code, pack_info in packs.items():
-        lang_meta = language_catalog.get(code, {})
-        name_native = lang_meta.get('native', code)
-        name_ar = lang_meta.get('ar', code)
-        tasks.append((code, pack_info, name_native, name_ar))
+    # Loop over all languages from the catalog spec
+    for lang in spec.get('languages', []):
+        code = lang['code']
+        pack_info = packs.get(code, {})
+        tasks.append((code, pack_info))
 
-    # Bound concurrent builds to a reasonable number to avoid OOM
-    # The requirement #9 is "Bound CPU, memory, disk and concurrent pack builds."
     workers = min(multiprocessing.cpu_count(), 4)
     with ProcessPoolExecutor(max_workers=workers) as executor:
         results = executor.map(process_pack, tasks)
@@ -254,6 +147,8 @@ def process():
         print(message)
         if updated_pack_info:
             packs[code] = updated_pack_info
+
+    manifest['packs'] = packs
 
     with open(MANIFEST_PATH, 'w', encoding='utf-8') as f:
         json.dump(manifest, f, indent=2, ensure_ascii=False)
