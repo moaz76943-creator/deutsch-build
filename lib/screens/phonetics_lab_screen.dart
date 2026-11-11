@@ -125,6 +125,9 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: ListView.builder(
+              // Performance: bound pre-build area; disable keep-alives for pure items.
+              cacheExtent: 300,
+              addAutomaticKeepAlives: false,
               itemCount: _sounds.length,
               itemBuilder: (context, index) {
                 final item = _sounds[index];
@@ -132,86 +135,92 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
                 final isCurrentPlaying =
                     _currentlyPlayingIndex == index && _isPlaying;
 
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 14),
-                  child: AppBaseGlassCard(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: <Widget>[
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color:
-                                const Color(0xFF34D399).withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                item['symbol'] as String,
-                                style: const TextStyle(
-                                    color: Color(0xFF34D399),
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 4),
-                              Directionality(
-                                textDirection: TextDirection.ltr,
-                                child: Text(
-                                  item['ipa'] as String,
-                                  style: const TextStyle(
-                                      color: Color(0xFF6EE7B7), fontSize: 14),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Semantics(
-                            label: item['desc'] as String,
+                return RepaintBoundary(
+                  // Isolates repaint of each phonetics card. Reduces overpaint
+                  // during scroll or when play state changes (setState) on complex
+                  // glass cards with nested containers, gradients, and audio buttons.
+                  // Expected: fewer dropped frames on phonetics lab interactions.
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 14),
+                    child: AppBaseGlassCard(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: <Widget>[
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color:
+                                  const Color(0xFF34D399).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
                                 Text(
-                                  item['lang'] as String,
+                                  item['symbol'] as String,
                                   style: const TextStyle(
-                                      color: Color(0xFF38BDF8), fontSize: 12),
+                                      color: Color(0xFF34D399),
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold),
                                 ),
                                 const SizedBox(height: 4),
-                                Text(
-                                  item['desc'] as String,
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: Colors.white, fontSize: 14),
+                                Directionality(
+                                  textDirection: TextDirection.ltr,
+                                  child: Text(
+                                    item['ipa'] as String,
+                                    style: const TextStyle(
+                                        color: Color(0xFF6EE7B7), fontSize: 14),
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        if (hasAudio)
-                          AppAudioButton(
-                            onPressed: () => _playAudio(index),
-                            semanticLabel: 'استمع للفظ الصحيح',
-                            isActive: isCurrentPlaying,
-                            icon: isCurrentPlaying
-                                ? FontAwesomeIcons.stop
-                                : FontAwesomeIcons.volumeHigh,
-                          )
-                        else
-                          const Tooltip(
-                            message: 'النطق الصوتي غير متوفر حالياً',
-                            child: Padding(
-                              padding: EdgeInsets.all(12.0),
-                              child: FaIcon(
-                                FontAwesomeIcons.microphoneSlash,
-                                color: Colors.white38,
-                                size: 20,
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Semantics(
+                              label: item['desc'] as String,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    item['lang'] as String,
+                                    style: const TextStyle(
+                                        color: Color(0xFF38BDF8), fontSize: 12),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    item['desc'] as String,
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        color: Colors.white, fontSize: 14),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                      ],
+                          const SizedBox(width: 16),
+                          if (hasAudio)
+                            AppAudioButton(
+                              onPressed: () => _playAudio(index),
+                              semanticLabel: 'استمع للفظ الصحيح',
+                              isActive: isCurrentPlaying,
+                              icon: isCurrentPlaying
+                                  ? FontAwesomeIcons.stop
+                                  : FontAwesomeIcons.volumeHigh,
+                            )
+                          else
+                            const Tooltip(
+                              message: 'النطق الصوتي غير متوفر حالياً',
+                              child: Padding(
+                                padding: EdgeInsets.all(12.0),
+                                child: FaIcon(
+                                  FontAwesomeIcons.microphoneSlash,
+                                  color: Colors.white38,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 );
