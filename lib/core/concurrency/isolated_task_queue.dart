@@ -37,8 +37,11 @@ class IsolatedTaskQueue {
   });
 
   int get length => _queue.length;
+  bool _isDisposed = false;
+
   int get activeTasksCount => _activeTasks.length;
   int get availableCapacity => maxConcurrentTasks - _activeTasks.length;
+  bool get isDisposed => _isDisposed;
 
   Future<T?> enqueue<T>({
     required String id,
@@ -47,6 +50,9 @@ class IsolatedTaskQueue {
     CancellationToken? token,
     required Future<T> Function() action,
   }) {
+    if (_isDisposed) {
+      throw StateError('Queue is disposed');
+    }
     // تحديث الجلسة النشطة
     _lastActiveEpoch = currentEpoch;
 
@@ -109,6 +115,9 @@ class IsolatedTaskQueue {
     required TaskPriority priority,
     CancellationToken? token,
   }) {
+    if (_isDisposed) {
+      throw StateError('Queue is disposed');
+    }
     _lastActiveEpoch = currentEpoch;
 
     // Deduplication - check active and pending
@@ -255,8 +264,9 @@ class IsolatedTaskQueue {
           currentTask.completer.complete(null);
         }
       } else {
-        // Run the action, passing the token
-        final result = await currentTask.action(currentTask.cancellationToken);
+        // Run the action, passing the token, wrapped in Future() to avoid UI lockup
+        // Future() schedules on the event queue, microtask schedules on microtask queue (which blocks event loop)
+        final result = await Future(() => currentTask.action(currentTask.cancellationToken));
 
         // If it got cancelled WHILE running, complete with null if not handled inside
         if (currentTask.cancellationToken?.isCancelled == true) {
@@ -300,5 +310,10 @@ class IsolatedTaskQueue {
       task.cancellationToken?.cancel();
     }
     // We let active tasks finish their async completion which will clean them from _activeTasks map
+  }
+
+  void dispose() {
+    clear();
+    _isDisposed = true;
   }
 }
