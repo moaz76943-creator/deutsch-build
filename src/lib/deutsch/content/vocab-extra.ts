@@ -2990,4 +2990,295 @@ export const vocabExtra = [
     example: 'Der Garten ist voller Blumen.',
     exampleAr: 'الحديقة مليئة بالزهور.'
   },
+  // === Added 2026-11-11 hourly session: 20 new A1/A2 items (v-extra-400..419) ===
+  {
+    id: 'v-extra-400',
+    type: 'verb',
+    infinitive: 'lachen',
+    arabic: 'يضحك',
+    conjugation: {
+      ich: 'lache',
+      du: 'lachst',
+      er: 'lacht',
+      wir: 'lachen',
+      ihr: 'lacht',
+      sie_pl: 'lachen',
+      präteritum: 'lachte',
+      perfekt: 'hat gelacht',
+      aux: 'haben'
+    },
+    example: 'Die Kinder lachen laut.',
+    exampleAr: 'الأطفال يضحكون بصوت عالٍ.'
+  },
+  {
+    id: 'v-extra-401',
+    type: 'verb',
+    infinitive: 'weinen',
+    arabic: 'يبكي',
+    conjugation: {
+      ich: 'weine',
+      du: 'weinst',
+      er: 'weint',
+      wir: 'weinen',
+      ihr: 'weint',
+      sie_pl: 'weinen',
+      präteritum: 'weinte',
+      perfekt: 'hat geweint',
+      aux: 'haben'
+    },
+    example: 'Das Baby weint.',
+    exampleAr: 'الطفل يبكي.'
+  },
+  {
+    id: 'v-extra-402',
+    type: 'verb',
+    infinitive: 'singen',
+    arabic: 'يغني',
+    conjugation: {
+      ich: 'singe',
+      du: 'singst',
+      er: 'singt',
+      wir: 'singen',
+      ihr: 'singt',
+      sie_pl: 'singen',
+      präteritum: 'sang',
+      perfekt: 'hat gesungen',
+      aux: 'haben'
+    },
+    example: 'Sie singt ein Lied.',
+    exampleAr: 'هي تغني أغنية.'
+  },
+  {
+    id: 'v-extra-403',
+    type: 'verb',
+    infinitive: 'tanzen',
+    arabic: 'يرقص',
+    conjugation: {
+      ich: 'tanze',
+      du: 'tanzt',
+      er: 'tanzt',
+      wir: 'tanzen',
+      ihr: 'tanzt',
+      sie_pl: 'tanzen',
+      präteritum: 'tanzte',
+      perfekt: 'hat getanzt',
+      aux: 'haben'
+    },
+    example: 'Wir tanzen auf der Party.',
+    exampleAr: 'نحن نرقص في الحفلة.'
+  },
+  {
+    id: 'v-extra-404',
+    type: 'verb',
+    infinitive: 'backen',
+    arabic: 'يخبز',
+    conjugation: {
+      ich: 'backe',
+      du: 'bäckst',
+      er: 'bäckt',
+      wir: 'backen',
+      ihr: 'backt',
+      sie_pl: 'backen',
+      präteritum: 'backte',
+      perfekt: 'hat gebacken',
+      aux: 'haben'
+    },
+    example: 'Die Mutter backt einen Kuchen.',
+    exampleAr: 'الأم تخبز كعكة.'
+  },
+  {
+    id: 'v-extra-405',
+    type: 'verb',
+    infinitive: 'feiern',
+    arabic: 'يحتفل',
+    conjugation: {
+      ich: 'feiere',
+      du: 'feierst',
+      er: 'feiert',
+      wir: 'feiern',
+      ihr: 'feiert',
+      sie_pl: 'feiern',
+      präteritum: 'feierte',
+      perfekt: 'hat gefeiert',
+      aux: 'haben'
+    },
+    example: 'Wir feiern den Geburtstag.',
+    exampleAr: 'نحتفل بعيد الميلاد.'
+  },
+  {
+    id: 'v-extra-406',
+    type: 'verb',
+    infinitive: 'bestellen',
+    arabic: 'يطلب',
+    conjugation: {
+      ich: 'bestelle',
+      du: 'bestellst',
+      er: 'bestellt',
+      wir: 'bestellen',
+      ihr: 'bestellt',
+      sie_pl: 'bestellen',
+      präteritum: 'bestellte',
+      perfekt: 'hat bestellt',
+      aux: 'haben'
+    },
+    example: 'Ich bestelle einen Kaffee.',
+    exampleAr: 'أطلب قهوة.'
+  },
+  {
+    id: 'v-extra-407',
+    type: 'verb',
+    infinitive: 'putzen',
+    arabic: 'ينظف',
+    conjugation: {
+      ich: 'putze',
+      du: 'putzt',
+      er: 'putzt',
+      wir: 'putzen',
+      ihr: 'putzt',
+      sie_pl: 'putzen',
+      präteritum: 'putzte',
+      perfekt: 'hat geputzt',
+      aux: 'haben'
+    },
+    example: 'Er putzt das Fenster.',
+    exampleAr: 'هو ينظف النافذة.'
+  },
+  {
+    id: 'v-extra-408',
+    type: 'verb',
+    infinitive: 'vergessen',
+    arabic: 'ينسى',
+    conjugation: {
+      ich: 'vergesse',
+      du: 'vergisst',
+      er: 'vergisst',
+      wir: 'vergessen',
+      ihr: 'vergesst',
+      sie_pl: 'vergessen',
+      präteritum: 'vergaß',
+      perfekt: 'hat vergessen',
+      aux: 'haben'
+    },
+    example: 'Ich vergesse den Namen.',
+    exampleAr: 'أنسى الاسم.'
+  },
+  {
+    id: 'v-extra-409',
+    type: 'verb',
+    infinitive: 'bekommen',
+    arabic: 'يحصل على',
+    conjugation: {
+      ich: 'bekomme',
+      du: 'bekommst',
+      er: 'bekommt',
+      wir: 'bekommen',
+      ihr: 'bekommt',
+      sie_pl: 'bekommen',
+      präteritum: 'bekam',
+      perfekt: 'hat bekommen',
+      aux: 'haben'
+    },
+    example: 'Sie bekommt ein Geschenk.',
+    exampleAr: 'هي تحصل على هدية.'
+  },
+  {
+    id: 'v-extra-410',
+    type: 'noun',
+    german: 'Blume',
+    article: 'die',
+    plural: 'Blumen',
+    arabic: 'زهرة',
+    example: 'Die Blume ist rot.',
+    exampleAr: 'الزهرة حمراء.'
+  },
+  {
+    id: 'v-extra-411',
+    type: 'noun',
+    german: 'Baum',
+    article: 'der',
+    plural: 'Bäume',
+    arabic: 'شجرة',
+    example: 'Der Baum ist hoch.',
+    exampleAr: 'الشجرة عالية.'
+  },
+  {
+    id: 'v-extra-412',
+    type: 'noun',
+    german: 'Sonne',
+    article: 'die',
+    plural: 'Sonnen',
+    arabic: 'شمس',
+    example: 'Die Sonne scheint heute.',
+    exampleAr: 'الشمس تشرق اليوم.'
+  },
+  {
+    id: 'v-extra-413',
+    type: 'noun',
+    german: 'Mond',
+    article: 'der',
+    plural: 'Monde',
+    arabic: 'قمر',
+    example: 'Der Mond ist voll.',
+    exampleAr: 'القمر بدر.'
+  },
+  {
+    id: 'v-extra-414',
+    type: 'noun',
+    german: 'Stern',
+    article: 'der',
+    plural: 'Sterne',
+    arabic: 'نجمة',
+    example: 'Die Sterne leuchten in der Nacht.',
+    exampleAr: 'النجوم تلمع في الليل.'
+  },
+  {
+    id: 'v-extra-415',
+    type: 'noun',
+    german: 'Himmel',
+    article: 'der',
+    plural: 'Himmel',
+    arabic: 'سماء',
+    example: 'Der Himmel ist blau.',
+    exampleAr: 'السماء زرقاء.'
+  },
+  {
+    id: 'v-extra-416',
+    type: 'noun',
+    german: 'Wolke',
+    article: 'die',
+    plural: 'Wolken',
+    arabic: 'سحابة',
+    example: 'Die Wolken sind grau.',
+    exampleAr: 'السحب رمادية.'
+  },
+  {
+    id: 'v-extra-417',
+    type: 'noun',
+    german: 'Regen',
+    article: 'der',
+    plural: 'Regen',
+    arabic: 'مطر',
+    example: 'Der Regen fällt stark.',
+    exampleAr: 'المطر يسقط بقوة.'
+  },
+  {
+    id: 'v-extra-418',
+    type: 'noun',
+    german: 'Schnee',
+    article: 'der',
+    plural: 'Schneefälle',
+    arabic: 'ثلج',
+    example: 'Der Schnee ist weiß.',
+    exampleAr: 'الثلج أبيض.'
+  },
+  {
+    id: 'v-extra-419',
+    type: 'noun',
+    german: 'Wind',
+    article: 'der',
+    plural: 'Winde',
+    arabic: 'رياح',
+    example: 'Der Wind weht stark.',
+    exampleAr: 'الرياح تهب بقوة.'
+  },
 ];
