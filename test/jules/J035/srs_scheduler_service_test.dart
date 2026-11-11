@@ -236,4 +236,38 @@ void main() {
     );
     expect(result.isEmpty, true);
   });
+
+  test('Idempotency returns correct isLeech flag', () async {
+    final reviewedAt = DateTime.utc(2023, 1, 1);
+
+    await db.execute('CREATE TABLE IF NOT EXISTS srs_review_events (review_event_id TEXT PRIMARY KEY, lexeme_id TEXT NOT NULL, target_language_code TEXT NOT NULL, grade INTEGER NOT NULL, created_at INTEGER NOT NULL)');
+    await db.insert('srs_review_events', {
+      'review_event_id': 'evt-leech',
+      'lexeme_id': 'lex_leech',
+      'target_language_code': 'de',
+      'grade': 1,
+      'created_at': 1234567,
+    });
+    await db.insert('srs_progress', {
+      'lexeme_id': 'lex_leech',
+      'target_language_code': 'de',
+      'repetition_count': 1,
+      'interval_days': 1,
+      'ease_factor': 1.3,
+      'next_due_at': 1234567,
+      'status': 'leech',
+    });
+
+    final schedule = await scheduler.gradeAndPersist(
+      progressDb: db,
+      lexemeId: 'lex_leech',
+      languageCode: 'de',
+      grade: 1,
+      reviewedAt: reviewedAt,
+      reviewEventId: 'evt-leech',
+    );
+
+    expect(schedule.isLeech, true);
+    expect(schedule.easeFactor, 1.3);
+  });
 }

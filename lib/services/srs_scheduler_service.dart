@@ -219,8 +219,9 @@ class SrsSchedulerService {
             return SrsReviewSchedule(
               repetitionCount: _readPersistedCounter(existing.first['repetition_count'], 'repetition_count'),
               intervalDays: _readPersistedCounter(existing.first['interval_days'], 'interval_days'),
-              easeFactor: (existing.first['ease_factor'] as num).toDouble(),
+              easeFactor: _readPersistedEaseFactor(existing.first['ease_factor']),
               nextReviewEpoch: existing.first['next_due_at'] is num ? (existing.first['next_due_at'] as num).toInt() : 0,
+              isLeech: existing.first['status'] == 'leech',
             );
           }
         }
@@ -342,7 +343,7 @@ class SrsSchedulerService {
           'target_language_code': languageCode,
           'grade': grade,
           'created_at': reviewed.millisecondsSinceEpoch ~/ 1000,
-        });
+        }, conflictAlgorithm: ConflictAlgorithm.ignore);
       }
 
       return result;
