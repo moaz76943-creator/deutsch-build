@@ -3,28 +3,42 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 /// مسجل مركزي لدورة حياة الموارد المؤقتة والاشتراكات لمنع تسريبات الذاكرة
+import 'dart:collection';
+
 class RuntimeLifecycleRegistry {
+  static const int maxTrackedResources = 5000;
+  static const int maxRememberedOwners = 100;
+  static const int maxLegacyOwnerTombstones = 100;
+
   RuntimeLifecycleRegistry._();
   static final RuntimeLifecycleRegistry instance = RuntimeLifecycleRegistry._();
 
-  final Map<String, List<FutureOr<void> Function()>> _cleanups = {};
-  final Set<String> _disposedOwners = {};
+  final Map<Object, List<FutureOr<void> Function()>> _cleanups = {};
+  final LinkedHashSet<Object> _disposedOwners = LinkedHashSet<Object>();
   bool _isDisposed = false;
 
   bool get isDisposed => _isDisposed;
 
-  bool isOwnerDisposed(String owner) {
+  int get trackedResourceCount {
+    int count = 0;
+    for (var list in _cleanups.values) {
+      count += list.length;
+    }
+    return count;
+  }
+
+  bool isOwnerDisposed(Object owner) {
     return _isDisposed || _disposedOwners.contains(owner);
   }
 
   void registerSubscription(
     StreamSubscription<dynamic> sub, {
-    String owner = 'global',
+    Object owner = 'global',
   }) {
     registerCleanup(() => sub.cancel(), owner: owner);
   }
 
-  void registerTimer(Timer timer, {String owner = 'global'}) {
+  void registerTimer(Timer timer, {Object owner = 'global'}) {
     if (_isDisposed) {
       timer.cancel();
       return;
@@ -36,18 +50,24 @@ class RuntimeLifecycleRegistry {
 
   void registerCleanup(
     FutureOr<void> Function() cleanup, {
-    String owner = 'global',
+    Object owner = 'global',
   }) {
     if (isOwnerDisposed(owner)) {
       _safeCleanup(cleanup);
       return;
     }
+    if (trackedResourceCount >= maxTrackedResources) {
+      throw StateError('Max tracked resources exceeded');
+    }
     _cleanups.putIfAbsent(owner, () => []).add(cleanup);
   }
 
-  Future<void> disposeOwner(String owner) async {
+  Future<void> disposeOwner(Object owner) async {
     if (isOwnerDisposed(owner)) return;
     _disposedOwners.add(owner);
+    if (_disposedOwners.length > maxRememberedOwners) {
+      _disposedOwners.remove(_disposedOwners.first);
+    }
     await _disposeOwnerResources(owner);
   }
 
@@ -59,6 +79,9 @@ class RuntimeLifecycleRegistry {
     for (final owner in owners) {
       if (!_disposedOwners.contains(owner)) {
         _disposedOwners.add(owner);
+        if (_disposedOwners.length > maxRememberedOwners) {
+          _disposedOwners.remove(_disposedOwners.first);
+        }
         await _disposeOwnerResources(owner);
       }
     }
@@ -66,7 +89,7 @@ class RuntimeLifecycleRegistry {
     _cleanups.clear();
   }
 
-  Future<void> _disposeOwnerResources(String owner) async {
+  Future<void> _disposeOwnerResources(Object owner) async {
     final cleanups = _cleanups[owner];
     if (cleanups == null || cleanups.isEmpty) return;
 
@@ -93,19 +116,37 @@ class RuntimeLifecycleRegistry {
     }
   }
 
-  T? guard<T>(T Function() callback, {String owner = 'global'}) {
+  T? guard<T>(T Function() callback, {Object owner = 'global'}) {
     if (isOwnerDisposed(owner)) {
       return null;
     }
     return callback();
   }
 
-  Future<T?> guardFuture<T>(Future<T> future, {String owner = 'global'}) async {
+  Future<T?> guardFuture<T>(Future<T> future, {Object owner = 'global'}) async {
     final result = await future;
     if (isOwnerDisposed(owner)) {
       return null;
     }
     return result;
+  }
+
+  // Legacy APIs and metrics getters
+  void registerResource(FutureOr<void> Function() cleanup,
+      {Object owner = 'global'}) {
+    registerCleanup(cleanup, owner: owner);
+  }
+
+  Future<void> disposeByOwner(Object owner) async {
+    await disposeOwner(owner);
+  }
+
+  int get rememberedDisposedOwnerCount => _disposedOwners.length;
+  int get legacyTombstoneCount => _disposedOwners.length;
+
+  @visibleForTesting
+  void resetForTesting() {
+    resetForTest();
   }
 
   @visibleForTesting
@@ -114,4 +155,14 @@ class RuntimeLifecycleRegistry {
     _disposedOwners.clear();
     _isDisposed = false;
   }
+}
+
+class LifecycleOwner {
+  const LifecycleOwner();
+}
+
+class LifecycleOwnerToken extends LifecycleOwner {
+  LifecycleOwnerToken();
+  bool get isDisposed =>
+      RuntimeLifecycleRegistry.instance.isOwnerDisposed(this);
 }
