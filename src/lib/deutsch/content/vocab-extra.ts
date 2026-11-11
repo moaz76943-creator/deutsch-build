@@ -3281,4 +3281,297 @@ export const vocabExtra = [
     example: 'Der Wind weht stark.',
     exampleAr: 'الرياح تهب بقوة.'
   },
+
+  // === Added 2026-11-12 hourly session: 20 new A1/A2 items (v-extra-420..439) ===
+  {
+    id: 'v-extra-420',
+    type: 'verb',
+    infinitive: 'helfen',
+    arabic: 'يساعد',
+    conjugation: {
+      ich: 'helfe',
+      du: 'hilfst',
+      er: 'hilft',
+      wir: 'helfen',
+      ihr: 'helft',
+      sie_pl: 'helfen',
+      präteritum: 'half',
+      perfekt: 'hat geholfen',
+      aux: 'haben'
+    },
+    example: 'Kannst du mir bitte helfen?',
+    exampleAr: 'هل يمكنك أن تساعدني من فضلك؟'
+  },
+  {
+    id: 'v-extra-421',
+    type: 'verb',
+    infinitive: 'brauchen',
+    arabic: 'يحتاج',
+    conjugation: {
+      ich: 'brauche',
+      du: 'brauchst',
+      er: 'braucht',
+      wir: 'brauchen',
+      ihr: 'braucht',
+      sie_pl: 'brauchen',
+      präteritum: 'brauchte',
+      perfekt: 'hat gebraucht',
+      aux: 'haben'
+    },
+    example: 'Ich brauche Wasser.',
+    exampleAr: 'أحتاج ماءً.'
+  },
+  {
+    id: 'v-extra-422',
+    type: 'verb',
+    infinitive: 'mögen',
+    arabic: 'يحب / يفضل',
+    conjugation: {
+      ich: 'mag',
+      du: 'magst',
+      er: 'mag',
+      wir: 'mögen',
+      ihr: 'mögt',
+      sie_pl: 'mögen',
+      präteritum: 'mochte',
+      perfekt: 'hat gemocht',
+      aux: 'haben'
+    },
+    example: 'Ich mag Kaffee.',
+    exampleAr: 'أحب القهوة.'
+  },
+  {
+    id: 'v-extra-423',
+    type: 'verb',
+    infinitive: 'können',
+    arabic: 'يستطيع',
+    conjugation: {
+      ich: 'kann',
+      du: 'kannst',
+      er: 'kann',
+      wir: 'können',
+      ihr: 'könnt',
+      sie_pl: 'können',
+      präteritum: 'konnte',
+      perfekt: 'hat gekonnt',
+      aux: 'haben'
+    },
+    example: 'Ich kann Deutsch sprechen.',
+    exampleAr: 'أستطيع التحدث بالألمانية.'
+  },
+  {
+    id: 'v-extra-424',
+    type: 'verb',
+    infinitive: 'müssen',
+    arabic: 'يجب',
+    conjugation: {
+      ich: 'muss',
+      du: 'musst',
+      er: 'muss',
+      wir: 'müssen',
+      ihr: 'müsst',
+      sie_pl: 'müssen',
+      präteritum: 'musste',
+      perfekt: 'hat gemusst',
+      aux: 'haben'
+    },
+    example: 'Ich muss zur Arbeit gehen.',
+    exampleAr: 'يجب أن أذهب إلى العمل.'
+  },
+  {
+    id: 'v-extra-425',
+    type: 'verb',
+    infinitive: 'wollen',
+    arabic: 'يريد',
+    conjugation: {
+      ich: 'will',
+      du: 'willst',
+      er: 'will',
+      wir: 'wollen',
+      ihr: 'wollt',
+      sie_pl: 'wollen',
+      präteritum: 'wollte',
+      perfekt: 'hat gewollt',
+      aux: 'haben'
+    },
+    example: 'Wir wollen nach Berlin fahren.',
+    exampleAr: 'نريد أن نذهب إلى برلين.'
+  },
+  {
+    id: 'v-extra-426',
+    type: 'verb',
+    infinitive: 'dürfen',
+    arabic: 'يُسمح له',
+    conjugation: {
+      ich: 'darf',
+      du: 'darfst',
+      er: 'darf',
+      wir: 'dürfen',
+      ihr: 'dürft',
+      sie_pl: 'dürfen',
+      präteritum: 'durfte',
+      perfekt: 'hat gedurft',
+      aux: 'haben'
+    },
+    example: 'Du darfst hier rauchen.',
+    exampleAr: 'يُسمح لك بالتدخين هنا.'
+  },
+  {
+    id: 'v-extra-427',
+    type: 'verb',
+    infinitive: 'sollen',
+    arabic: 'ينبغي',
+    conjugation: {
+      ich: 'soll',
+      du: 'sollst',
+      er: 'soll',
+      wir: 'sollen',
+      ihr: 'sollt',
+      sie_pl: 'sollen',
+      präteritum: 'sollte',
+      perfekt: 'hat gesollt',
+      aux: 'haben'
+    },
+    example: 'Du sollst mehr lernen.',
+    exampleAr: 'ينبغي أن تتعلم أكثر.'
+  },
+  {
+    id: 'v-extra-428',
+    type: 'verb',
+    infinitive: 'kennen',
+    arabic: 'يعرف (شخصاً أو مكاناً)',
+    conjugation: {
+      ich: 'kenne',
+      du: 'kennst',
+      er: 'kennt',
+      wir: 'kennen',
+      ihr: 'kennt',
+      sie_pl: 'kennen',
+      präteritum: 'kannte',
+      perfekt: 'hat gekannt',
+      aux: 'haben'
+    },
+    example: 'Ich kenne ihn gut.',
+    exampleAr: 'أنا أعرفه جيداً.'
+  },
+  {
+    id: 'v-extra-429',
+    type: 'verb',
+    infinitive: 'wissen',
+    arabic: 'يعرف (معلومة)',
+    conjugation: {
+      ich: 'weiß',
+      du: 'weißt',
+      er: 'weiß',
+      wir: 'wissen',
+      ihr: 'wisst',
+      sie_pl: 'wissen',
+      präteritum: 'wusste',
+      perfekt: 'hat gewusst',
+      aux: 'haben'
+    },
+    example: 'Ich weiß die Antwort.',
+    exampleAr: 'أعرف الإجابة.'
+  },
+  {
+    id: 'v-extra-430',
+    type: 'noun',
+    german: 'Buch',
+    article: 'das',
+    plural: 'Bücher',
+    arabic: 'كتاب',
+    example: 'Das Buch ist interessant.',
+    exampleAr: 'الكتاب مثير للاهتمام.'
+  },
+  {
+    id: 'v-extra-431',
+    type: 'noun',
+    german: 'Auto',
+    article: 'das',
+    plural: 'Autos',
+    arabic: 'سيارة',
+    example: 'Das Auto ist schnell.',
+    exampleAr: 'السيارة سريعة.'
+  },
+  {
+    id: 'v-extra-432',
+    type: 'noun',
+    german: 'Zug',
+    article: 'der',
+    plural: 'Züge',
+    arabic: 'قطار',
+    example: 'Der Zug kommt pünktlich.',
+    exampleAr: 'القطار يأتي في الموعد.'
+  },
+  {
+    id: 'v-extra-433',
+    type: 'noun',
+    german: 'Bus',
+    article: 'der',
+    plural: 'Busse',
+    arabic: 'حافلة',
+    example: 'Der Bus fährt in die Stadt.',
+    exampleAr: 'الحافلة تذهب إلى المدينة.'
+  },
+  {
+    id: 'v-extra-434',
+    type: 'noun',
+    german: 'Essen',
+    article: 'das',
+    plural: 'Essen',
+    arabic: 'طعام',
+    example: 'Das Essen schmeckt gut.',
+    exampleAr: 'الطعام لذيذ.'
+  },
+  {
+    id: 'v-extra-435',
+    type: 'noun',
+    german: 'Wasser',
+    article: 'das',
+    plural: 'Wasser',
+    arabic: 'ماء',
+    example: 'Ich trinke Wasser.',
+    exampleAr: 'أشرب ماءً.'
+  },
+  {
+    id: 'v-extra-436',
+    type: 'noun',
+    german: 'Brot',
+    article: 'das',
+    plural: 'Brote',
+    arabic: 'خبز',
+    example: 'Das Brot ist frisch.',
+    exampleAr: 'الخبز طازج.'
+  },
+  {
+    id: 'v-extra-437',
+    type: 'noun',
+    german: 'Apfel',
+    article: 'der',
+    plural: 'Äpfel',
+    arabic: 'تفاحة',
+    example: 'Der Apfel ist rot.',
+    exampleAr: 'التفاحة حمراء.'
+  },
+  {
+    id: 'v-extra-438',
+    type: 'noun',
+    german: 'Tag',
+    article: 'der',
+    plural: 'Tage',
+    arabic: 'يوم',
+    example: 'Heute ist ein schöner Tag.',
+    exampleAr: 'اليوم يوم جميل.'
+  },
+  {
+    id: 'v-extra-439',
+    type: 'noun',
+    german: 'Nacht',
+    article: 'die',
+    plural: 'Nächte',
+    arabic: 'ليل',
+    example: 'Die Nacht ist dunkel.',
+    exampleAr: 'الليل مظلم.'
+  },
 ];
+
