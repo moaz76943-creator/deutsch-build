@@ -73,23 +73,21 @@ class CatalogReadinessEngine {
       return const ReadinessUnsupported('Silent pivot prevented: Neither language is production ready.');
     }
 
-    // In a directed pair source->target, we only strictly need the TARGET pack to be admitted/usable
-    // Actually, following the old design let's just check the target pack here:
-    final record = _admittedPacks[pair.targetLocale];
+    final record = _admittedPacks[pair.uniqueKey];
     if (record == null) {
-      return const ReadinessRegistered('Target pack is not admitted yet.');
+      return const ReadinessRegistered('Directed pack is not admitted yet.');
     }
 
     if (record.result.status != PackGateStatus.approved) {
-      return ReadinessRegistered('Target pack rejected: ${record.result.reason ?? record.result.status.name}');
+      return ReadinessRegistered('Directed pack rejected: ${record.result.reason ?? record.result.status.name}');
     }
 
     if (!record.isInstalled) {
-      return const ReadinessVerified('Target pack is verified but not installed.');
+      return const ReadinessVerified('Directed pack is verified but not installed.');
     }
 
     if (!record.isUsable) {
-      return const ReadinessInstalled('Target pack is installed but not usable.');
+      return const ReadinessInstalled('Directed pack is installed but not usable.');
     }
 
     return const ReadinessUsable();
@@ -107,37 +105,36 @@ class CatalogReadinessEngine {
       checksum: checksum,
     );
 
-    _admittedPacks[pair.targetLocale] = PackRecord(result);
-    // Invalidate cache for any pair involving this pack as a target
-    _evaluatedPairs.removeWhere((key, value) => key.contains('_${pair.targetLocale}_'));
+    _admittedPacks[pair.uniqueKey] = PackRecord(result);
+    _evaluatedPairs.remove(pair.uniqueKey);
   }
 
   void markPackInstalled(DirectedPairId pair) {
-    final record = _admittedPacks[pair.targetLocale];
+    final record = _admittedPacks[pair.uniqueKey];
     if (record != null) {
-      _admittedPacks[pair.targetLocale] = PackRecord(
+      _admittedPacks[pair.uniqueKey] = PackRecord(
         record.result,
         isInstalled: true,
         isUsable: record.isUsable,
       );
-      _evaluatedPairs.removeWhere((key, value) => key.contains('_${pair.targetLocale}_'));
+      _evaluatedPairs.remove(pair.uniqueKey);
     }
   }
 
   void markPackUsable(DirectedPairId pair) {
-    final record = _admittedPacks[pair.targetLocale];
+    final record = _admittedPacks[pair.uniqueKey];
     if (record != null) {
-      _admittedPacks[pair.targetLocale] = PackRecord(
+      _admittedPacks[pair.uniqueKey] = PackRecord(
         record.result,
         isInstalled: true,
         isUsable: true,
       );
-      _evaluatedPairs.removeWhere((key, value) => key.contains('_${pair.targetLocale}_'));
+      _evaluatedPairs.remove(pair.uniqueKey);
     }
   }
 
   void invalidatePack(DirectedPairId pair) {
-    _admittedPacks.remove(pair.targetLocale);
-    _evaluatedPairs.removeWhere((key, value) => key.contains('_${pair.targetLocale}_'));
+    _admittedPacks.remove(pair.uniqueKey);
+    _evaluatedPairs.remove(pair.uniqueKey);
   }
 }
