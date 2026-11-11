@@ -101,9 +101,10 @@ def check_overlapping_claims(ledger, task_id, requested_paths, now, recover_from
         if other_task == task_id or other_task == "_metadata":
             continue
         if data.get("state") in ["CLAIM", "ACTIVE"]:
-            # Age alone does not prove the original process stopped writing.
-            # Keep overlapping ownership until explicit cancellation/completion;
-            # unrelated paths remain runnable even when another claim is stale.
+            # If we are explicitly recovering from this specific task, and have evidence, allow it
+            if recover_from == other_task and owner_evidence:
+                continue
+
             expired = now - data.get("timestamp", 0) > LOCK_TTL_SECONDS
             other_paths = data.get("paths", [])
             for p in requested_paths:
@@ -126,6 +127,8 @@ def is_stale_base_sha(ledger, base_sha):
     return False
 
 def process_ledger(parsed, content):
+    if hasattr(content, 'read'):
+        content = content.read()
     ledger = json.loads(content) if content else {}
     states = frozenset(VALID_TRANSITIONS)
     if (not isinstance(ledger, dict) or
@@ -238,6 +241,8 @@ def main(args=None):
     parser.add_argument("--transition", choices=["CLAIM", "ACTIVE", "COMPLETE", "BLOCKED", "CANCELLED"], required=True)
     parser.add_argument("--paths", nargs="*", help="List of files/dirs to claim")
     parser.add_argument("--depends-on", nargs="*", help="List of task IDs this task depends on")
+    parser.add_argument("--recover-from", help="Task ID to recover from")
+    parser.add_argument("--owner-evidence", help="Evidence of ownership for recovery")
     parser.add_argument("--ledger", default=str(default_state_dir() / "task_ledger.json"))
     parser.add_argument("--report", default=str(default_state_dir() / "evidence_report.json"))
 
