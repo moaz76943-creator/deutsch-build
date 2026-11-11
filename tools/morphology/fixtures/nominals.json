@@ -4,7 +4,8 @@
       "id": "de:Kind", "lemma": "Kind", "part_of_speech": "noun",
       "gender": "neu", "number": "sg",
       "declensions": [
-        {"id": "de:Kind:nom:pl", "grammatical_case": "nom", "number": "pl", "definiteness": "def", "inflected_form": "Kinder"}
+        {"id": "de:Kind:nom:pl", "grammatical_case": "nom", "number": "pl", "definiteness": "def", "inflected_form": "Kinder"},
+        {"id": "de:Kind:dat:pl", "grammatical_case": "DAT", "number": "PL", "definiteness": "def", "inflected_form": "Kindern"}
       ]
     },
     {
