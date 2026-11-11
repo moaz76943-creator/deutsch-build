@@ -2699,4 +2699,295 @@ export const vocabExtra = [
     example: 'Die Straße ist lang und breit.',
     exampleAr: 'الشارع طويل وواسع.'
   },
+// === Hourly batch 2026-11-11 01:08 UTC — 20 new A1/A2 items (v-extra-380..399) ===
+  {
+    id: 'v-extra-380',
+    type: 'verb',
+    infinitive: 'kochen',
+    arabic: 'يطبخ',
+    conjugation: {
+      ich: 'koche',
+      du: 'kochst',
+      er: 'kocht',
+      wir: 'kochen',
+      ihr: 'kocht',
+      sie_pl: 'kochen',
+      präteritum: 'kochte',
+      perfekt: 'hat gekocht',
+      aux: 'haben'
+    },
+    example: 'Ich koche heute Abend Pasta.',
+    exampleAr: 'أطبخ اليوم مساءً المعكرونة.'
+  },
+  {
+    id: 'v-extra-381',
+    type: 'verb',
+    infinitive: 'backen',
+    arabic: 'يخبز',
+    conjugation: {
+      ich: 'backe',
+      du: 'bäckst',
+      er: 'bäckt',
+      wir: 'backen',
+      ihr: 'backt',
+      sie_pl: 'backen',
+      präteritum: 'backte',
+      perfekt: 'hat gebacken',
+      aux: 'haben'
+    },
+    example: 'Meine Mutter backt einen Kuchen.',
+    exampleAr: 'أمي تخبز كعكة.'
+  },
+  {
+    id: 'v-extra-382',
+    type: 'verb',
+    infinitive: 'feiern',
+    arabic: 'يحتفل',
+    conjugation: {
+      ich: 'feiere',
+      du: 'feierst',
+      er: 'feiert',
+      wir: 'feiern',
+      ihr: 'feiert',
+      sie_pl: 'feiern',
+      präteritum: 'feierte',
+      perfekt: 'hat gefeiert',
+      aux: 'haben'
+    },
+    example: 'Wir feiern den Geburtstag meiner Schwester.',
+    exampleAr: 'نحتفل بعيد ميلاد أختي.'
+  },
+  {
+    id: 'v-extra-383',
+    type: 'verb',
+    infinitive: 'heiraten',
+    arabic: 'يتزوج',
+    conjugation: {
+      ich: 'heirate',
+      du: 'heiratest',
+      er: 'heiratet',
+      wir: 'heiraten',
+      ihr: 'heiratet',
+      sie_pl: 'heiraten',
+      präteritum: 'heiratete',
+      perfekt: 'hat geheiratet',
+      aux: 'haben'
+    },
+    example: 'Sie heiraten im Sommer.',
+    exampleAr: 'هما يتزوجان في الصيف.'
+  },
+  {
+    id: 'v-extra-384',
+    type: 'verb',
+    infinitive: 'umziehen',
+    arabic: 'ينتقل (للسكن)',
+    conjugation: {
+      ich: 'ziehe um',
+      du: 'ziehst um',
+      er: 'zieht um',
+      wir: 'ziehen um',
+      ihr: 'zieht um',
+      sie_pl: 'ziehen um',
+      präteritum: 'zog um',
+      perfekt: 'ist umgezogen',
+      aux: 'sein'
+    },
+    example: 'Wir ziehen nächsten Monat um.',
+    exampleAr: 'نحن ننتقل الشهر القادم.'
+  },
+  {
+    id: 'v-extra-385',
+    type: 'verb',
+    infinitive: 'einladen',
+    arabic: 'يدعو',
+    conjugation: {
+      ich: 'lade ein',
+      du: 'lädst ein',
+      er: 'lädt ein',
+      wir: 'laden ein',
+      ihr: 'ladet ein',
+      sie_pl: 'laden ein',
+      präteritum: 'lud ein',
+      perfekt: 'hat eingeladen',
+      aux: 'haben'
+    },
+    example: 'Ich lade meine Freunde zum Essen ein.',
+    exampleAr: 'أدعو أصدقائي للطعام.'
+  },
+  {
+    id: 'v-extra-386',
+    type: 'verb',
+    infinitive: 'bestellen',
+    arabic: 'يطلب (طعام/شيء)',
+    conjugation: {
+      ich: 'bestelle',
+      du: 'bestellst',
+      er: 'bestellt',
+      wir: 'bestellen',
+      ihr: 'bestellt',
+      sie_pl: 'bestellen',
+      präteritum: 'bestellte',
+      perfekt: 'hat bestellt',
+      aux: 'haben'
+    },
+    example: 'Wir bestellen Pizza.',
+    exampleAr: 'نطلب بيتزا.'
+  },
+  {
+    id: 'v-extra-387',
+    type: 'verb',
+    infinitive: 'putzen',
+    arabic: 'ينظف',
+    conjugation: {
+      ich: 'putze',
+      du: 'putzt',
+      er: 'putzt',
+      wir: 'putzen',
+      ihr: 'putzt',
+      sie_pl: 'putzen',
+      präteritum: 'putzte',
+      perfekt: 'hat geputzt',
+      aux: 'haben'
+    },
+    example: 'Ich putze die Wohnung am Samstag.',
+    exampleAr: 'أنظف الشقة يوم السبت.'
+  },
+  {
+    id: 'v-extra-388',
+    type: 'verb',
+    infinitive: 'ankommen',
+    arabic: 'يصل',
+    conjugation: {
+      ich: 'komme an',
+      du: 'kommst an',
+      er: 'kommt an',
+      wir: 'kommen an',
+      ihr: 'kommt an',
+      sie_pl: 'kommen an',
+      präteritum: 'kam an',
+      perfekt: 'ist angekommen',
+      aux: 'sein'
+    },
+    example: 'Der Zug kommt pünktlich an.',
+    exampleAr: 'القطار يصل في الوقت المحدد.'
+  },
+  {
+    id: 'v-extra-389',
+    type: 'verb',
+    infinitive: 'bleiben',
+    arabic: 'يبقى',
+    conjugation: {
+      ich: 'bleibe',
+      du: 'bleibst',
+      er: 'bleibt',
+      wir: 'bleiben',
+      ihr: 'bleibt',
+      sie_pl: 'bleiben',
+      präteritum: 'blieb',
+      perfekt: 'ist geblieben',
+      aux: 'sein'
+    },
+    example: 'Ich bleibe zu Hause.',
+    exampleAr: 'أبقى في المنزل.'
+  },
+  {
+    id: 'v-extra-390',
+    type: 'noun',
+    german: 'Apotheke',
+    article: 'die',
+    plural: 'Apotheken',
+    arabic: 'صيدلية',
+    example: 'Die Apotheke ist um die Ecke.',
+    exampleAr: 'الصيدلية عند الزاوية.'
+  },
+  {
+    id: 'v-extra-391',
+    type: 'noun',
+    german: 'Bahnhof',
+    article: 'der',
+    plural: 'Bahnhöfe',
+    arabic: 'محطة قطار',
+    example: 'Der Bahnhof ist groß und modern.',
+    exampleAr: 'محطة القطار كبيرة وحديثة.'
+  },
+  {
+    id: 'v-extra-392',
+    type: 'noun',
+    german: 'Krankenhaus',
+    article: 'das',
+    plural: 'Krankenhäuser',
+    arabic: 'مستشفى',
+    example: 'Das Krankenhaus ist in der Nähe.',
+    exampleAr: 'المستشفى قريب.'
+  },
+  {
+    id: 'v-extra-393',
+    type: 'noun',
+    german: 'Polizei',
+    article: 'die',
+    plural: 'Polizeien',
+    arabic: 'شرطة',
+    example: 'Die Polizei hilft bei Unfällen.',
+    exampleAr: 'الشرطة تساعد في الحوادث.'
+  },
+  {
+    id: 'v-extra-394',
+    type: 'noun',
+    german: 'Restaurant',
+    article: 'das',
+    plural: 'Restaurants',
+    arabic: 'مطعم',
+    example: 'Wir gehen ins Restaurant.',
+    exampleAr: 'نذهب إلى المطعم.'
+  },
+  {
+    id: 'v-extra-395',
+    type: 'noun',
+    german: 'Supermarkt',
+    article: 'der',
+    plural: 'Supermärkte',
+    arabic: 'سوبرماركت',
+    example: 'Der Supermarkt hat heute geöffnet.',
+    exampleAr: 'السوبرماركت مفتوح اليوم.'
+  },
+  {
+    id: 'v-extra-396',
+    type: 'noun',
+    german: 'Bibliothek',
+    article: 'die',
+    plural: 'Bibliotheken',
+    arabic: 'مكتبة',
+    example: 'In der Bibliothek ist es ruhig.',
+    exampleAr: 'في المكتبة هادئ.'
+  },
+  {
+    id: 'v-extra-397',
+    type: 'noun',
+    german: 'Küche',
+    article: 'die',
+    plural: 'Küchen',
+    arabic: 'مطبخ',
+    example: 'Die Küche ist sauber.',
+    exampleAr: 'المطبخ نظيف.'
+  },
+  {
+    id: 'v-extra-398',
+    type: 'noun',
+    german: 'Wohnzimmer',
+    article: 'das',
+    plural: 'Wohnzimmer',
+    arabic: 'غرفة المعيشة',
+    example: 'Im Wohnzimmer steht ein Sofa.',
+    exampleAr: 'في غرفة المعيشة يوجد أريكة.'
+  },
+  {
+    id: 'v-extra-399',
+    type: 'noun',
+    german: 'Garten',
+    article: 'der',
+    plural: 'Gärten',
+    arabic: 'حديقة',
+    example: 'Der Garten ist voller Blumen.',
+    exampleAr: 'الحديقة مليئة بالزهور.'
+  },
 ];

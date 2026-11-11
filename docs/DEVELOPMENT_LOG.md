@@ -185,3 +185,16 @@
 - Re-ran tests: PASS (180 unique IDs, präteritum and article:'der' present).
 - Preview: no dedicated web preview server/port in package.json (Flutter/Android primary); content structure validated by tests. Auth/DB kept OFF.
 - Priority: stability > content correctness > learning system.
+
+## 2026-11-11 01:08 UTC — Scheduled hourly Grok Build session
+
+- Read AGENTS.md and project instructions: Auth/DB remain OFF; offline content only; directed pair rules respected.
+- Cloned moaz76943-creator/deutsch-build. Ran `npm test` (test-vocab-extra.js): PASS (180 unique IDs initially).
+- No FAIL tests. No crash bugs found in content validation.
+- Added 20 new A1/A2 items to `src/lib/deutsch/content/vocab-extra.ts` (ids v-extra-380 .. v-extra-399):
+  - Verbs with full conjugation (ich/du/er/wir/ihr/sie_pl + Präteritum + Perfekt + aux): kochen, backen, feiern, heiraten, umziehen (separable, sein), einladen (separable), bestellen, putzen, ankommen (separable, sein), bleiben (sein)
+  - Nouns with article (der/die/das) + plural + natural DE example + AR translation: Apotheke, Bahnhof, Krankenhaus, Polizei, Restaurant, Supermarkt, Bibliothek, Küche, Wohnzimmer, Garten
+- No id collisions. Minimal safe append. No deletions of existing items.
+- Re-ran tests: PASS (200 unique IDs, präteritum and article:'der' present).
+- Preview: no dedicated web preview server/port in package.json (Flutter/Android primary); content structure validated by tests. Auth/DB kept OFF.
+- Priority: stability > content correctness > learning system.
