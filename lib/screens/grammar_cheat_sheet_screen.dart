@@ -37,30 +37,36 @@ class GrammarCheatSheetScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: ListView.builder(
+              // Performance: bound pre-build area; disable keep-alives for short static lists
+              // to reduce memory. RepaintBoundary isolates glass card overpaint.
+              cacheExtent: 300,
+              addAutomaticKeepAlives: false,
               itemCount: rules.length,
               itemBuilder: (context, index) {
                 final rule = rules[index];
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: AppBaseGlassCard(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          rule['title']!,
-                          style: const TextStyle(
-                              color: Color(0xFF38BDF8),
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          rule['desc']!,
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 14),
-                        ),
-                      ],
+                return RepaintBoundary(
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: AppBaseGlassCard(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            rule['title']!,
+                            style: const TextStyle(
+                                color: Color(0xFF38BDF8),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            rule['desc']!,
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 14),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
