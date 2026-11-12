@@ -1,10 +1,10 @@
 {
-  "lastCompletedTaskId": 4937,
-  "lastCompletedTaskName": "German Appositive Case Agreement & Loose vs. Close Appositions Engine",
+  "lastCompletedTaskId": 4938,
+  "lastCompletedTaskName": "German Sentential Relative Clauses & Continuative Connectors Engine",
   "volume": 116,
-  "subsystem": 1771,
-  "timestamp": "2026-11-11T12:00:00Z",
-  "remainingTasksTo5000": 63,
+  "subsystem": 1772,
+  "timestamp": "2026-11-11T20:05:00Z",
+  "remainingTasksTo5000": 62,
   "status": "HEALTHY_SYNCHRONIZED",
   "compliance": {
     "zeroPii": true,
