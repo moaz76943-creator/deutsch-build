@@ -22,19 +22,20 @@ class DataIntegritySigner {
 
     // Check for approved key
     final keyId = manifest['keyId'];
-    if (keyId != approvedTrustedKey) return false;
+    if (keyId is! String || keyId != approvedTrustedKey) return false;
 
     // Check for required algorithm metadata
     final algorithm = manifest['algorithm'];
-    if (algorithm != 'fnv1a') return false;
+    if (algorithm is! String || algorithm != 'fnv1a') return false;
 
     // Check for required hash
     final expectedHash = manifest['hash'];
-    if (expectedHash == null || expectedHash is! int) return false;
+    if (expectedHash is! int) return false;
 
     // Check expiration if present
     final expiresAt = manifest['expiresAt'];
-    if (expiresAt != null && expiresAt is int) {
+    if (expiresAt != null) {
+      if (expiresAt is! int) return false;
       final now = DateTime.now().millisecondsSinceEpoch;
       if (now > expiresAt) {
         return false;

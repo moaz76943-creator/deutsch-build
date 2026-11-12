@@ -29,8 +29,8 @@ class OfflineGate {
     }
   }
 
-  static bool authorizeUserDownload(bool explicitConsent) {
-    if (explicitConsent) {
+  static bool authorizeUserDownload(bool explicitConsent, {DownloadCapability? capability}) {
+    if (explicitConsent && capability != null && !capability.isExpired) {
       return true;
     }
     return false;
