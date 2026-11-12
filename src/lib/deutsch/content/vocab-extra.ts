@@ -3573,5 +3573,295 @@ export const vocabExtra = [
     example: 'Die Nacht ist dunkel.',
     exampleAr: 'الليل مظلم.'
   },
+// === Session 2026-11-12 13:06 +03: new A1/A2 batch ===
+  {
+    id: 'v-extra-440',
+    type: 'verb',
+    infinitive: 'sprechen',
+    arabic: 'يتكلم / يتحدث',
+    conjugation: {
+      ich: 'spreche',
+      du: 'sprichst',
+      er: 'spricht',
+      wir: 'sprechen',
+      ihr: 'sprecht',
+      sie_pl: 'sprechen',
+      präteritum: 'sprach',
+      perfekt: 'hat gesprochen',
+      aux: 'haben'
+    },
+    example: 'Ich spreche Deutsch.',
+    exampleAr: 'أنا أتكلم الألمانية.'
+  },
+  {
+    id: 'v-extra-441',
+    type: 'verb',
+    infinitive: 'hören',
+    arabic: 'يسمع',
+    conjugation: {
+      ich: 'höre',
+      du: 'hörst',
+      er: 'hört',
+      wir: 'hören',
+      ihr: 'hört',
+      sie_pl: 'hören',
+      präteritum: 'hörte',
+      perfekt: 'hat gehört',
+      aux: 'haben'
+    },
+    example: 'Ich höre Musik.',
+    exampleAr: 'أنا أسمع موسيقى.'
+  },
+  {
+    id: 'v-extra-442',
+    type: 'verb',
+    infinitive: 'sehen',
+    arabic: 'يرى',
+    conjugation: {
+      ich: 'sehe',
+      du: 'siehst',
+      er: 'sieht',
+      wir: 'sehen',
+      ihr: 'seht',
+      sie_pl: 'sehen',
+      präteritum: 'sah',
+      perfekt: 'hat gesehen',
+      aux: 'haben'
+    },
+    example: 'Ich sehe den Film.',
+    exampleAr: 'أنا أرى الفيلم.'
+  },
+  {
+    id: 'v-extra-443',
+    type: 'verb',
+    infinitive: 'geben',
+    arabic: 'يعطي',
+    conjugation: {
+      ich: 'gebe',
+      du: 'gibst',
+      er: 'gibt',
+      wir: 'geben',
+      ihr: 'gebt',
+      sie_pl: 'geben',
+      präteritum: 'gab',
+      perfekt: 'hat gegeben',
+      aux: 'haben'
+    },
+    example: 'Ich gebe dir das Buch.',
+    exampleAr: 'أعطيك الكتاب.'
+  },
+  {
+    id: 'v-extra-444',
+    type: 'verb',
+    infinitive: 'nehmen',
+    arabic: 'يأخذ',
+    conjugation: {
+      ich: 'nehme',
+      du: 'nimmst',
+      er: 'nimmt',
+      wir: 'nehmen',
+      ihr: 'nehmt',
+      sie_pl: 'nehmen',
+      präteritum: 'nahm',
+      perfekt: 'hat genommen',
+      aux: 'haben'
+    },
+    example: 'Ich nehme den Bus.',
+    exampleAr: 'آخذ الحافلة.'
+  },
+  {
+    id: 'v-extra-445',
+    type: 'verb',
+    infinitive: 'finden',
+    arabic: 'يجد',
+    conjugation: {
+      ich: 'finde',
+      du: 'findest',
+      er: 'findet',
+      wir: 'finden',
+      ihr: 'findet',
+      sie_pl: 'finden',
+      präteritum: 'fand',
+      perfekt: 'hat gefunden',
+      aux: 'haben'
+    },
+    example: 'Ich finde meinen Schlüssel.',
+    exampleAr: 'أجد مفتاحي.'
+  },
+  {
+    id: 'v-extra-446',
+    type: 'verb',
+    infinitive: 'denken',
+    arabic: 'يفكر',
+    conjugation: {
+      ich: 'denke',
+      du: 'denkst',
+      er: 'denkt',
+      wir: 'denken',
+      ihr: 'denkt',
+      sie_pl: 'denken',
+      präteritum: 'dachte',
+      perfekt: 'hat gedacht',
+      aux: 'haben'
+    },
+    example: 'Ich denke an dich.',
+    exampleAr: 'أفكر فيك.'
+  },
+  {
+    id: 'v-extra-447',
+    type: 'verb',
+    infinitive: 'fragen',
+    arabic: 'يسأل',
+    conjugation: {
+      ich: 'frage',
+      du: 'fragst',
+      er: 'fragt',
+      wir: 'fragen',
+      ihr: 'fragt',
+      sie_pl: 'fragen',
+      präteritum: 'fragte',
+      perfekt: 'hat gefragt',
+      aux: 'haben'
+    },
+    example: 'Ich frage den Lehrer.',
+    exampleAr: 'أسأل المعلم.'
+  },
+  {
+    id: 'v-extra-448',
+    type: 'verb',
+    infinitive: 'antworten',
+    arabic: 'يجيب',
+    conjugation: {
+      ich: 'antworte',
+      du: 'antwortest',
+      er: 'antwortet',
+      wir: 'antworten',
+      ihr: 'antwortet',
+      sie_pl: 'antworten',
+      präteritum: 'antwortete',
+      perfekt: 'hat geantwortet',
+      aux: 'haben'
+    },
+    example: 'Ich antworte auf die Frage.',
+    exampleAr: 'أجيب على السؤال.'
+  },
+  {
+    id: 'v-extra-449',
+    type: 'verb',
+    infinitive: 'schreiben',
+    arabic: 'يكتب',
+    conjugation: {
+      ich: 'schreibe',
+      du: 'schreibst',
+      er: 'schreibt',
+      wir: 'schreiben',
+      ihr: 'schreibt',
+      sie_pl: 'schreiben',
+      präteritum: 'schrieb',
+      perfekt: 'hat geschrieben',
+      aux: 'haben'
+    },
+    example: 'Ich schreibe einen Brief.',
+    exampleAr: 'أكتب رسالة.'
+  },
+  {
+    id: 'v-extra-450',
+    type: 'noun',
+    german: 'Haus',
+    article: 'das',
+    plural: 'Häuser',
+    arabic: 'بيت / منزل',
+    example: 'Das Haus ist groß.',
+    exampleAr: 'البيت كبير.'
+  },
+  {
+    id: 'v-extra-451',
+    type: 'noun',
+    german: 'Tisch',
+    article: 'der',
+    plural: 'Tische',
+    arabic: 'طاولة',
+    example: 'Der Tisch ist rund.',
+    exampleAr: 'الطاولة مستديرة.'
+  },
+  {
+    id: 'v-extra-452',
+    type: 'noun',
+    german: 'Stuhl',
+    article: 'der',
+    plural: 'Stühle',
+    arabic: 'كرسي',
+    example: 'Der Stuhl ist bequem.',
+    exampleAr: 'الكرسي مريح.'
+  },
+  {
+    id: 'v-extra-453',
+    type: 'noun',
+    german: 'Fenster',
+    article: 'das',
+    plural: 'Fenster',
+    arabic: 'نافذة',
+    example: 'Das Fenster ist offen.',
+    exampleAr: 'النافذة مفتوحة.'
+  },
+  {
+    id: 'v-extra-454',
+    type: 'noun',
+    german: 'Tür',
+    article: 'die',
+    plural: 'Türen',
+    arabic: 'باب',
+    example: 'Die Tür ist geschlossen.',
+    exampleAr: 'الباب مغلق.'
+  },
+  {
+    id: 'v-extra-455',
+    type: 'noun',
+    german: 'Mutter',
+    article: 'die',
+    plural: 'Mütter',
+    arabic: 'أم',
+    example: 'Meine Mutter kocht gut.',
+    exampleAr: 'أمي تطبخ جيداً.'
+  },
+  {
+    id: 'v-extra-456',
+    type: 'noun',
+    german: 'Vater',
+    article: 'der',
+    plural: 'Väter',
+    arabic: 'أب',
+    example: 'Mein Vater arbeitet viel.',
+    exampleAr: 'أبي يعمل كثيراً.'
+  },
+  {
+    id: 'v-extra-457',
+    type: 'noun',
+    german: 'Kind',
+    article: 'das',
+    plural: 'Kinder',
+    arabic: 'طفل',
+    example: 'Das Kind spielt im Garten.',
+    exampleAr: 'الطفل يلعب في الحديقة.'
+  },
+  {
+    id: 'v-extra-458',
+    type: 'noun',
+    german: 'Hund',
+    article: 'der',
+    plural: 'Hunde',
+    arabic: 'كلب',
+    example: 'Der Hund bellt laut.',
+    exampleAr: 'الكلب ينبح بصوت عالٍ.'
+  },
+  {
+    id: 'v-extra-459',
+    type: 'noun',
+    german: 'Katze',
+    article: 'die',
+    plural: 'Katzen',
+    arabic: 'قطة',
+    example: 'Die Katze schläft.',
+    exampleAr: 'القطة تنام.'
+  },
 ];
-
