@@ -1,51 +1,88 @@
 # Architecture Improvements for Deutsch بالعربي
 
 ## Current State Review
-- Flutter offline-first app using Riverpod, sqflite, SharedPreferences.
-- Feature folders exist but mixed with top-level screens/, providers/, services/.
-- Complex bootstrap pipeline in main.dart for resilience and integrity (good for security).
-- Recent performance wins on ListViews (cacheExtent + addAutomaticKeepAlives: false).
-- Many GitHub Actions workflows; some disabled. High automation but potential complexity.
-- Security focus: offline-first, integrity checks, secure storage.
+- Flutter app with Riverpod for state/DI.
+- Layers: features/, domain/, data/, core/, infrastructure/ present but mixed with many specialized "agent" and system modules.
+- Complex bootstrap in main.dart for resilience (good for security/reliability).
+- Offline-first, privacy-focused (SharedPreferences, secure storage, local DB).
+- Extensive CI/CD with GitHub Actions for builds, security audits, performance guards.
 
-## Key Principles for Speed, Quality, Ease of Development
-1. **Feature-first modularization** (not layer-first at top level) — reduces merge conflicts, speeds onboarding.
-2. **Clean Architecture + MVVM** with Riverpod:
-   - Domain: pure Dart entities, use cases, repository interfaces.
-   - Data: implementations, local sources.
-   - Presentation: ViewModels (Notifiers), UI (widgets).
-3. **Dependency Injection**: Riverpod providers with overrideWith for testability. Avoid globals.
-4. **Unidirectional Data Flow**: state down, events up.
-5. **Performance**: const widgets, ListView.builder + cacheExtent + !keepAlives for pure items, compute() for heavy work, baseline profiles.
-6. **Testing**: unit for domain/use cases, widget for UI, golden where visual contracts matter. CI gates on coverage/lint.
-7. **CI/CD**: simplify workflows, use fastlane or codemagic for Play releases (already have codemagic.yaml), signed AAB, staged rollouts.
-8. **Security**: keep integrity deferred, no sensitive data in logs, use flutter_secure_storage, ProGuard/R8, no data leaks in error widgets.
+## Key Issues for Speed, Quality, Ease of Development
+1. **Modularization**: Feature folders exist but coupling via core/agents and global providers can slow builds and development. Feature modules should be self-contained.
+2. **Clean Architecture**: Aim for strict UI -> ViewModel (Riverpod Notifier) -> UseCase/Domain -> Repository -> DataSource.
+3. **DI**: Riverpod is good; prefer Provider/Notifier over global singletons. Use overrides for testing.
+4. **Testing**: Expand unit tests for ViewModels and repositories; golden tests for UI; integration for offline flows.
+5. **CI/CD**: Already strong; add automated Play Console upload via fastlane or GitHub Actions with service account (keep secrets secure).
+6. **Performance**: Already has image cache tuning, memory pressure handling. Add more: deferred loading for features, const widgets, RepaintBoundary, isolate for heavy DB/content.
+7. **Security**: Maintain anti-tampering (Play Integrity if online checks needed, but offline-first), obfuscation (R8/ProGuard already), EncryptedSharedPreferences or secure storage for sensitive, no hard-coded secrets. Keep bootstrap gates.
 
-## Prioritized Action Plan (Continuous Improvement)
-### P0 - Immediate (this run + next)
-- [x] Document architecture (this file).
-- [ ] Resolve any remaining merge conflicts in screens.
-- [ ] Apply ListView opts to all dynamic lists.
-- [ ] Introduce feature module template.
+## Prioritized Action Plan
+1. **(This run) Modularize one feature + example Clean layering with Riverpod.**
+2. Extract common domain models/interfaces to domain/.
+3. Add comprehensive unit tests for critical paths (SRS, progress).
+4. Optimize startup further by lazy feature loading.
+5. Strengthen security: certificate pinning if any network, integrity checks.
+6. Automate signed AAB upload to Play internal track.
+7. Continuous: static analysis (already has?), coverage thresholds.
 
-### P1 - Short term (1-2 weeks)
-- Refactor one feature (e.g. onboarding or flashcards) to full Clean + Riverpod Notifier.
-- Add go_router for declarative navigation + deep links.
-- Set up Melos for future multi-package if needed.
-- Expand unit tests for core engines (SRS, etc.).
+## Concrete Example: Feature Module Structure (e.g., for flashcards)
 
-### P2 - Medium
-- Full modularization: move screens into features/*/presentation.
-- Baseline profile generation via Macrobenchmark.
-- CI: reduce workflow count, add architecture lint (custom_lint already present).
-- Play release pipeline hardening (versioning, changelog, privacy).
+### domain/flashcards/
+```dart
+// entities/card.dart
+class FlashCard {
+  final String id;
+  final String front;
+  final String back;
+  // ...
+}
 
-### P3 - Ongoing
-- Performance profiling sessions.
-- Security audits (tamper resistance, data leak prevention).
-- Developer experience: Makefile targets, hot-reload friendly structure.
+// repositories/flashcard_repository.dart
+abstract class FlashcardRepository {
+  Future<List<FlashCard>> getDueCards();
+  Future<void> review(String id, bool known);
+}
+```
 
-## Concrete Example: Feature Module Structure (implemented as template)
-See `lib/features/_scaffold/README.md` for the pattern to copy.
+### data/flashcards/
+```dart
+class FlashcardRepositoryImpl implements FlashcardRepository {
+  final Database db; // or sqflite
+  // impl
+}
+```
 
-This makes adding new features fast and consistent, improves testability, and keeps security boundaries clear (domain has no Flutter deps).
+### features/flashcards/presentation/
+```dart
+// flashcard_provider.dart
+final flashcardRepoProvider = Provider<FlashcardRepository>((ref) {
+  return FlashcardRepositoryImpl(/* inject */);
+});
+
+class FlashcardNotifier extends AsyncNotifier<List<FlashCard>> {
+  @override
+  Future<List<FlashCard>> build() async {
+    final repo = ref.read(flashcardRepoProvider);
+    return repo.getDueCards();
+  }
+
+  Future<void> review(String id, bool known) async {
+    // call repo, then refresh
+  }
+}
+
+final flashcardProvider = AsyncNotifierProvider<FlashcardNotifier, List<FlashCard>>(FlashcardNotifier.new);
+```
+
+### UI
+Use ConsumerWidget watching flashcardProvider.
+
+This keeps changes local, improves testability (override providers), and speeds development.
+
+## Security Notes
+- All data local; no leaks via logs or exports without user consent.
+- Bootstrap resilience prevents crash loops from damaging data.
+- Continue using flutter_secure_storage for any secrets.
+- ProGuard/R8 enabled for release.
+
+Next runs can implement the example for a real feature or add tests.
