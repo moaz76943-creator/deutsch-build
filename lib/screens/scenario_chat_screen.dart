@@ -61,52 +61,59 @@ class _ScenarioChatScreenState extends State<ScenarioChatScreen> {
                 Expanded(
                   child: ListView.builder(
                     itemCount: _scenarios.length,
+                    // Performance: bound pre-build area beyond viewport (default ~250 px).
+                    // Moderate value balances smoothness vs memory on glass scenario cards.
+                    cacheExtent: 300,
+                    // No keep-alives needed for static scenario list items.
+                    addAutomaticKeepAlives: false,
                     itemBuilder: (context, index) {
                       final item = _scenarios[index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 14),
-                        child: AppBaseGlassCard(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            children: <Widget>[
-                              Text(
-                                item['icon']!,
-                                style: const TextStyle(fontSize: 32),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Text(
-                                      item['title']!,
-                                      style: AppTypography.display.copyWith(color: Colors.white, fontSize: 18),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      item['subtitle']!,
-                                      style: AppTypography.body.copyWith(
-                                        color: Colors.white.withValues(alpha: 0.6),
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        item['level']!,
-                                        style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 11),
-                                      ),
-                                    ),
-                                  ],
+                      return RepaintBoundary(
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 14),
+                          child: AppBaseGlassCard(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: <Widget>[
+                                Text(
+                                  item['icon']!,
+                                  style: const TextStyle(fontSize: 32),
                                 ),
-                              ),
-                              const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white70, size: 18),
-                            ],
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Text(
+                                        item['title']!,
+                                        style: AppTypography.display.copyWith(color: Colors.white, fontSize: 18),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        item['subtitle']!,
+                                        style: AppTypography.body.copyWith(
+                                          color: Colors.white.withValues(alpha: 0.6),
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          item['level']!,
+                                          style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 11),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white70, size: 18),
+                              ],
+                            ),
                           ),
                         ),
                       );
