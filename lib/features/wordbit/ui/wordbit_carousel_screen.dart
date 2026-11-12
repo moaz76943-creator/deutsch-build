@@ -7,11 +7,15 @@ import '../../../core/audio/offline_audio_dispatcher.dart';
 import '../../../core/srs/bridge/srs_compat_bridge.dart';
 
 class WordBitCarouselScreen extends StatefulWidget {
+  final String? domainId;
   final String sourceLocale;
   final String targetLocale;
 
   const WordBitCarouselScreen(
-      {super.key, this.sourceLocale = 'ar-SA', this.targetLocale = 'de-DE'});
+      {super.key,
+      this.domainId,
+      this.sourceLocale = 'ar-SA',
+      this.targetLocale = 'de-DE'});
 
   @override
   State<WordBitCarouselScreen> createState() => _WordBitCarouselScreenState();
@@ -42,10 +46,12 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
   }
 
   void refreshCards() {
-    final entries = LexicalRepository.getEntriesForPair(
-      sourceLocale: widget.sourceLocale,
-      targetLocale: widget.targetLocale,
-    );
+    final entries = widget.domainId != null
+        ? LexicalRepository.getEntriesByDomain(widget.domainId!)
+        : LexicalRepository.getEntriesForPair(
+            sourceLocale: widget.sourceLocale,
+            targetLocale: widget.targetLocale,
+          );
 
     setState(() {
       _cards = entries
@@ -243,8 +249,8 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
                               size: 40,
                               semanticLabel: 'Concept illustration absent'),
                           const SizedBox(height: 8),
-                          Text(card.id,
-                              style: const TextStyle(
+                          const Text('صورة غير متوفرة',
+                              style: TextStyle(
                                   color: Colors.white38, fontSize: 10)),
                         ]))),
                 const SizedBox(height: 24),
