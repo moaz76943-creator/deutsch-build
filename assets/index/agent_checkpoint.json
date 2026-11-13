@@ -1,11 +1,11 @@
 {
-  "lastCompletedTaskId": 4956,
-  "lastCompletedTaskName": "German Evidentiality & Epistemic Modality Engine",
+  "lastCompletedTaskId": 4957,
+  "lastCompletedTaskName": "German Information Structure & Focus-Background Partitioning Engine",
   "volume": 116,
-  "subsystem": 1790,
-  "timestamp": "2026-11-12T14:15:00Z",
-  "remainingTasksTo5000": 44,
-  "weakestLinkDiagnosedAndResolved": "German Evidentiality & Epistemic Modality (sollen/wollen vs. scheinen/drohen/versprechen): Elimination of speaker-stance confusion and attribution errors in high-stakes engineering reports through 16 professional exemplars, confidence scoring, and infinitive aspect diagnostics (Infinitiv I vs. Infinitiv II Passiv).",
+  "subsystem": 1791,
+  "timestamp": "2026-11-12T17:25:00Z",
+  "remainingTasksTo5000": 43,
+  "weakestLinkDiagnosedAndResolved": "German Information Structure (Thema-Rhema-Gliederung & Nuklearakzent): Elimination of flat, unnatural intonation and rigid SVO word order in high-stakes engineering communication through 16 professional models, contrastive focus, I-Kontur bridge intonation, and topological given-before-new scrambling.",
   "status": "HEALTHY_SYNCHRONIZED",
   "compliance": {
     "zeroPii": true,
