@@ -1,11 +1,11 @@
 {
-  "lastCompletedTaskId": 4971,
-  "lastCompletedTaskName": "German Adjective & Noun Valency Governance Engine",
+  "lastCompletedTaskId": 4972,
+  "lastCompletedTaskName": "German Infinitival Adjunct Clauses & Subject-Identity Control Engine",
   "volume": 116,
-  "subsystem": 1805,
-  "timestamp": "2026-11-13T11:39:00Z",
-  "remainingTasksTo5000": 29,
-  "weakestLinkDiagnosedAndResolved": "German Adjective & Noun Valency Governance (Rektion der Adjektive & Substantive: überlegen/abträglich + Dativ, bedürftig/mächtig + Genitiv, anfällig für, frei von, resistent gegen, Bedarf an, Abhängigkeit von, attributive Voranstellung): Elimination of English prepositional interference (*Bedarf für, *überlegen als) and misordered attributive complements through 16 professional engineering models and automated syntactic guards.",
+  "subsystem": 1806,
+  "timestamp": "2026-11-13T12:08:00Z",
+  "remainingTasksTo5000": 28,
+  "weakestLinkDiagnosedAndResolved": "German Infinitival Adjunct Clauses (um... zu, ohne... zu, anstatt... zu, zu... um... zu, außer... zu vs. damit / ohne dass / anstatt dass): Elimination of dangling infinitives in impersonal passive sentences, subject-switch violations, and misplaced 'zu' in separable verbs through 16 professional engineering models and automated control guards.",
   "status": "HEALTHY_SYNCHRONIZED",
   "compliance": {
     "zeroPii": true,
