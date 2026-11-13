@@ -1,11 +1,11 @@
 {
-  "lastCompletedTaskId": 4946,
-  "lastCompletedTaskName": "German Verb Polysemy Rection Shifts & Semantic Divergence Engine",
+  "lastCompletedTaskId": 4947,
+  "lastCompletedTaskName": "German Correlative Connectors & Topological Asymmetry Engine",
   "volume": 116,
-  "subsystem": 1780,
-  "timestamp": "2026-11-12T04:12:00Z",
-  "remainingTasksTo5000": 54,
-  "weakestLinkDiagnosedAndResolved": "Verb-Preposition Rection Polysemy: Catastrophic meaning errors arising from prepositions shifting verb semantics (bestehen auf/aus/in, ankommen auf/in/bei, absehen von/auf, halten von/für/an)",
+  "subsystem": 1781,
+  "timestamp": "2026-11-12T05:33:00Z",
+  "remainingTasksTo5000": 53,
+  "weakestLinkDiagnosedAndResolved": "Zweiteilige Konnektoren Topologische Asymmetrie: Severe word-order errors in complex correlatives (inversion after noch, position 0 after oder, verb-final after je, and V2 after desto/umso)",
   "status": "HEALTHY_SYNCHRONIZED",
   "compliance": {
     "zeroPii": true,
