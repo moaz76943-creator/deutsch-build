@@ -1,11 +1,11 @@
 {
-  "lastCompletedTaskId": 4951,
-  "lastCompletedTaskName": "German Advanced Relative Clauses & Genitive Anaphora Engine",
+  "lastCompletedTaskId": 4952,
+  "lastCompletedTaskName": "German Infinitive Complementation & AcI Perception Syntax Engine",
   "volume": 116,
-  "subsystem": 1785,
-  "timestamp": "2026-11-12T09:37:00Z",
-  "remainingTasksTo5000": 49,
-  "weakestLinkDiagnosedAndResolved": "Fortgeschrittene Relativsätze & dessen/deren-Kongruenz: High-frequency error of falsely matching the relative pronoun with the subsequent possessed noun rather than the antecedent, and illegal article insertion after dessen/deren",
+  "subsystem": 1786,
+  "timestamp": "2026-11-12T10:37:00Z",
+  "remainingTasksTo5000": 48,
+  "weakestLinkDiagnosedAndResolved": "Infinitiv-Rektion & AcI-Syntax: Severe errors in inserting illegal 'zu' after perception/motion/lassen verbs (*sieht zu steigen), omitting 'zu' after control verbs, and missing Ersatzinfinitiv in Perfect tense",
   "status": "HEALTHY_SYNCHRONIZED",
   "compliance": {
     "zeroPii": true,
