@@ -1,11 +1,11 @@
 {
-  "lastCompletedTaskId": 4963,
-  "lastCompletedTaskName": "German Passive Paraphrases & Decausative Alternations Engine",
+  "lastCompletedTaskId": 4964,
+  "lastCompletedTaskName": "German Nominal Style & Functional Verb Complexes Deconstruction Engine",
   "volume": 116,
-  "subsystem": 1797,
-  "timestamp": "2026-11-12T22:04:00Z",
-  "remainingTasksTo5000": 37,
-  "weakestLinkDiagnosedAndResolved": "German Passive Paraphrases & Decausatives (Passiversatzformen: sich lassen + Infinitiv, sein + zu, Suffixe -bar/-lich, Funktionsverbgefüge): Elimination of monotonous passive repetition and transitivity errors in technical standards and patent descriptions through 16 professional engineering models, modal nuance disambiguation (necessity vs. possibility), and transitivity verification guards.",
+  "subsystem": 1798,
+  "timestamp": "2026-11-12T23:35:00Z",
+  "remainingTasksTo5000": 36,
+  "weakestLinkDiagnosedAndResolved": "German Nominal Style & Functional Verb Complexes (Nominalstil vs. Verbalstil, Funktionsverbgefüge Aktionsart & Präpositionale Rektion): Elimination of bureaucratic obscurity in technical manuals and incorrect prepositional rections (*in Beweis stellen statt unter Beweis stellen) through 16 professional engineering models, bidirectional verbal-nominal transformations, and Aktionsart classification (inchoative, durative, terminative).",
   "status": "HEALTHY_SYNCHRONIZED",
   "compliance": {
     "zeroPii": true,
