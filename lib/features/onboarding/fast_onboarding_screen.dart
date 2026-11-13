@@ -1,5 +1,6 @@
 import '../../screens/main_shell_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../screens/flashcards_screen.dart';
 import '../../screens/onboarding_screen.dart';
 import '../../services/database_service.dart';
@@ -73,40 +74,74 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return FutureBuilder<void>(
       future: _initFuture,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Scaffold(
-            backgroundColor: const Color(0xFF0F172A),
+            backgroundColor: colorScheme.surface,
             body: SafeArea(
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        'تعذر فتح سجل التقدّم المحلي.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      const SizedBox(height: 16),
-                      OutlinedButton(
-                        onPressed: _retry,
-                        child: const Text('إعادة المحاولة'),
-                      ),
-                    ],
+                  child: Semantics(
+                    label: 'تعذر فتح سجل التقدم. يمكنك إعادة المحاولة',
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: colorScheme.error,
+                          size: 48,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'تعذر فتح سجل التقدّم المحلي.',
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        FilledButton.icon(
+                          onPressed: _retry,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('إعادة المحاولة'),
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size(64, 48),
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           );
         }
-        return const Scaffold(
-          backgroundColor: Color(0xFF0F172A),
+
+        return Scaffold(
+          backgroundColor: colorScheme.surface,
           body: Center(
-            child: CircularProgressIndicator(color: Colors.blueAccent),
+            child: Semantics(
+              label: 'جارٍ تحميل التطبيق',
+              child: CircularProgressIndicator.adaptive(
+                backgroundColor: colorScheme.surfaceContainerHighest,
+                valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+              )
+                  .animate()
+                  .fadeIn(duration: 300.ms, curve: Curves.easeOut)
+                  .scale(
+                    begin: const Offset(0.8, 0.8),
+                    end: const Offset(1.0, 1.0),
+                    duration: 400.ms,
+                    curve: Curves.easeOutBack,
+                  ),
+            ),
           ),
         );
       },
