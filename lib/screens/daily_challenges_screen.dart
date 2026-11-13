@@ -106,64 +106,71 @@ class _DailyChallengesScreenState extends State<DailyChallengesScreen> {
                 const SizedBox(height: 12),
                 Expanded(
                   child: ListView.builder(
+                    // Performance: bound pre-build area beyond viewport (default ~250 px).
+                    // Moderate value balances smoothness vs memory on daily challenge cards.
+                    cacheExtent: 300,
+                    // Pure items; no need to keep alive off-screen state.
+                    addAutomaticKeepAlives: false,
                     itemCount: _challenges.length,
                     itemBuilder: (context, index) {
                       final item = _challenges[index];
                       final bool isDone = item['completed'] as bool;
 
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: AppBaseGlassCard(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            children: <Widget>[
-                              Text(
-                                item['icon']! as String,
-                                style: const TextStyle(fontSize: 28),
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Text(
-                                      item['title']! as String,
-                                      style: AppTypography.display.copyWith(
-                                        color: isDone ? Colors.white.withValues(alpha: 0.5) : Colors.white,
-                                        fontSize: 16,
-                                        decoration: isDone ? TextDecoration.lineThrough : null,
+                      return RepaintBoundary(
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          child: AppBaseGlassCard(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: <Widget>[
+                                Text(
+                                  item['icon']! as String,
+                                  style: const TextStyle(fontSize: 28),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Text(
+                                        item['title']! as String,
+                                        style: AppTypography.display.copyWith(
+                                          color: isDone ? Colors.white.withValues(alpha: 0.5) : Colors.white,
+                                          fontSize: 16,
+                                          decoration: isDone ? TextDecoration.lineThrough : null,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: <Widget>[
-                                        Text(
-                                          item['reward']! as String,
-                                          style: const TextStyle(color: Color(0xFF34D399), fontSize: 13, fontWeight: FontWeight.w600),
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Text(
-                                          '(${item['progress']})',
-                                          style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: <Widget>[
+                                          Text(
+                                            item['reward']! as String,
+                                            style: const TextStyle(color: Color(0xFF34D399), fontSize: 13, fontWeight: FontWeight.w600),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Text(
+                                            '(${item['progress']})',
+                                            style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: isDone ? const Color(0xFF34D399).withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: isDone ? const Color(0xFF34D399).withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
+                                  ),
+                                  child: Icon(
+                                    isDone ? Icons.check_rounded : Icons.radio_button_unchecked_rounded,
+                                    color: isDone ? const Color(0xFF34D399) : Colors.white54,
+                                    size: 20,
+                                  ),
                                 ),
-                                child: Icon(
-                                  isDone ? Icons.check_rounded : Icons.radio_button_unchecked_rounded,
-                                  color: isDone ? const Color(0xFF34D399) : Colors.white54,
-                                  size: 20,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       );
