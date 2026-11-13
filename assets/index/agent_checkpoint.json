@@ -1,11 +1,11 @@
 {
-  "lastCompletedTaskId": 4952,
-  "lastCompletedTaskName": "German Infinitive Complementation & AcI Perception Syntax Engine",
+  "lastCompletedTaskId": 4953,
+  "lastCompletedTaskName": "German Recipient Passive, Impersonal & Stative Voice Architecture Engine",
   "volume": 116,
-  "subsystem": 1786,
-  "timestamp": "2026-11-12T10:37:00Z",
-  "remainingTasksTo5000": 48,
-  "weakestLinkDiagnosedAndResolved": "Infinitiv-Rektion & AcI-Syntax: Severe errors in inserting illegal 'zu' after perception/motion/lassen verbs (*sieht zu steigen), omitting 'zu' after control verbs, and missing Ersatzinfinitiv in Perfect tense",
+  "subsystem": 1787,
+  "timestamp": "2026-11-12T11:47:00Z",
+  "remainingTasksTo5000": 47,
+  "weakestLinkDiagnosedAndResolved": "Rezipientenpassiv & Zustandspassiv: Widespread failure to recognize Dative-to-Nominative promotion with bekommen/erhalten, confusing patient Accusative retention, and mixing stative (sein) with dynamic (werden) passive",
   "status": "HEALTHY_SYNCHRONIZED",
   "compliance": {
     "zeroPii": true,
