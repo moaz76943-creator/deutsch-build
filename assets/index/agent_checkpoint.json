@@ -1,11 +1,11 @@
 {
-  "lastCompletedTaskId": 4947,
-  "lastCompletedTaskName": "German Correlative Connectors & Topological Asymmetry Engine",
+  "lastCompletedTaskId": 4948,
+  "lastCompletedTaskName": "German Participial Clauses, Dangling Modifiers & Subject Equivalence Engine",
   "volume": 116,
-  "subsystem": 1781,
-  "timestamp": "2026-11-12T05:33:00Z",
-  "remainingTasksTo5000": 53,
-  "weakestLinkDiagnosedAndResolved": "Zweiteilige Konnektoren Topologische Asymmetrie: Severe word-order errors in complex correlatives (inversion after noch, position 0 after oder, verb-final after je, and V2 after desto/umso)",
+  "subsystem": 1782,
+  "timestamp": "2026-11-12T06:59:00Z",
+  "remainingTasksTo5000": 52,
+  "weakestLinkDiagnosedAndResolved": "Partizipialkonstruktionen & Falscher Bezug (Dangling Modifiers): Pervasive syntactic breakdown where non-finite phrases detach from main clause subjects, confusing agents and matrix logic",
   "status": "HEALTHY_SYNCHRONIZED",
   "compliance": {
     "zeroPii": true,
