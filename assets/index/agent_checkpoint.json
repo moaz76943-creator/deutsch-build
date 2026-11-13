@@ -1,11 +1,11 @@
 {
-  "lastCompletedTaskId": 4943,
-  "lastCompletedTaskName": "German Weak Masculine Nouns & N-Declension Morphology Engine",
+  "lastCompletedTaskId": 4944,
+  "lastCompletedTaskName": "German Fluctuating Adjective Declension & Determiner-Governed Flexion Engine",
   "volume": 116,
-  "subsystem": 1777,
-  "timestamp": "2026-11-12T01:37:00Z",
-  "remainingTasksTo5000": 57,
-  "weakestLinkDiagnosedAndResolved": "Pervasive morphological error pattern in spoken and written German noun declension (N-Deklination, Schwache Substantive & Mischklasse)",
+  "subsystem": 1778,
+  "timestamp": "2026-11-12T02:30:00Z",
+  "remainingTasksTo5000": 56,
+  "weakestLinkDiagnosedAndResolved": "Schwankende Adjektivdeklination: Inconsistencies and high error rates in adjective endings after indefinite pronouns (sämtliche, viele, mehrere, allerlei, folgende)",
   "status": "HEALTHY_SYNCHRONIZED",
   "compliance": {
     "zeroPii": true,
