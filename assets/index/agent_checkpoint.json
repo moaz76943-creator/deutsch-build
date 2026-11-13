@@ -1,11 +1,11 @@
 {
-  "lastCompletedTaskId": 4961,
-  "lastCompletedTaskName": "German Extended Participial Attributes & Gerundive Modal Structures Engine",
+  "lastCompletedTaskId": 4963,
+  "lastCompletedTaskName": "German Passive Paraphrases & Decausative Alternations Engine",
   "volume": 116,
-  "subsystem": 1795,
-  "timestamp": "2026-11-12T20:35:00Z",
-  "remainingTasksTo5000": 39,
-  "weakestLinkDiagnosedAndResolved": "German Extended Participial Attributes & Gerundives (Erweiterte Partizipialkonstruktionen & Gerundiv 'zu + Partizip I'): Elimination of complex left-branching attribute bracket errors, transitivity violations in gerundive modal formation (müssen/können + Passiv), and case declension failures in technical DIN/ISO engineering documentation through 16 professional models and automated transformational grammar guards.",
+  "subsystem": 1797,
+  "timestamp": "2026-11-12T22:04:00Z",
+  "remainingTasksTo5000": 37,
+  "weakestLinkDiagnosedAndResolved": "German Passive Paraphrases & Decausatives (Passiversatzformen: sich lassen + Infinitiv, sein + zu, Suffixe -bar/-lich, Funktionsverbgefüge): Elimination of monotonous passive repetition and transitivity errors in technical standards and patent descriptions through 16 professional engineering models, modal nuance disambiguation (necessity vs. possibility), and transitivity verification guards.",
   "status": "HEALTHY_SYNCHRONIZED",
   "compliance": {
     "zeroPii": true,
