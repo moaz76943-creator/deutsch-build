@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -34,36 +33,18 @@ void main() {
   tearDown(() async => db.close());
 
   group('Operational Snapshot Integrity - Data Safety', () {
-    test('export then restore preserves bookmarks and SRS-like records without leakage', () async {
+    test('export then restore preserves bookmarks and SRS records', () async {
       final vault = UserVaultSecurityService(
         cipher: FakeCipher(),
         openVaultDatabase: () async => db,
       );
 
-      // Use public bookmark API and raw putRecord for SRS-style progress
       await vault.putOperationalBookmark(
         bookmarkId: 'bookmark1',
         languageCode: 'ar',
         data: {'note': 'important', 'lang': 'ar'},
       );
 
-      // Seed an SRS-style record using the same key derivation pattern via putRecord
-      // (progress keys are hashed; export collects via catalog which bookmark API populates)
-      final srsPayload = jsonEncode({
-        'lexeme_id': 'arbeit',
-        'target_language_code': 'de',
-        'repetition_count': 3,
-        'interval_days': 7,
-        'ease_factor': 2.5,
-        'status': 'review',
-      });
-      // Direct put of the progress key used by operational layer
-      await vault.putRecord(
-        'progress/v1/srs/' + vault.hashForTest('de::arbeit'), // placeholder; real key is internal
-        Uint8List.fromList(utf8.encode(srsPayload)),
-      );
-
-      // Prefer the public increment path which also maintains catalog
       await vault.incrementOperationalSrs(
         lexemeId: 'arbeit',
         languageCode: 'de',
@@ -72,7 +53,6 @@ void main() {
 
       final snapshot = await vault.exportOperationalSnapshot();
       expect(snapshot['bookmarks']!.length, greaterThanOrEqualTo(1));
-      // SRS may appear if catalog was updated by increment
       expect(snapshot['srs']!.any((r) => r['lexeme_id'] == 'arbeit'), isTrue);
 
       final restored = await vault.restoreOperationalSnapshot(
@@ -81,11 +61,12 @@ void main() {
         incomingWins: (_, __) => true,
       );
 
-      expect(restored['inserted'] + restored['updated'], greaterThanOrEqualTo(0));
-      expect(restored['bookmarksInserted'] + restored['bookmarksUpdated'], greaterThanOrEqualTo(0));
+      expect(restored['inserted'] + (restored['updated'] ?? 0), greaterThanOrEqualTo(0));
+      expect(restored['bookmarksInserted'] + (restored['bookmarksUpdated'] ?? 0), greaterThanOrEqualTo(0));
 
       final after = await vault.exportOperationalSnapshot();
       expect(after['bookmarks']!.any((b) => b['id'] == 'bookmark1'), isTrue);
+      expect(after['srs']!.any((r) => r['lexeme_id'] == 'arbeit'), isTrue);
     });
 
     test('restore respects incomingWins=false and does not clobber local data', () async {
