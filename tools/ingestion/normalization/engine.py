@@ -31,7 +31,7 @@ class NormalizationEngine(J002CompilerContract):
         *range(0x202A, 0x202F), *range(0x2066, 0x206A)
     ))
     _ARABIC_MARKS = re.compile(
-        r"[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]"
+        r"[\u0610-\u061A\u0640\u064B-\u065F\u0670\u06D6-\u06ED]"
     )
     _HEBREW_MARKS = re.compile(r"[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]")
 

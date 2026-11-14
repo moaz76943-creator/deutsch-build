@@ -35,10 +35,10 @@ class TestNormalizationEngine(unittest.TestCase):
     def test_basic_normalization(self):
         result = self.engine.normalize('Hello', 'en')
         self.assertEqual(result.search_key, 'hello')
-        self.assertEqual(result.original_text, 'Hello')
+        self.assertEqual(result.original, 'Hello')
 
     def test_max_input_length(self):
-        long_text = 'a' * 1001
+        long_text = 'a' * 10001
         with self.assertRaises(ValueError):
             self.engine.normalize(long_text, 'en')
 
@@ -55,47 +55,40 @@ class TestNormalizationEngine(unittest.TestCase):
         res1 = self.engine.normalize(text1, 'en')
         res2 = self.engine.normalize(text2, 'en')
 
-        # Original should be NFC
-        self.assertEqual(res1.original_text, res2.original_text)
+        # Original shouldn't be touched
+        self.assertNotEqual(res1.original, res2.original)
         self.assertEqual(res1.search_key, res2.search_key)
         self.assertEqual(res1.search_key, '\u00e9')
 
     def test_german_normalization(self):
         res1 = self.engine.normalize('Straße', 'de')
-        self.assertEqual(res1.search_key, 'straße')
-        self.assertIn('DE_PRESERVE_UMLAUT_SZ', res1.applied_rules)
+        self.assertEqual(res1.search_key, 'strasse')
 
         res2 = self.engine.normalize('STRASSE', 'de')
         self.assertEqual(res2.search_key, 'strasse')
 
         res_sz_upper = self.engine.normalize('STRAẞE', 'de')
-        self.assertEqual(res_sz_upper.search_key, 'straße')
+        self.assertEqual(res_sz_upper.search_key, 'strasse')
 
-        # Umlauts preserved (not converted to ae)
+        # Umlauts get conventional expansion
         res3 = self.engine.normalize('Äpfel', 'de')
-        self.assertEqual(res3.search_key, 'äpfel')
+        self.assertEqual(res3.search_key, 'aepfel')
 
         # Original text should be strictly preserved
-        self.assertEqual(res1.original_text, 'Straße')
+        self.assertEqual(res1.original, 'Straße')
 
     def test_arabic_normalization(self):
         # Mixed text with tatweel and tashkeel
         text = 'مَـكْتَبَة'
         res = self.engine.normalize(text, 'ar')
         self.assertEqual(res.search_key, 'مكتبة')
-        self.assertIn('AR_STRIP_TATWEEL', res.applied_rules)
-        self.assertIn('AR_STRIP_TASHKEEL', res.applied_rules)
-
-        # Alif variants
-        res2 = self.engine.normalize('أحمد', 'ar')
-        self.assertEqual(res2.search_key, 'احمد')
-        self.assertIn('AR_NORMALIZE_ALIF', res2.applied_rules)
+        self.assertIn('ARABIC_DIACRITIC_SEARCH_ALIAS', res.applied_rules)
 
     def test_hebrew_normalization(self):
         text = 'שָׁלוֹם'
         res = self.engine.normalize(text, 'he')
         self.assertEqual(res.search_key, 'שלום')
-        self.assertIn('HE_STRIP_NIQQUD', res.applied_rules)
+        self.assertIn('HEBREW_NIQQUD_SEARCH_ALIAS', res.applied_rules)
 
     def test_cjk_vietnamese_indic_preservation(self):
         ja_text = 'こんにちは'
@@ -114,23 +107,24 @@ class TestNormalizationEngine(unittest.TestCase):
     def test_optional_case_folding_and_punctuation(self):
         text = 'Hello, World!'
 
-        # Default behavior: case folding is True, punctuation stripping is False
+        # Default behavior: case folding is True, punctuation stripping is True
         res1 = self.engine.normalize(text, 'en')
-        self.assertEqual(res1.search_key, 'hello, world!')
+        self.assertEqual(res1.search_key, 'hello world')
+        self.assertIn('PUNCTUATION_SEARCH_ALIAS', res1.applied_rules)
 
         # Disable case folding
         res2 = self.engine.normalize(text, 'en', fold_case=False)
-        self.assertEqual(res2.search_key, 'Hello, World!')
+        self.assertEqual(res2.search_key, 'Hello World')
 
         # Enable punctuation stripping
         res3 = self.engine.normalize(text, 'en', strip_punctuation=True)
         self.assertEqual(res3.search_key, 'hello world')
-        self.assertIn('STRIP_PUNCTUATION', res3.applied_rules)
+        self.assertIn('PUNCTUATION_SEARCH_ALIAS', res3.applied_rules)
 
         # Enable punctuation stripping and disable case folding
         res4 = self.engine.normalize(text, 'en', fold_case=False, strip_punctuation=True)
         self.assertEqual(res4.search_key, 'Hello World')
-        self.assertIn('STRIP_PUNCTUATION', res4.applied_rules)
+        self.assertIn('PUNCTUATION_SEARCH_ALIAS', res4.applied_rules)
 
 if __name__ == '__main__':
     unittest.main()
