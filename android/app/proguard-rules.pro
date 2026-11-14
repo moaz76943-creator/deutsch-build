@@ -46,3 +46,11 @@
 -keepclassmembers class * {
     @android.webkit.JavascriptInterface <methods>;
 }
+
+# Preserve plugins for GeneratedPluginRegistrant
+-keep class com.tundralabs.fluttertts.** { *; }
+-keep class eu.simonbinder.sqlite3_flutter_libs.** { *; }
+-keep class com.github.dart_lang.jni.** { *; }
+-keep class com.github.dart_lang.jni_flutter.** { *; }
+-keep class io.flutter.plugins.sharedpreferences.** { *; }
+-keep class io.flutter.plugins.urllauncher.** { *; }
