@@ -227,12 +227,16 @@ jobs:
 
           for path in native_files:
               text = read_text(path)
+              # tools:node="remove" declarations revoke a permission rather
+              # than grant it; the merged manifest therefore carries no network
+              # permission for the removal-listed entries.
+              effective_text = re.sub(r"<uses-permission\b[^>]*/>", "", text)
               rel = path.relative_to(root)
               for pattern, label in background_native_patterns:
-                  if re.search(pattern, text, re.IGNORECASE):
+                  if re.search(pattern, effective_text, re.IGNORECASE):
                       add("BACKGROUND", f"{rel}: {label}.")
               for pattern, label in network_native_patterns:
-                  if re.search(pattern, text, re.IGNORECASE):
+                  if re.search(pattern, effective_text, re.IGNORECASE):
                       add("OFFLINE-FIRST", f"{rel}: {label}.")
 
           gradle_files = sorted((root / "android").rglob("*.gradle")) if (root / "android").exists() else []

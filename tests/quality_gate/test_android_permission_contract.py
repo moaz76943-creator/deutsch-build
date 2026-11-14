@@ -16,6 +16,8 @@ FORBIDDEN_NETWORK_PERMISSIONS = {
     "android.permission.CHANGE_WIFI_STATE",
 }
 
+TOOLS_NS = "http://schemas.android.com/tools"
+
 
 def _manifest_root(path: Path) -> ET.Element:
     return ET.parse(path).getroot()
@@ -36,9 +38,19 @@ def _declared_permissions(path: Path) -> set[str]:
     }
 
 
+def _effective_permissions(path: Path) -> set[str]:
+    """Effective grants: tools:node="remove" revokes rather than granting."""
+    tools_node = f"{{{TOOLS_NS}}}node"
+    return {
+        node.attrib[ANDROID_NAME]
+        for node in _manifest_root(path).findall("uses-permission")
+        if ANDROID_NAME in node.attrib and node.attrib.get(tools_node) is None
+    }
+
+
 def test_offline_first_release_declares_no_network_permissions():
     for manifest in _release_manifest_paths():
-        declared = _declared_permissions(manifest)
+        declared = _effective_permissions(manifest)
         unexpected = declared & FORBIDDEN_NETWORK_PERMISSIONS
         assert not unexpected, (
             f"{manifest.relative_to(ROOT)} declares forbidden network permissions: "
@@ -47,7 +59,7 @@ def test_offline_first_release_declares_no_network_permissions():
 
 
 def test_pronunciation_microphone_permission_remains_explicit():
-    assert "android.permission.RECORD_AUDIO" in _declared_permissions(MAIN_MANIFEST)
+    assert "android.permission.RECORD_AUDIO" in _effective_permissions(MAIN_MANIFEST)
 
 
 def test_cleartext_traffic_is_disabled_semantically():

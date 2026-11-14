@@ -12,6 +12,7 @@ from security_topology import (
     assert_active_build_delivery_boundaries,
     effective_permissions,
     extract_braced_block,
+    granted_manifest_permissions,
     manifest_permissions,
     manifest_root,
 )
@@ -134,13 +135,11 @@ def test_android_manifest_and_root_window_are_fail_closed():
     main_permissions = manifest_permissions(MAIN_MANIFEST)
     release_permissions = manifest_permissions(RELEASE_MANIFEST)
 
-    granted = {
-        name for name, mode in main_permissions.items() if mode != "remove"
-    }
+    granted = granted_manifest_permissions(MAIN_MANIFEST)
     assert granted == {"android.permission.RECORD_AUDIO"}
-    assert "android.permission.INTERNET" not in main_permissions
-    assert "android.permission.POST_NOTIFICATIONS" not in main_permissions
-    assert "android.permission.INTERNET" not in release_permissions
+    assert "android.permission.INTERNET" not in granted
+    assert "android.permission.POST_NOTIFICATIONS" not in granted
+    assert "android.permission.INTERNET" not in granted_manifest_permissions(RELEASE_MANIFEST)
 
     notification_node = release_permissions.get("android.permission.POST_NOTIFICATIONS")
     if notification_node is not None:
