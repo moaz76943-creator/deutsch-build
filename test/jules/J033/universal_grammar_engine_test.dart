@@ -29,7 +29,7 @@ class TurkishGrammarProvider extends UniversalGrammarProvider {
       );
 
   @override
-  GrammaticalCase extractCase(String word) {
+  GrammaticalCase extractCase(String word, {String? context}) {
     if (word.endsWith('ı') || word.endsWith('i') || word.endsWith('u') || word.endsWith('ü')) {
       return GrammaticalCase.accusative;
     }
