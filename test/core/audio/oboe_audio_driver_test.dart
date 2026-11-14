@@ -1,6 +1,6 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/core/audio/oboe_audio_driver.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/core/audio/oboe_audio_driver.dart';
 
 class MockOboeBridge implements OboePlatformBridge {
   bool isOpen = false;

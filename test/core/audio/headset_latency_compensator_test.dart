@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/core/audio/headset_latency_compensator.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/core/audio/headset_latency_compensator.dart';
 
 void main() {
   group('HeadsetLatencyCompensator Tests', () {

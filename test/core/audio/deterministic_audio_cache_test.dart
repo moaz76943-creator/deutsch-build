@@ -1,6 +1,6 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/core/audio/deterministic_audio_cache.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/core/audio/deterministic_audio_cache.dart';
 
 void main() {
   group('DeterministicAudioCache Tests', () {
@@ -12,7 +12,7 @@ void main() {
       );
       final key2 = DeterministicAudioCache.deriveKey(
         text: 'Guten Tag ',
-        languageIso: 'DE',
+        languageIso: 'de',
         speed: 1.0,
       );
 
