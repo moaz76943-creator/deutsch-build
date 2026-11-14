@@ -1,0 +1,36 @@
+{
+  "language": {
+    "isoCode": "de",
+    "nativeName": "Deutsch",
+    "arabicName": "الألمانية",
+    "isRightToLeft": false
+  },
+  "units": [
+    {
+      "id": "json_de_daily_tech_01",
+      "languageCode": "de",
+      "level": "B2",
+      "domainId": "daily_life",
+      "categoryId": "internet_support",
+      "title": "الإبلاغ عن انقطاع الإنترنت المنزلي وإعادة ضبط الموجه",
+      "targetExpression": "den Router neu starten / die Leitung prüfen",
+      "contextualSentence": "„Seit heute Morgen blinkt die rote Leuchte am Router.“ – „Bitte starten Sie das Gerät einmal komplett neu, während ich von hier aus die Leitung prüfe.“",
+      "commonPitfall": "den Router wieder starten (الأدق: neu starten)",
+      "arabicExplanation": "لإعادة تشغيل الأجهزة التقنية في الألمانية نستخدم neu starten، وللتحقق من جودة الاتصال die Leitung prüfen.",
+      "tags": ["Alltag", "Technik", "B2"]
+    },
+    {
+      "id": "json_de_med_daily_01",
+      "languageCode": "de",
+      "level": "B1",
+      "domainId": "medicine",
+      "categoryId": "appointment_reschedule",
+      "title": "تعديل موعد المراجعة الطبية بأسلوب مهذب",
+      "targetExpression": "einen Termin verschieben / wahrnehmen",
+      "contextualSentence": "Guten Tag, leider kann ich meinen Kontrolltermin am Donnerstag nicht wahrnehmen; könnten wir ihn bitte auf nächste Woche verschieben?",
+      "commonPitfall": "einen Termin wechseln (الصحيح لتغيير الموعد: verschieben، ولحضوره: wahrnehmen)",
+      "arabicExplanation": "الفعل wahrnehmen يعني حضور الموعد في وقته، بينما verschieben يعني تأجيله أو نقله إلى وقت آخر.",
+      "tags": ["Medizin", "Alltag", "B1"]
+    }
+  ]
+}
