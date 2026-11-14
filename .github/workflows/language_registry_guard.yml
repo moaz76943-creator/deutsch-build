@@ -1,0 +1,58 @@
+name: Language Registry Guard
+
+# Cheap, dependency-free enforcement of the owner language policy:
+# exactly 100 registered languages, Hebrew permanently excluded, the generated
+# JSON registry in sync with the Dart catalog, and pack placeholders aligned.
+
+on:
+  pull_request:
+    paths:
+      - 'lib/core/i18n/canonical_language_catalog.dart'
+      - 'assets/registry/**'
+      - 'assets/languages/**'
+      - 'tools/polyglot/registry_sync.py'
+      - 'test/core/i18n/**'
+      - '.github/workflows/language_registry_guard.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'lib/core/i18n/canonical_language_catalog.dart'
+      - 'assets/registry/**'
+      - 'assets/languages/**'
+      - 'tools/polyglot/registry_sync.py'
+
+permissions:
+  contents: read
+
+jobs:
+  registry-policy:
+    name: Registry policy (100 languages, no Hebrew)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: '3.12'
+
+      - name: Validate canonical registry and generated artifact
+        shell: bash
+        run: python3 tools/polyglot/registry_sync.py --check
+
+      - name: Assert Hebrew exclusion in shipped assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          for excluded in he iw; do
+            if [ -e "assets/languages/${excluded}.json" ]; then
+              echo "::error::excluded language asset assets/languages/${excluded}.json is still shipped"
+              exit 1
+            fi
+          done
+          count=$(find assets/languages -maxdepth 1 -name '*.json' -type f | wc -l)
+          echo "Registered pack placeholders: ${count}"
+          test "${count}" -eq 100

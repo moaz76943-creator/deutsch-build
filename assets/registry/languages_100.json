@@ -1,0 +1,1634 @@
+{
+  "checksum": {
+    "algorithm": "sha256",
+    "scope": "payload-without-checksum",
+    "value": "ef04da5d49a91d694cafa9ff086d81f3842d3ef452a4c45d046f9ccbf8370255"
+  },
+  "languageCount": 100,
+  "languages": [
+    {
+      "bcp47": "af",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇿🇦",
+      "id": "af",
+      "nameAr": "الأفريقانية",
+      "nativeName": "Afrikaans",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "am",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇪🇹",
+      "id": "am",
+      "nameAr": "الأمهرية",
+      "nativeName": "አማርኛ",
+      "readiness": "registered",
+      "script": "Ethi"
+    },
+    {
+      "bcp47": "ar",
+      "capabilities": {
+        "hasFts5": true,
+        "hasGrammarEngine": true,
+        "hasLemmatization": true,
+        "hasOfflineTts": true
+      },
+      "direction": "rtl",
+      "flag": "🇸🇦",
+      "id": "ar",
+      "nameAr": "العربية",
+      "nativeName": "العربية",
+      "readiness": "productionReady",
+      "script": "Arab"
+    },
+    {
+      "bcp47": "az",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇦🇿",
+      "id": "az",
+      "nameAr": "الأذربيجانية",
+      "nativeName": "Azərbaycan",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "be",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇧🇾",
+      "id": "be",
+      "nameAr": "البيلاروسية",
+      "nativeName": "Беларуская",
+      "readiness": "registered",
+      "script": "Cyrl"
+    },
+    {
+      "bcp47": "bg",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇧🇬",
+      "id": "bg",
+      "nameAr": "البلغارية",
+      "nativeName": "Български",
+      "readiness": "registered",
+      "script": "Cyrl"
+    },
+    {
+      "bcp47": "bn",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇧🇩",
+      "id": "bn",
+      "nameAr": "البنغالية",
+      "nativeName": "বাংলা",
+      "readiness": "registered",
+      "script": "Beng"
+    },
+    {
+      "bcp47": "bs",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇧🇦",
+      "id": "bs",
+      "nameAr": "البوسنية",
+      "nativeName": "Bosanski",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "ca",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇪🇸",
+      "id": "ca",
+      "nameAr": "الكتالونية",
+      "nativeName": "Català",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "ceb",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇵🇭",
+      "id": "ceb",
+      "nameAr": "السيبوانية",
+      "nativeName": "Cebuano",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "co",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇫🇷",
+      "id": "co",
+      "nameAr": "الكورسيكية",
+      "nativeName": "Corsu",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "cs",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇨🇿",
+      "id": "cs",
+      "nameAr": "التشيكية",
+      "nativeName": "Čeština",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "cy",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇬🇧",
+      "id": "cy",
+      "nameAr": "الويلزية",
+      "nativeName": "Cymraeg",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "da",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇩🇰",
+      "id": "da",
+      "nameAr": "الدانماركية",
+      "nativeName": "Dansk",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "de",
+      "capabilities": {
+        "hasFts5": true,
+        "hasGrammarEngine": true,
+        "hasLemmatization": true,
+        "hasOfflineTts": true
+      },
+      "direction": "ltr",
+      "flag": "🇩🇪",
+      "id": "de",
+      "nameAr": "الألمانية",
+      "nativeName": "Deutsch",
+      "readiness": "productionReady",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "el",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇬🇷",
+      "id": "el",
+      "nameAr": "اليونانية",
+      "nativeName": "Ελληνικά",
+      "readiness": "registered",
+      "script": "Grek"
+    },
+    {
+      "bcp47": "en",
+      "capabilities": {
+        "hasFts5": true,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": true
+      },
+      "direction": "ltr",
+      "flag": "🇬🇧",
+      "id": "en",
+      "nameAr": "الإنجليزية",
+      "nativeName": "English",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "eo",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🌐",
+      "id": "eo",
+      "nameAr": "الإسبرانتو",
+      "nativeName": "Esperanto",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "es",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇪🇸",
+      "id": "es",
+      "nameAr": "الإسبانية",
+      "nativeName": "Español",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "et",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇪🇪",
+      "id": "et",
+      "nameAr": "الإستونية",
+      "nativeName": "Eesti",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "eu",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇪🇸",
+      "id": "eu",
+      "nameAr": "الباسكية",
+      "nativeName": "Euskara",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "fa",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "rtl",
+      "flag": "🇮🇷",
+      "id": "fa",
+      "nameAr": "الفارسية",
+      "nativeName": "فارسی",
+      "readiness": "registered",
+      "script": "Arab"
+    },
+    {
+      "bcp47": "fi",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇫🇮",
+      "id": "fi",
+      "nameAr": "الفنلندية",
+      "nativeName": "Suomi",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "fr",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇫🇷",
+      "id": "fr",
+      "nameAr": "الفرنسية",
+      "nativeName": "Français",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "fy",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇳🇱",
+      "id": "fy",
+      "nameAr": "الفريزية",
+      "nativeName": "Frysk",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "ga",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇮🇪",
+      "id": "ga",
+      "nameAr": "الأيرلندية",
+      "nativeName": "Gaeilge",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "gd",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇬🇧",
+      "id": "gd",
+      "nameAr": "الغيلية الإسكتلندية",
+      "nativeName": "Gàidhlig",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "gl",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇪🇸",
+      "id": "gl",
+      "nameAr": "الجاليكية",
+      "nativeName": "Galego",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "gu",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇮🇳",
+      "id": "gu",
+      "nameAr": "الغوجاراتية",
+      "nativeName": "ગુજરાતી",
+      "readiness": "registered",
+      "script": "Gujr"
+    },
+    {
+      "bcp47": "ha",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇳🇬",
+      "id": "ha",
+      "nameAr": "الهوسا",
+      "nativeName": "Hausa",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "haw",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇺🇸",
+      "id": "haw",
+      "nameAr": "الهاوايية",
+      "nativeName": "ʻŌlelo Hawaiʻi",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "hi",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇮🇳",
+      "id": "hi",
+      "nameAr": "الهندية",
+      "nativeName": "हिन्दी",
+      "readiness": "registered",
+      "script": "Deva"
+    },
+    {
+      "bcp47": "hr",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇭🇷",
+      "id": "hr",
+      "nameAr": "الكرواتية",
+      "nativeName": "Hrvatski",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "ht",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇭🇹",
+      "id": "ht",
+      "nameAr": "الكريولية الهايتية",
+      "nativeName": "Kreyòl ayisyen",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "hu",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇭🇺",
+      "id": "hu",
+      "nameAr": "المجرية",
+      "nativeName": "Magyar",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "hy",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇦🇲",
+      "id": "hy",
+      "nameAr": "الأرمنية",
+      "nativeName": "Հայերեն",
+      "readiness": "registered",
+      "script": "Armn"
+    },
+    {
+      "bcp47": "id",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇮🇩",
+      "id": "id",
+      "nameAr": "الإندونيسية",
+      "nativeName": "Bahasa Indonesia",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "ig",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇳🇬",
+      "id": "ig",
+      "nameAr": "الإيجبو",
+      "nativeName": "Igbo",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "is",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇮🇸",
+      "id": "is",
+      "nameAr": "الأيسلندية",
+      "nativeName": "Íslenska",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "it",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇮🇹",
+      "id": "it",
+      "nameAr": "الإيطالية",
+      "nativeName": "Italiano",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "ja",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇯🇵",
+      "id": "ja",
+      "nameAr": "اليابانية",
+      "nativeName": "日本語",
+      "readiness": "registered",
+      "script": "Jpan"
+    },
+    {
+      "bcp47": "jv",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇮🇩",
+      "id": "jv",
+      "nameAr": "الجاوية",
+      "nativeName": "Basa Jawa",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "ka",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇬🇪",
+      "id": "ka",
+      "nameAr": "الجورجية",
+      "nativeName": "ქართული",
+      "readiness": "registered",
+      "script": "Geor"
+    },
+    {
+      "bcp47": "kk",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇰🇿",
+      "id": "kk",
+      "nameAr": "الكازاخية",
+      "nativeName": "Қазақ",
+      "readiness": "registered",
+      "script": "Cyrl"
+    },
+    {
+      "bcp47": "km",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇰🇭",
+      "id": "km",
+      "nameAr": "الخميرية",
+      "nativeName": "ភាសាខ្មែរ",
+      "readiness": "registered",
+      "script": "Khmr"
+    },
+    {
+      "bcp47": "kn",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇮🇳",
+      "id": "kn",
+      "nameAr": "الكانادا",
+      "nativeName": "ಕನ್ನಡ",
+      "readiness": "registered",
+      "script": "Knda"
+    },
+    {
+      "bcp47": "ko",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇰🇷",
+      "id": "ko",
+      "nameAr": "الكورية",
+      "nativeName": "한국어",
+      "readiness": "registered",
+      "script": "Kore"
+    },
+    {
+      "bcp47": "ku",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "rtl",
+      "flag": "🇮🇶",
+      "id": "ku",
+      "nameAr": "الكردية",
+      "nativeName": "Kurdî",
+      "readiness": "registered",
+      "script": "Arab"
+    },
+    {
+      "bcp47": "ky",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇰🇬",
+      "id": "ky",
+      "nameAr": "القيرغيزية",
+      "nativeName": "Кыргызча",
+      "readiness": "registered",
+      "script": "Cyrl"
+    },
+    {
+      "bcp47": "la",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇻🇦",
+      "id": "la",
+      "nameAr": "اللاتينية",
+      "nativeName": "Latina",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "lb",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇱🇺",
+      "id": "lb",
+      "nameAr": "اللوكسمبورغية",
+      "nativeName": "Lëtzebuergesch",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "lo",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇱🇦",
+      "id": "lo",
+      "nameAr": "اللاوية",
+      "nativeName": "ພາສາລາວ",
+      "readiness": "registered",
+      "script": "Laoo"
+    },
+    {
+      "bcp47": "lt",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇱🇹",
+      "id": "lt",
+      "nameAr": "الليتوانية",
+      "nativeName": "Lietuvių",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "lv",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇱🇻",
+      "id": "lv",
+      "nameAr": "اللاتفية",
+      "nativeName": "Latviešu",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "mg",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇲🇬",
+      "id": "mg",
+      "nameAr": "الملغاشية",
+      "nativeName": "Malagasy",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "mi",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇳🇿",
+      "id": "mi",
+      "nameAr": "الماورية",
+      "nativeName": "Māori",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "mk",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇲🇰",
+      "id": "mk",
+      "nameAr": "المقدونية",
+      "nativeName": "Македонски",
+      "readiness": "registered",
+      "script": "Cyrl"
+    },
+    {
+      "bcp47": "ml",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇮🇳",
+      "id": "ml",
+      "nameAr": "المالايالامية",
+      "nativeName": "മലയാളം",
+      "readiness": "registered",
+      "script": "Mlym"
+    },
+    {
+      "bcp47": "mn",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇲🇳",
+      "id": "mn",
+      "nameAr": "المنغولية",
+      "nativeName": "Монгол",
+      "readiness": "registered",
+      "script": "Cyrl"
+    },
+    {
+      "bcp47": "mr",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇮🇳",
+      "id": "mr",
+      "nameAr": "الماراثية",
+      "nativeName": "मराठी",
+      "readiness": "registered",
+      "script": "Deva"
+    },
+    {
+      "bcp47": "ms",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇲🇾",
+      "id": "ms",
+      "nameAr": "الماليزية",
+      "nativeName": "Bahasa Melayu",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "mt",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇲🇹",
+      "id": "mt",
+      "nameAr": "المالطية",
+      "nativeName": "Malti",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "my",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇲🇲",
+      "id": "my",
+      "nameAr": "البورمية",
+      "nativeName": "မြန်မာ",
+      "readiness": "registered",
+      "script": "Mymr"
+    },
+    {
+      "bcp47": "ne",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇳🇵",
+      "id": "ne",
+      "nameAr": "النيبالية",
+      "nativeName": "नेपाली",
+      "readiness": "registered",
+      "script": "Deva"
+    },
+    {
+      "bcp47": "nl",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇳🇱",
+      "id": "nl",
+      "nameAr": "الهولندية",
+      "nativeName": "Nederlands",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "no",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇳🇴",
+      "id": "no",
+      "nameAr": "النرويجية",
+      "nativeName": "Norsk",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "pa",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇮🇳",
+      "id": "pa",
+      "nameAr": "البنجابية",
+      "nativeName": "ਪੰਜਾਬੀ",
+      "readiness": "registered",
+      "script": "Guru"
+    },
+    {
+      "bcp47": "pl",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇵🇱",
+      "id": "pl",
+      "nameAr": "البولندية",
+      "nativeName": "Polski",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "ps",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "rtl",
+      "flag": "🇦🇫",
+      "id": "ps",
+      "nameAr": "البشتو",
+      "nativeName": "پښتو",
+      "readiness": "registered",
+      "script": "Arab"
+    },
+    {
+      "bcp47": "pt",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇵🇹",
+      "id": "pt",
+      "nameAr": "البرتغالية",
+      "nativeName": "Português",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "ro",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇷🇴",
+      "id": "ro",
+      "nameAr": "الرومانية",
+      "nativeName": "Română",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "ru",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇷🇺",
+      "id": "ru",
+      "nameAr": "الروسية",
+      "nativeName": "Русский",
+      "readiness": "registered",
+      "script": "Cyrl"
+    },
+    {
+      "bcp47": "sd",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "rtl",
+      "flag": "🇵🇰",
+      "id": "sd",
+      "nameAr": "السندية",
+      "nativeName": "سنڌي",
+      "readiness": "registered",
+      "script": "Arab"
+    },
+    {
+      "bcp47": "si",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇱🇰",
+      "id": "si",
+      "nameAr": "السنهالية",
+      "nativeName": "සිංහල",
+      "readiness": "registered",
+      "script": "Sinh"
+    },
+    {
+      "bcp47": "sk",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇸🇰",
+      "id": "sk",
+      "nameAr": "السلوفاكية",
+      "nativeName": "Slovenčina",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "sl",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇸🇮",
+      "id": "sl",
+      "nameAr": "السلوفينية",
+      "nativeName": "Slovenščina",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "sm",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇼🇸",
+      "id": "sm",
+      "nameAr": "الساموية",
+      "nativeName": "Gagana Sāmoa",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "sn",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇿🇼",
+      "id": "sn",
+      "nameAr": "الشونا",
+      "nativeName": "chiShona",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "so",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇸🇴",
+      "id": "so",
+      "nameAr": "الصومالية",
+      "nativeName": "Soomaali",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "sq",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇦🇱",
+      "id": "sq",
+      "nameAr": "الألبانية",
+      "nativeName": "Shqip",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "sr",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇷🇸",
+      "id": "sr",
+      "nameAr": "الصربية",
+      "nativeName": "Српски",
+      "readiness": "registered",
+      "script": "Cyrl"
+    },
+    {
+      "bcp47": "su",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇮🇩",
+      "id": "su",
+      "nameAr": "السوندية",
+      "nativeName": "Basa Sunda",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "sv",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇸🇪",
+      "id": "sv",
+      "nameAr": "السويدية",
+      "nativeName": "Svenska",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "sw",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇰🇪",
+      "id": "sw",
+      "nameAr": "السواحيلية",
+      "nativeName": "Kiswahili",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "ta",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇮🇳",
+      "id": "ta",
+      "nameAr": "التاميلية",
+      "nativeName": "தமிழ்",
+      "readiness": "registered",
+      "script": "Taml"
+    },
+    {
+      "bcp47": "te",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇮🇳",
+      "id": "te",
+      "nameAr": "التيلوغوية",
+      "nativeName": "తెలుగు",
+      "readiness": "registered",
+      "script": "Telu"
+    },
+    {
+      "bcp47": "tg",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇹🇯",
+      "id": "tg",
+      "nameAr": "الطاجيكية",
+      "nativeName": "Тоҷикӣ",
+      "readiness": "registered",
+      "script": "Cyrl"
+    },
+    {
+      "bcp47": "th",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇹🇭",
+      "id": "th",
+      "nameAr": "التايلاندية",
+      "nativeName": "ไทย",
+      "readiness": "registered",
+      "script": "Thai"
+    },
+    {
+      "bcp47": "tl",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇵🇭",
+      "id": "tl",
+      "nameAr": "الفلبينية",
+      "nativeName": "Tagalog",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "tr",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇹🇷",
+      "id": "tr",
+      "nameAr": "التركية",
+      "nativeName": "Türkçe",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "tt",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇷🇺",
+      "id": "tt",
+      "nameAr": "التتارية",
+      "nativeName": "Татар",
+      "readiness": "registered",
+      "script": "Cyrl"
+    },
+    {
+      "bcp47": "uk",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇺🇦",
+      "id": "uk",
+      "nameAr": "الأوكرانية",
+      "nativeName": "Українська",
+      "readiness": "registered",
+      "script": "Cyrl"
+    },
+    {
+      "bcp47": "ur",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "rtl",
+      "flag": "🇵🇰",
+      "id": "ur",
+      "nameAr": "الأردية",
+      "nativeName": "اردو",
+      "readiness": "registered",
+      "script": "Arab"
+    },
+    {
+      "bcp47": "uz",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇺🇿",
+      "id": "uz",
+      "nameAr": "الأوزبكية",
+      "nativeName": "Oʻzbek",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "vi",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇻🇳",
+      "id": "vi",
+      "nameAr": "الفيتنامية",
+      "nativeName": "Tiếng Việt",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "xh",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇿🇦",
+      "id": "xh",
+      "nameAr": "الخوسية",
+      "nativeName": "isiXhosa",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "yi",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "rtl",
+      "flag": "🇮🇱",
+      "id": "yi",
+      "nameAr": "اليديشية",
+      "nativeName": "ייִדיש",
+      "readiness": "registered",
+      "script": "Hebr"
+    },
+    {
+      "bcp47": "yo",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇳🇬",
+      "id": "yo",
+      "nameAr": "اليوروبا",
+      "nativeName": "Yorùbá",
+      "readiness": "registered",
+      "script": "Latn"
+    },
+    {
+      "bcp47": "zh",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇨🇳",
+      "id": "zh",
+      "nameAr": "الصينية",
+      "nativeName": "中文",
+      "readiness": "registered",
+      "script": "Hans"
+    },
+    {
+      "bcp47": "zu",
+      "capabilities": {
+        "hasFts5": false,
+        "hasGrammarEngine": false,
+        "hasLemmatization": false,
+        "hasOfflineTts": false
+      },
+      "direction": "ltr",
+      "flag": "🇿🇦",
+      "id": "zu",
+      "nameAr": "الزولو",
+      "nativeName": "isiZulu",
+      "readiness": "registered",
+      "script": "Latn"
+    }
+  ],
+  "policy": {
+    "excludedLanguageIds": [
+      "he",
+      "iw"
+    ],
+    "generated": true,
+    "hebrewExcluded": true,
+    "registeredLanguageCount": 100,
+    "retiredPlaceholderNote": "Empty content-pack placeholders that were not part of the canonical registry. No vocabulary was lost; files remain recoverable from Git history and stay reserved as legacy identities.",
+    "retiredPlaceholderStubs": [
+      "fil",
+      "ny",
+      "om",
+      "rw",
+      "st",
+      "ti",
+      "tk",
+      "ug",
+      "wo"
+    ],
+    "sourceOfTruth": "lib/core/i18n/canonical_language_catalog.dart"
+  },
+  "registryId": "polyglot-languages-100",
+  "schemaVersion": 1
+}

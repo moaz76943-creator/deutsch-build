@@ -624,12 +624,15 @@ class CanonicalLanguageCatalog {
         hasFts5: false,
       ),
     ),
-    'he': CanonicalLanguageProfile(
-      bcp47: 'he',
-      nativeName: 'עברית',
-      nameAr: 'العبرية',
-      flag: '🇮🇱',
-      script: scripts['Hebr']!,
+    // Hebrew ('he') is permanently excluded from the supported registry by
+    // owner policy. Its slot is held by Haitian Creole so the registry keeps
+    // exactly 100 registered languages without a silent 99-count regression.
+    'ht': CanonicalLanguageProfile(
+      bcp47: 'ht',
+      nativeName: 'Kreyòl ayisyen',
+      nameAr: 'الكريولية الهايتية',
+      flag: '🇭🇹',
+      script: scripts['Latn']!,
       readiness: LanguageReadiness.registered,
       capabilities: LanguageCapabilities(
         hasOfflineTts: false,
