@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../../lib/src/core/content/german_focus_particles_engine.dart';
 import '../../../lib/src/ui/bridges/vol_116_wave45_ui_bridge.dart';
 

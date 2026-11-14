@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/content/sovereign_dependency_syntax_parser.dart';
 import 'package:deutsch_build/src/core/voice/synthesis/td_psola_pitch_shifter.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_113_capstone_ui_bridge.dart';

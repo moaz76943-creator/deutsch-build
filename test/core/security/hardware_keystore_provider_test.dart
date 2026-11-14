@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/security/hardware_keystore_provider.dart';
 
 class MockKeyStoreBridge implements AndroidKeyStoreBridge {

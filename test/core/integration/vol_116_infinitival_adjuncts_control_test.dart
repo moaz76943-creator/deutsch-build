@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_app/src/core/content/german_infinitival_adjuncts_control_engine.dart';
 import 'package:deutsch_app/src/ui/bridges/vol_116_wave72_ui_bridge.dart';
 

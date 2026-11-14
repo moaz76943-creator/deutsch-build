@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/audio/engine/fricative_phase_coherent_engine.dart';
 
 void main() {

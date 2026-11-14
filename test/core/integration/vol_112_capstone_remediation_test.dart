@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/content/german_compound_noun_validator.dart';
 import 'package:deutsch_build/src/core/security/mesh_peer_ephemeral_handshake.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_112_capstone_ui_bridge.dart';

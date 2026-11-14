@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/content/b2_c1_media_journalism_critical_bank.dart';
 
 void main() {

@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/content/dynamic_sovereign_pack_loader.dart';
 import 'package:deutsch_build/src/core/content/sovereign_content_compliance_validator.dart';
 import 'package:deutsch_build/src/core/mesh/crdt/crdt_delta_pruning_collector.dart';

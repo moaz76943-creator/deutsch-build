@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/content/sovereign_collocation_extractor.dart';
 import 'package:deutsch_build/src/core/voice/synthesis/adaptive_dynamic_range_compressor.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_114_capstone_ui_bridge.dart';

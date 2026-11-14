@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/rag/hybrid_bm25_vector_fusion_engine.dart';
 
 void main() {

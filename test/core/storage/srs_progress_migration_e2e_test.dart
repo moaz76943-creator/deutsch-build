@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 /// End-to-End Regression Test Suite - Master Constitution Section 09 Compliant:
 /// Simulates schema and content pack upgrades, strictly asserting that 100% of

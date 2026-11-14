@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../../lib/src/core/content/german_correlative_connectors_engine.dart';
 import '../../../lib/src/ui/bridges/vol_116_wave47_ui_bridge.dart';
 

@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/core/curriculum/collocation_mwe_extractor.dart';
 
 void main() {

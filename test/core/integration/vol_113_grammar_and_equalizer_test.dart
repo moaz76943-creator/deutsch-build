@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/content/german_case_disambiguation_engine.dart';
 import 'package:deutsch_build/src/core/voice/synthesis/offline_biquad_audio_equalizer.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_113_wave3_ui_bridge.dart';

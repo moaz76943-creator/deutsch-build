@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/storage/sqlite_crash_recovery_journal_manager.dart';
 import 'package:deutsch_build/src/core/voice/synthesis/fixed_capacity_audio_ring_buffer.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_112_ui_bridge.dart';

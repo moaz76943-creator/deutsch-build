@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/mesh/protocol/decentralized_gossip_discovery_protocol.dart';
 import 'package:deutsch_build/src/core/voice/synthesis/zero_copy_phoneme_alignment_tokenizer.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_112_wave5_ui_bridge.dart';

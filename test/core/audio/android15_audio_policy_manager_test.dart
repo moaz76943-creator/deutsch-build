@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/audio/android15_audio_policy_manager.dart';
 
 class MockAndroid15AudioBridge implements Android15PlatformAudioBridge {

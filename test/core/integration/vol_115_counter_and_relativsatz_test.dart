@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/content/german_relative_clause_parser.dart';
 import 'package:deutsch_build/src/core/mesh/crdt/pn_counter_crdt_accumulator.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_115_wave2_ui_bridge.dart';

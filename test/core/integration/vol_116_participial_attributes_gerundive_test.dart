@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_app/src/core/content/german_participial_attributes_gerundive_engine.dart';
 import 'package:deutsch_app/src/ui/bridges/vol_116_wave61_ui_bridge.dart';
 

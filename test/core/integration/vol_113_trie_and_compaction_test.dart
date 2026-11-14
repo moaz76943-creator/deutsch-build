@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/semantic_search/compressed_radix_lexicon_trie.dart';
 import 'package:deutsch_build/src/core/storage/sharded_page_compaction_governor.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_113_wave2_ui_bridge.dart';

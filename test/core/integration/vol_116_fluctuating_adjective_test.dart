@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../../lib/src/core/content/german_fluctuating_adjective_declension_engine.dart';
 import '../../../lib/src/ui/bridges/vol_116_wave44_ui_bridge.dart';
 
