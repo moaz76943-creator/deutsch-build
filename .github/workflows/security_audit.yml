@@ -324,8 +324,10 @@ jobs:
           fi
 
           if [[ "$failed" -ne 0 ]]; then
+            # A failed or incomplete security stage must fail this job. Exiting
+            # zero here reported a green required check for a failing audit.
             echo "SECURITY AUDIT: FAIL"
-            exit 0
+            exit 1
           fi
 
           echo "SECURITY AUDIT: PASS"
