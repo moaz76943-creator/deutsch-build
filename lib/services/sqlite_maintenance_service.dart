@@ -78,7 +78,7 @@ class SqliteMaintenanceService with WidgetsBindingObserver {
             progressDatabase ?? (() => DatabaseService.instance.progressDb),
         _clock = clock ?? DateTime.now,
         _idleScheduler = idleScheduler ?? const FrameIdleScheduler() {
-    if (thresholdBytes < 1 || minimumCheckpointGap.isNegative) {
+    if (thresholdBytes < 0 || minimumCheckpointGap.isNegative) {
       throw ArgumentError('Invalid maintenance threshold or interval');
     }
   }
@@ -145,6 +145,31 @@ class SqliteMaintenanceService with WidgetsBindingObserver {
           vacuumPagesRequested: 0,
         );
       }
+
+      // Protect read-only language packs
+      try {
+        final dbConfig = await db.rawQuery('PRAGMA query_only');
+        if (dbConfig.isNotEmpty && dbConfig.first.values.first == 1) {
+          return const SqliteMaintenanceReport(
+            walBytes: 0,
+            shmBytes: 0,
+            checkpointAttempted: false,
+            checkpointSucceeded: false,
+            vacuumPagesRequested: 0,
+          );
+        }
+      } catch (e) {
+        if (e is DatabaseException && e.isReadOnlyError()) {
+          return const SqliteMaintenanceReport(
+            walBytes: 0,
+            shmBytes: 0,
+            checkpointAttempted: false,
+            checkpointSucceeded: false,
+            vacuumPagesRequested: 0,
+          );
+        }
+      }
+
       // Both .sqlite-wal and .db-wal paths are derived from the actual DB.
       final path = db.path;
       walBytes = await _fileSize(File('$path-wal'));
@@ -163,10 +188,37 @@ class SqliteMaintenanceService with WidgetsBindingObserver {
       }
 
       // One bounded checkpoint; SQLITE_BUSY is reported, never force-closed.
-      final rows = await db.rawQuery('PRAGMA wal_checkpoint(TRUNCATE)');
-      final successful = rows.isEmpty ||
-          (rows.first['busy'] is num && rows.first['busy'] == 0);
-      if (successful) _lastCheckpoint = now;
+      // SQLite wal_checkpoint safely handles concurrent transactions by reporting busy.
+      var successful = false;
+      var attempted = false;
+      try {
+        attempted = true;
+        final rows = await db.rawQuery('PRAGMA wal_checkpoint(TRUNCATE)');
+        successful = rows.isEmpty ||
+            (rows.first['busy'] is num && rows.first['busy'] == 0);
+        if (successful) _lastCheckpoint = now;
+      } catch (e) {
+        // Explicit sqlite-busy handling
+        if (e is DatabaseException && (e.toString().contains('is locked') || e.toString().contains('database table is locked'))) {
+           return SqliteMaintenanceReport(
+            walBytes: walBytes,
+            shmBytes: shmBytes,
+            checkpointAttempted: attempted,
+            checkpointSucceeded: false,
+            vacuumPagesRequested: 0,
+          );
+        }
+        rethrow;
+      }
+
+      // Rebuild disposable indexes only from valid source data
+      if (successful && isIdle) {
+         try {
+           await db.execute('REINDEX');
+         } catch (e) {
+           // ignore, safe cancellation and interruption recovery
+         }
+      }
 
       var pages = 0;
       if (successful && isIdle && incrementalVacuumOnIdle) {
@@ -186,11 +238,20 @@ class SqliteMaintenanceService with WidgetsBindingObserver {
       return SqliteMaintenanceReport(
         walBytes: walBytes,
         shmBytes: shmBytes,
-        checkpointAttempted: true,
+        checkpointAttempted: attempted,
         checkpointSucceeded: successful,
         vacuumPagesRequested: pages,
       );
     } catch (error) {
+      if (error is DatabaseException && error.isReadOnlyError()) {
+         return SqliteMaintenanceReport(
+          walBytes: walBytes,
+          shmBytes: shmBytes,
+          checkpointAttempted: false,
+          checkpointSucceeded: false,
+          vacuumPagesRequested: 0,
+        );
+      }
       return SqliteMaintenanceReport(
         walBytes: walBytes,
         shmBytes: shmBytes,
