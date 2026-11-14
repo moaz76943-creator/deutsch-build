@@ -190,6 +190,29 @@ class SqliteMaintenanceService with WidgetsBindingObserver {
         checkpointSucceeded: successful,
         vacuumPagesRequested: pages,
       );
+    } on DatabaseException catch (error) {
+      final message = error.toString().toLowerCase();
+      if (message.contains('readonly') ||
+          message.contains('read-only') ||
+          message.contains('database is locked') ||
+          message.contains('busy')) {
+        return SqliteMaintenanceReport(
+          walBytes: walBytes,
+          shmBytes: shmBytes,
+          checkpointAttempted: true,
+          checkpointSucceeded: false,
+          vacuumPagesRequested: 0,
+          error: null,
+        );
+      }
+      return SqliteMaintenanceReport(
+        walBytes: walBytes,
+        shmBytes: shmBytes,
+        checkpointAttempted: false,
+        checkpointSucceeded: false,
+        vacuumPagesRequested: 0,
+        error: error,
+      );
     } catch (error) {
       return SqliteMaintenanceReport(
         walBytes: walBytes,
