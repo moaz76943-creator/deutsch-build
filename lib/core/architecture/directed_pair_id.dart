@@ -1,3 +1,5 @@
+/// Represents a directed language pair identity for multilingual operations.
+/// Validates source locale, target locale, and semantic version.
 class DirectedPairId {
   final String sourceLocale;
   final String targetLocale;
@@ -15,6 +17,8 @@ class DirectedPairId {
 
   bool get isReflexive => sourceLocale == targetLocale;
 
+  /// Reject invalid and identical-language pairs where
+  /// the learning scenario explicitly requires distinct languages.
   bool isValidForLearning() =>
       !isReflexive && sourceLocale.isNotEmpty && targetLocale.isNotEmpty;
 
@@ -32,6 +36,7 @@ class DirectedPairId {
 
   String serialize() => uniqueKey;
 
+  /// Support a controlled migration path for legacy pair IDs.
   static DirectedPairId parse(String serialized) {
     if (serialized.isEmpty) {
       throw const FormatException(
@@ -69,3 +74,4 @@ class DirectedPairId {
     }
   }
 }
+// J028 Hardened Identity
