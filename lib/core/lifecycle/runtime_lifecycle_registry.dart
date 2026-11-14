@@ -14,6 +14,7 @@ class RuntimeLifecycleRegistry {
   bool get isDisposed => _isDisposed;
 
   bool isOwnerDisposed(String owner) {
+    // Check if the specific owner or the entire registry is disposed
     return _isDisposed || _disposedOwners.contains(owner);
   }
 
@@ -46,6 +47,7 @@ class RuntimeLifecycleRegistry {
   }
 
   Future<void> disposeOwner(String owner) async {
+    // Idempotent disposal of resources for a specific session/feature owner
     if (isOwnerDisposed(owner)) return;
     _disposedOwners.add(owner);
     await _disposeOwnerResources(owner);
@@ -84,6 +86,7 @@ class RuntimeLifecycleRegistry {
       final result = cleanup();
       if (result is Future) {
         // Enforce a bounded cleanup timeout, e.g., 5 seconds.
+        // This bounded timeout ensures one hung operation doesn't block the rest.
         await result.timeout(const Duration(seconds: 5));
       }
     } catch (e, stackTrace) {
