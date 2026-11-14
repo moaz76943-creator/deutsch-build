@@ -212,6 +212,28 @@ class SqliteMaintenanceService with WidgetsBindingObserver {
     }
   }
 
+  Future<void> performMaintenance(Database db) async {
+    if (!db.isOpen) return;
+    try {
+      final modes = await db.rawQuery('PRAGMA journal_mode');
+      final mode = modes.isEmpty ? '' : modes.first.values.first.toString().toUpperCase();
+      if (mode != 'WAL') return;
+
+      await db.rawQuery('PRAGMA wal_checkpoint(TRUNCATE)');
+    } on DatabaseException catch (e) {
+      final message = e.toString().toLowerCase();
+      if (message.contains('readonly') || message.contains('read-only')) {
+        // Read-only databases natively forbid WAL checkpoints; safely ignore.
+        return;
+      }
+      if (message.contains('database is locked') || message.contains('busy')) {
+        // Active transactions are blocking the checkpoint; safely ignore to avoid interrupting operations.
+        return;
+      }
+      rethrow;
+    }
+  }
+
   void dispose() {
     if (_observing) WidgetsBinding.instance.removeObserver(this);
     _observing = false;
