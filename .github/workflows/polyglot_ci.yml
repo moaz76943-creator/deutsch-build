@@ -23,15 +23,24 @@ jobs:
           python3 tool/polyglot_cli.py status
           python3 tool/polyglot_cli.py security-scan
 
-      - name: Set up Dart SDK
-        uses: dart-lang/setup-dart@v1
+      - name: Resolve pinned toolchain
+        id: toolchain
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          source toolchain.lock
+          printf 'flutter=%s\n' "$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
-          sdk: stable
+          flutter-version: "${{ steps.toolchain.outputs.flutter }}"
+          channel: 'stable'
 
       - name: Install Dependencies & Analyze
         run: |
-          dart pub get
-          dart analyze lib/polyglot_core.dart
+          flutter pub get
+          flutter analyze lib/polyglot_core.dart
 
       - name: Run Unified Polyglot Test Suite
-        run: dart test test/core/polyglot/
+        run: flutter test test/core/polyglot/
