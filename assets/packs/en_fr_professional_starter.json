@@ -1,0 +1,49 @@
+{
+  "language": {
+    "isoCode": "fr",
+    "nativeName": "Français",
+    "arabicName": "الفرنسية",
+    "isRightToLeft": false
+  },
+  "units": [
+    {
+      "id": "json_fr_med_01",
+      "languageCode": "fr",
+      "level": "B2",
+      "domainId": "medicine",
+      "categoryId": "clinical_diagnosis",
+      "title": "شرح خطة الفحص السريري للمراجع بلطف ووضوح",
+      "targetExpression": "effectuer un bilan complet",
+      "contextualSentence": "Nous allons effectuer un bilan complet afin d'écarter toute inflammation pulmonaire avant de prescrire le traitement.",
+      "commonPitfall": "faire un examen (الأسلوب الطبي الأدق: effectuer un bilan complet)",
+      "arabicExplanation": "التعبير الطبي المهني في الفرنسية لإجراء فحص شامل هو effectuer un bilan complet.",
+      "tags": ["Français", "Medizin", "B2"]
+    },
+    {
+      "id": "json_fr_eng_01",
+      "languageCode": "fr",
+      "level": "C1",
+      "domainId": "engineering",
+      "categoryId": "grid_stability",
+      "title": "مراقبة استقرار شبكة الجهد العالي",
+      "targetExpression": "maintenir la stabilité du réseau",
+      "contextualSentence": "Le système de stockage par batterie permet de maintenir la stabilité du réseau lors des pics de consommation.",
+      "commonPitfall": "garder le réseau stable",
+      "arabicExplanation": "في الهندسة الكهربائية بالفرنسية، يُستخدم التعبير maintenir la stabilité du réseau للدلالة على استقرار الشبكة.",
+      "tags": ["Français", "Ingenieurwesen", "C1"]
+    },
+    {
+      "id": "json_en_biz_01",
+      "languageCode": "en",
+      "level": "C1",
+      "domainId": "business",
+      "categoryId": "supply_chain",
+      "title": "التفاوض المهني لتخفيف مخاطر سلاسل الإمداد",
+      "targetExpression": "mitigate supply chain bottlenecks",
+      "contextualSentence": "By diversifying our component suppliers early, we can mitigate supply chain bottlenecks before the fourth quarter.",
+      "commonPitfall": "reduce chain problems (صياغة عامة غير احترافية في تقارير الأعمال)",
+      "arabicExplanation": "المصطلح القياسي في إدارة المشاريع باللغة الإنجليزية هو mitigate supply chain bottlenecks (تخفيف اختناقات سلاسل الإمداد).",
+      "tags": ["English", "Business", "C1"]
+    }
+  ]
+}
