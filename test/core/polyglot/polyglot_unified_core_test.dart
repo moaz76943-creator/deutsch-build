@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../../lib/src/core/polyglot/polyglot_unified_core.dart';
 import '../../../lib/src/core/polyglot/modules/german_c1_c2_core_pack.dart';
 import '../../../lib/src/core/polyglot/modules/unified_legacy_engines_pack.dart';

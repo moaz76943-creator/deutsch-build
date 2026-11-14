@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../../lib/src/core/polyglot/polyglot_unified_core.dart';
 import '../../../lib/src/core/polyglot/polyglot_srs_and_pack_loader.dart';
 import '../../../lib/src/core/polyglot/modules/german_real_world_dialogues_pack.dart';
