@@ -1,0 +1,49 @@
+{
+  "language": {
+    "isoCode": "es",
+    "nativeName": "Español",
+    "arabicName": "الإسبانية",
+    "isRightToLeft": false
+  },
+  "units": [
+    {
+      "id": "json_es_med_01",
+      "languageCode": "es",
+      "level": "B2",
+      "domainId": "medicine",
+      "categoryId": "clinical_care",
+      "title": "شرح نتائج الفحص الدوري للمراجع بوضوح",
+      "targetExpression": "realizar una revisión preventiva",
+      "contextualSentence": "Recomendamos realizar una revisión preventiva cada seis meses para controlar los valores metabólicos con precisión.",
+      "commonPitfall": "hacer un chequeo (الأكثر مهنية في التقرير الطبي: realizar una revisión preventiva)",
+      "arabicExplanation": "التعبير الطبي المهني في الإسبانية لإجراء فحص وقائي دوري هو realizar una revisión preventiva.",
+      "tags": ["Español", "Medizin", "B2"]
+    },
+    {
+      "id": "json_es_eng_01",
+      "languageCode": "es",
+      "level": "C1",
+      "domainId": "engineering",
+      "categoryId": "solar_grid",
+      "title": "موازنة الأحمال الكهربائية في المحطة الشمسية",
+      "targetExpression": "equilibrar la carga eléctrica",
+      "contextualSentence": "Los inversores inteligentes permiten equilibrar la carga eléctrica de manera automática durante las horas de máxima demanda.",
+      "commonPitfall": "balancear la electricidad",
+      "arabicExplanation": "في هندسة الطاقة بالإسبانية نستخدم equilibrar la carga eléctrica للدلالة على موازنة الحمل الكهربائي.",
+      "tags": ["Español", "Ingenieurwesen", "C1"]
+    },
+    {
+      "id": "json_tr_biz_01",
+      "languageCode": "tr",
+      "level": "B2",
+      "domainId": "business",
+      "categoryId": "supply_agreement",
+      "title": "التفاوض التجاري على جدول التسليم والجودة",
+      "targetExpression": "teslimat takvimini netleştirmek",
+      "contextualSentence": "Projenin zamanında tamamlanması için tedarikçiyle teslimat takvimini bugünkü toplantıda netleştirmemiz gerekiyor.",
+      "commonPitfall": "تسليم غير محدد بجدول زمني",
+      "arabicExplanation": "التعبير التركي المهني لتوضيح واعتماد جدول التسليم في العقود هو teslimat takvimini netleştirmek.",
+      "tags": ["Türkçe", "Wirtschaft", "B2"]
+    }
+  ]
+}
