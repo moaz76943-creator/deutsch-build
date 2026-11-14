@@ -11,13 +11,16 @@ into the unified public target repository `deutsch-build`.
 | Source repository | `moaz76943-creator/-offline-packs-store` |
 | Source branch | `main` |
 | Source HEAD at import | `ca821e59ac39a75db37a094e0cb6af112566006f` |
-| Import commit | two-parent merge commit, tree imported under `content-factory/` |
+| Import method | two-parent merge commit `070b88776` on branch `consolidate/content-factory`, merged into `main` with a **merge commit** so the source history stays an ancestor of `main` |
 | Imported files | 877 (≈6.2 MB) |
 | Target branch at import | `main` |
 
-The import is a **merge commit**, not a copy: the source commit is a real parent
-of the import, so `git log --follow` and `git blame` keep the original history
-for every imported file.
+The import is a **merge of real history**, not a copy: the source commit is a
+parent of `070b88776`, and that commit is reachable from `main`, so
+`git log --follow` and `git blame` keep the original history for every
+imported file. (An earlier squash merge of the same branch would have flattened
+this lineage — the branch is therefore merged with a merge commit, and the
+lineage is verified with `git merge-base --is-ancestor`.)
 
 ## What lives here
 
