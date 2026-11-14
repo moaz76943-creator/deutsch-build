@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'polyglot_models.dart';
-import 'package:deutsch_bilarabi/services/polyglot_intelligence_engine.dart';
 import 'package:deutsch_bilarabi/services/language_pack_manager.dart';
 
 class UniversalPolyglotHubScreen extends StatefulWidget {
@@ -13,197 +11,218 @@ class UniversalPolyglotHubScreen extends StatefulWidget {
 
 class _UniversalPolyglotHubScreenState
     extends State<UniversalPolyglotHubScreen> {
-  final String _activeLocale = 'ar';
+  String _interfaceLanguage = 'ar-SA';
+  String _sourceLanguage = 'ar-SA';
+  String _targetLanguage = 'de-DE';
 
-  final List<CrossLinguisticCognate> _cognates = const [
-    CrossLinguisticCognate(
-      sourceWord: 'Gift (English: هدية)',
-      targetWord: 'Gift (German: سُم)',
-      sourceLang: 'EN',
-      targetLang: 'DE',
-      isFalseFriend: true,
-      nuanceNotes:
-          'تطابق لفظي واختلاف تام في المعنى؛ تحذير من الخلط أثناء الترجمة.',
-    ),
-    CrossLinguisticCognate(
-      sourceWord: 'Sukkar (عربي: سكر)',
-      targetWord: 'Zucker (German: سكر)',
-      sourceLang: 'AR',
-      targetLang: 'DE',
-      isFalseFriend: false,
-      nuanceNotes: 'جذر تاريخي مشترك يسهل الحفظ الفوري بين اللغتين.',
-    ),
-    CrossLinguisticCognate(
-      sourceWord: 'Haus (German: منزل)',
-      targetWord: 'House (English: منزل)',
-      sourceLang: 'DE',
-      targetLang: 'EN',
-      isFalseFriend: false,
-      nuanceNotes: 'تشابه جرماني مباشر من العائلة اللغوية ذاتها.',
-    ),
-  ];
+  bool _isPackReady = false;
+  bool _isLoading = false;
+  bool _hasError = false;
+  int _currentRequestEpoch = 0;
 
-  final List<TypologicalStructure> _typologies = const [
-    TypologicalStructure(
-      language: 'الألمانية / الإنجليزية',
-      typology: WordOrderTypology.svo,
-      subject: 'Subject (الفاعل)',
-      verb: 'Verb (الفعل)',
-      object: 'Object (المفعول)',
-    ),
-    TypologicalStructure(
-      language: 'التركية / اليابانية',
-      typology: WordOrderTypology.sov,
-      subject: 'Subject (الفاعل)',
-      verb: 'Verb (الفعل)',
-      object: 'Object (المفعول)',
-    ),
-    TypologicalStructure(
-      language: 'العربية الكلاسيكية',
-      typology: WordOrderTypology.vso,
-      subject: 'الفاعل',
-      verb: 'الفعل',
-      object: 'المفعول به',
-    ),
-  ];
+  List<String> _allLanguages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _initLanguages();
+    _checkCapability();
+  }
+
+  void _initLanguages() {
+    final Set<String> langs = {};
+    langs.addAll(LanguagePackManager.supportedBcp47Locales);
+    langs.addAll(LanguagePackManager.supportedLanguages);
+    _allLanguages = langs.toList()..sort();
+  }
+
+  Future<void> _checkCapability() async {
+    final int requestEpoch = ++_currentRequestEpoch;
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+      _isPackReady = false;
+    });
+
+    try {
+      final bool sourceReady = await LanguagePackManager.verifyAndMountOfflinePack(_sourceLanguage);
+      final bool targetReady = await LanguagePackManager.verifyAndMountOfflinePack(_targetLanguage);
+
+      if (!mounted || requestEpoch != _currentRequestEpoch) return;
+
+      setState(() {
+        _isPackReady = sourceReady && targetReady;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted || requestEpoch != _currentRequestEpoch) return;
+      setState(() {
+        _hasError = true;
+        _isLoading = false;
+        _isPackReady = false;
+      });
+    }
+  }
+
+  void _onInterfaceLanguageChanged(String? val) {
+    if (val != null && val != _interfaceLanguage) {
+      setState(() => _interfaceLanguage = val);
+    }
+  }
+
+  void _onSourceLanguageChanged(String? val) {
+    if (val != null && val != _sourceLanguage) {
+      setState(() => _sourceLanguage = val);
+      _checkCapability();
+    }
+  }
+
+  void _onTargetLanguageChanged(String? val) {
+    if (val != null && val != _targetLanguage) {
+      setState(() => _targetLanguage = val);
+      _checkCapability();
+    }
+  }
+
+  void _openDictionary() {
+     Navigator.push(context, MaterialPageRoute<void>(builder: (context) {
+        return Scaffold(appBar: AppBar(title: const Text('Dictionary View')));
+     }));
+  }
+
+  void _startLessons() {
+     Navigator.push(context, MaterialPageRoute<void>(builder: (context) {
+        return Scaffold(appBar: AppBar(title: const Text('Lessons View')));
+     }));
+  }
+
+  Future<void> _showLanguagePicker(
+      String title, String currentValue, ValueChanged<String?> onChanged) async {
+    final String? selected = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          minChildSize: 0.5,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (context, scrollController) {
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(title,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold)),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    controller: scrollController,
+                    itemCount: _allLanguages.length,
+                    itemBuilder: (context, index) {
+                      final lang = _allLanguages[index];
+                      final name = LanguagePackManager.getLanguageName(lang);
+                      final hasVoice = LanguagePackManager.getTtsLocale(lang).isNotEmpty;
+                      return ListTile(
+                        title: Text(name),
+                        trailing: hasVoice ? const Icon(Icons.volume_up, size: 16) : null,
+                        selected: lang == currentValue,
+                        onTap: () => Navigator.pop(context, lang),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    if (selected != null && selected != currentValue) {
+      onChanged(selected);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final double sm2Factor =
-        PolyglotIntelligenceEngine.getMorphologicalMultiplier(_activeLocale);
-    final String languageName =
-        LanguagePackManager.getLanguageName(_activeLocale);
+    final interfaceDirection = LanguagePackManager.textDirectionFor(_interfaceLanguage);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('المحور اللغوي الشامل (Wave 04)'),
-        centerTitle: true,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // 1. رادار الكلمات المتشابهة والأصدقاء المزيفون
-          _buildSectionCard(
-            title: '1. رادار الكلمات المشتركة (INNOV-W04-01)',
-            subtitle:
-                'كشف الأصدقاء المزيفين والتشابه الدلالي لربط الذاكرة باللغات الأخرى',
-            child: Column(
-              children: _cognates.map((item) {
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(
-                    item.isFalseFriend
-                        ? Icons.warning_amber_rounded
-                        : Icons.check_circle_outline,
-                    color: item.isFalseFriend ? Colors.orange : Colors.green,
-                  ),
-                  title: Text('${item.sourceWord} ⇄ ${item.targetWord}'),
-                  subtitle: Text(item.nuanceNotes),
-                );
-              }).toList(),
-            ),
-          ),
+    return Directionality(
+      textDirection: interfaceDirection,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('المحور اللغوي الشامل'),
+          centerTitle: true,
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            _buildLanguageSelector('لغة الواجهة:', _interfaceLanguage, _onInterfaceLanguageChanged),
+            _buildLanguageSelector('اللغة المصدر:', _sourceLanguage, _onSourceLanguageChanged),
+            _buildLanguageSelector('اللغة الهدف:', _targetLanguage, _onTargetLanguageChanged),
 
-          // 2. ترتيب الجمل والأنماط التيبولوجية
-          _buildSectionCard(
-            title: '2. الترتيب التيبولوجي للجمل (INNOV-W04-02)',
-            subtitle:
-                'بنية الجمل الأساسية (SVO / SOV / VSO) لفهم تسلسل الكلمات التلقائي',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: _typologies.map((t) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Text(t.language,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            t.renderSequence(),
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
+            const SizedBox(height: 24),
+            if (_hasError)
+              const Text('حدث خطأ أثناء التحقق من الحزمة.', style: TextStyle(color: Colors.red))
+            else if (_isLoading)
+              const Center(child: Text('Loading...'))
+            else if (!_isPackReady)
+              const Text('الحزمة غير متوفرة أو غير جاهزة للاستخدام.', style: TextStyle(color: Colors.orange))
+            else
+              const Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green),
+                  SizedBox(width: 8),
+                  Text('الحزمة جاهزة للاستخدام!', style: TextStyle(color: Colors.green)),
+                ],
+              ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _isPackReady ? () => _openDictionary() : null,
+              child: const Text('فتح القاموس'),
             ),
-          ),
-
-          // 3. الميزان الصرفي ومعامل التكرار SM-2
-          _buildSectionCard(
-            title: '3. ميزان التكرار الذكي والكثافة الصرفية (INNOV-W04-03)',
-            subtitle: 'معايرة فترات مراجعة SM-2 تلقائياً بحسب التركيب اللغوي',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('اللغة النشطة: $languageName',
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                          'معامل SM-2: ${sm2Factor.toStringAsFixed(2)}x',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, color: Colors.blue)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                    '• اللغات التحليلية (الإنجليزية/الفرنسية): سرعة مراجعة قياسية.'),
-                const SizedBox(height: 4),
-                const Text(
-                    '• اللغات الاشتقاقية والسامية (العربية/الألمانية): تباعد زمني موسع لتثبيت القواعد والجذور.'),
-              ],
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: _isPackReady ? () => _startLessons() : null,
+              child: const Text('بدء الدروس'),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildSectionCard({
-    required String title,
-    required String subtitle,
-    required Widget child,
-  }) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title,
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-            Text(subtitle,
-                style: const TextStyle(color: Colors.grey, fontSize: 12)),
-            const Divider(),
-            child,
-          ],
-        ),
+  Widget _buildLanguageSelector(String label, String currentValue, ValueChanged<String?> onChanged) {
+    final name = _allLanguages.contains(currentValue)
+      ? LanguagePackManager.getLanguageName(currentValue)
+      : currentValue;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Expanded(flex: 2, child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold))),
+          Expanded(
+            flex: 3,
+            child: InkWell(
+              onTap: () => _showLanguagePicker(label, currentValue, onChanged),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: Text(name, overflow: TextOverflow.ellipsis)),
+                    const Icon(Icons.arrow_drop_down),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
