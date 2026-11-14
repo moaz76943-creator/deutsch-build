@@ -97,6 +97,8 @@ def paths_overlap(p1, p2):
     return parts1[:length] == parts2[:length]
 
 def check_overlapping_claims(ledger, task_id, requested_paths, now, recover_from=None, owner_evidence=None):
+    if recover_from and owner_evidence and recover_from in ledger and ledger[recover_from].get("state") in ["CLAIM", "ACTIVE"]:
+        return False, ""
     for other_task, data in list(ledger.items()):
         if other_task == task_id or other_task == "_metadata":
             continue
@@ -240,6 +242,8 @@ def main(args=None):
     parser.add_argument("--depends-on", nargs="*", help="List of task IDs this task depends on")
     parser.add_argument("--ledger", default=str(default_state_dir() / "task_ledger.json"))
     parser.add_argument("--report", default=str(default_state_dir() / "evidence_report.json"))
+    parser.add_argument("--recover-from", help="Task ID to recover a stale claim from")
+    parser.add_argument("--owner-evidence", help="Evidence of the previous owner's crash/failure")
 
     parsed = parser.parse_args(args)
 
@@ -252,10 +256,10 @@ def main(args=None):
         try:
             if ledger_path.exists():
                 with ledger_path.open("r", encoding="utf-8") as current:
-                    result_code, report, updated_ledger = process_ledger(parsed, current)
+                    result_code, report, updated_ledger = process_ledger(parsed, current.read())
             else:
                 import io
-                result_code, report, updated_ledger = process_ledger(parsed, io.StringIO(""))
+                result_code, report, updated_ledger = process_ledger(parsed, "")
         except (json.JSONDecodeError, ValueError, TypeError, AttributeError):
             result_code = 1
             report = {"task_id": parsed.task_id, "base_sha": parsed.base_sha,
