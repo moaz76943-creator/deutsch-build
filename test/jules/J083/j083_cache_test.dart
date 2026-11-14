@@ -138,18 +138,18 @@ void main() {
     test('Entries are successfully invalidated after a content version update', () {
       l1Cache.put(l1Cache.generateKey('de', 'ar', '1.0.0'), [{'w': '1'}]);
       l1Cache.put(l1Cache.generateKey('en', 'ar', '1.0.0'), [{'w': '2'}]);
-      l1Cache.put(l1Cache.generateKey('fr', 'ar', '1.1.0'), [{'w': '3'}]); // New version
+      l1Cache.put(l1Cache.generateKey('de', 'ar', '1.1.0'), [{'w': '3'}]); // New version for de
 
       expect(l1Cache.has(l1Cache.generateKey('de', 'ar', '1.0.0')), isTrue);
       expect(l1Cache.has(l1Cache.generateKey('en', 'ar', '1.0.0')), isTrue);
-      expect(l1Cache.has(l1Cache.generateKey('fr', 'ar', '1.1.0')), isTrue);
+      expect(l1Cache.has(l1Cache.generateKey('de', 'ar', '1.1.0')), isTrue);
 
-      // Invalidating all non-1.1.0 entries
-      l1Cache.invalidateStaleVersions('1.1.0');
+      // Invalidating all non-1.1.0 entries for de
+      l1Cache.invalidateStale('de', 'ar', '1.1.0');
 
       expect(l1Cache.has(l1Cache.generateKey('de', 'ar', '1.0.0')), isFalse);
-      expect(l1Cache.has(l1Cache.generateKey('en', 'ar', '1.0.0')), isFalse);
-      expect(l1Cache.has(l1Cache.generateKey('fr', 'ar', '1.1.0')), isTrue);
+      expect(l1Cache.has(l1Cache.generateKey('en', 'ar', '1.0.0')), isTrue); // Not affected
+      expect(l1Cache.has(l1Cache.generateKey('de', 'ar', '1.1.0')), isTrue);
     });
 
     test('Oversized objects are rejected based on size estimator', () {
@@ -164,6 +164,37 @@ void main() {
       // Should have been rejected
       expect(l1Cache.has(key), isFalse);
       expect(l1Cache.currentMemoryBytes, 0);
+    });
+
+    test('Stress test for repeated 100-language switching, stale keys, and low memory signals', () {
+      // 1. Add 100 languages
+      for (int i = 0; i < 100; i++) {
+        final key = l1Cache.generateKey('stress_$i', 'target', '1.0.0');
+        l1Cache.put(key, [{'stress': 'data_$i'}]);
+      }
+      expect(l1Cache.currentMemoryBytes, greaterThan(0));
+
+      // 2. Add stale cache keys for earlier requests
+      for (int i = 0; i < 100; i++) {
+        final key = l1Cache.generateKey('stress_$i', 'target', '1.0.0');
+        l1Cache.put(key, [{'stress': 'stale_data_$i'}], requestEpoch: 1, activeEpoch: 100);
+      }
+      // Should not have affected valid cache
+      expect(l1Cache.get(l1Cache.generateKey('stress_99', 'target', '1.0.0'))!.first['stress'], 'data_99');
+
+      // 3. Low memory signals
+      l1Cache.onMemoryPressure();
+      int remaining = 0;
+      for (int i = 0; i < 100; i++) {
+        final key = l1Cache.generateKey('stress_$i', 'target', '1.0.0');
+        if (l1Cache.has(key)) remaining++;
+      }
+      expect(remaining, lessThanOrEqualTo(25)); // trimmed
+
+      // 4. Large entries
+      final hugeList = List.generate(300000, (i) => {'word': 'very_long_word_$i'});
+      l1Cache.put(l1Cache.generateKey('stress_large', 'target', '1.0.0'), hugeList);
+      expect(l1Cache.has(l1Cache.generateKey('stress_large', 'target', '1.0.0')), isFalse);
     });
   });
 }
