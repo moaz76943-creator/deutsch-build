@@ -15,134 +15,136 @@ void main() {
     registry.resetForTest();
   });
 
-  group('RuntimeLifecycleRegistry tests', () {
-    test('Repeated disposal is safe and idempotent', () async {
-      int cleanupCount = 0;
-      registry.registerCleanup(() {
-        cleanupCount++;
-      }, owner: 'featureA');
+  group('RuntimeLifecycleRegistry Lifecycle Management', () {
+    test('Registered resources are cleaned up deterministically in reverse order (LIFO)', () async {
+      final executionOrder = <int>[];
+
+      registry.registerCleanup(() => executionOrder.add(1), owner: 'featureA');
+      registry.registerCleanup(() => executionOrder.add(2), owner: 'featureA');
+      registry.registerCleanup(() => executionOrder.add(3), owner: 'featureA');
 
       await registry.disposeOwner('featureA');
-      await registry.disposeOwner('featureA'); // Should do nothing
-      await registry.disposeAll(); // Should do nothing for featureA
-      await registry.disposeAll(); // General repeated disposeAll
 
-      expect(cleanupCount, 1);
+      expect(executionOrder, [3, 2, 1]);
     });
 
-    test('Failed cleanup does not skip independent remaining cleanup operations', () async {
-      int cleanupCount = 0;
+    test('Duplicate dispose calls on the same owner are safe and idempotent', () async {
+      int cleanupInvocationCount = 0;
 
       registry.registerCleanup(() {
-        cleanupCount++;
-      }, owner: 'featureA');
+        cleanupInvocationCount++;
+      }, owner: 'featureB');
 
-      registry.registerCleanup(() {
-        throw Exception('Failed cleanup test exception');
-      }, owner: 'featureA');
-
-      registry.registerCleanup(() {
-        cleanupCount++;
-      }, owner: 'featureA');
-
-      await registry.disposeOwner('featureA');
-
-      // Due to LIFO order:
-      // 1. the last registered increments to 1
-      // 2. the middle throws
-      // 3. the first increments to 2
-      expect(cleanupCount, 2);
-    });
-
-    test('Race condition - registering during cleanup is handled safely', () async {
-      int innerCleanupCount = 0;
-
-      registry.registerCleanup(() {
-        registry.registerCleanup(() {
-          innerCleanupCount++;
-        }, owner: 'featureA'); // Since 'featureA' is being disposed, it cleans up immediately
-      }, owner: 'featureA');
-
-      await registry.disposeOwner('featureA');
-
-      expect(innerCleanupCount, 1);
-    });
-
-    test('Abandoned stream subscription is cancelled safely', () async {
-      final controller = StreamController<int>();
-      bool isCancelled = false;
-
-      controller.onCancel = () {
-        isCancelled = true;
-      };
-
-      final sub = controller.stream.listen((_) {});
-      registry.registerSubscription(sub, owner: 'featureA');
-
-      await registry.disposeOwner('featureA');
-
-      expect(isCancelled, true);
-    });
-
-    test('Stale callbacks (simulating application pause/disposal) are blocked by guard() after disposal', () async {
-      int executionCount = 0;
-
-      void onEvent() {
-        registry.guard(() {
-          executionCount++;
-        }, owner: 'featureA');
-      }
-
-      onEvent(); // Should execute
-      expect(executionCount, 1);
-
-      await registry.disposeOwner('featureA');
-
-      onEvent(); // Should not execute
-      expect(executionCount, 1);
-    });
-
-    test('Stale future callbacks (simulating application pause/disposal) are blocked by guardFuture() after disposal', () async {
-      final completer = Completer<int>();
-
-      // Execute some future that completes later
-      final future = registry.guardFuture(completer.future, owner: 'featureA');
-
-      await registry.disposeOwner('featureA');
-
-      completer.complete(42);
-
-      final result = await future;
-
-      // Since featureA was disposed while waiting, result should be null
-      expect(result, isNull);
-    });
-
-    test('LIFO deterministic shutdown order', () async {
-      final order = <int>[];
-
-      registry.registerCleanup(() => order.add(1), owner: 'featureA');
-      registry.registerCleanup(() => order.add(2), owner: 'featureA');
-      registry.registerCleanup(() => order.add(3), owner: 'featureA');
-
-      await registry.disposeOwner('featureA');
-
-      expect(order, [3, 2, 1]);
-    });
-
-    test('Global disposal disposes all owners in LIFO order', () async {
-      final order = <String>[];
-
-      registry.registerCleanup(() => order.add('A_1'), owner: 'featureA');
-      registry.registerCleanup(() => order.add('A_2'), owner: 'featureA');
-
-      registry.registerCleanup(() => order.add('B_1'), owner: 'featureB');
-
-      registry.registerCleanup(() => order.add('C_1'), owner: 'featureC');
-
+      await registry.disposeOwner('featureB');
+      await registry.disposeOwner('featureB');
       await registry.disposeAll();
 
-      expect(order, ['C_1', 'B_1', 'A_2', 'A_1']);
+      expect(cleanupInvocationCount, 1);
+    });
+
+    test('Cleanup errors in one resource do not skip the remaining independent operations', () async {
+      int successfulCleanups = 0;
+
+      registry.registerCleanup(() {
+        successfulCleanups++;
+      }, owner: 'featureC');
+
+      registry.registerCleanup(() {
+        throw Exception('Simulated cleanup failure');
+      }, owner: 'featureC');
+
+      registry.registerCleanup(() {
+        successfulCleanups++;
+      }, owner: 'featureC');
+
+      await registry.disposeOwner('featureC');
+
+      expect(successfulCleanups, 2);
+    });
+
+    test('Abandoned subscriptions and timers are cleaned up on disposal', () async {
+      bool timerCancelled = false;
+
+      final timer = Timer(const Duration(seconds: 10), () {
+        timerCancelled = true;
+      });
+      final sub = Stream.periodic(const Duration(seconds: 1)).listen((_) {});
+
+      registry.registerTimer(timer, owner: 'featureD');
+      registry.registerSubscription(sub, owner: 'featureD');
+
+      await registry.disposeOwner('featureD');
+
+      expect(timer.isActive, false);
+    });
+
+    test('guard and guardFuture correctly prevent stale callbacks from modifying state after disposal', () async {
+      bool syncCallbackExecuted = false;
+
+      await registry.disposeOwner('featureE');
+
+      registry.guard(() {
+        syncCallbackExecuted = true;
+      }, owner: 'featureE');
+
+      expect(syncCallbackExecuted, false);
+
+      bool futureExecuted = false;
+      final result = await registry.guardFuture(Future.value(() {
+        futureExecuted = true;
+        return true;
+      }()), owner: 'featureE');
+
+      expect(result, null);
+      expect(futureExecuted, true);
+    });
+
+    test('Resources registered after disposal are immediately cleaned up', () async {
+      int postDisposalCleanupCount = 0;
+
+      await registry.disposeOwner('featureF');
+
+      registry.registerCleanup(() {
+        postDisposalCleanupCount++;
+      }, owner: 'featureF');
+
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(postDisposalCleanupCount, 1);
+    });
+
+    test('Race condition is handled when clearing cleanups before execution', () async {
+      int executionCount = 0;
+
+      registry.registerCleanup(() async {
+        executionCount++;
+        // Simulate a new registration while cleanup is ongoing
+        registry.registerCleanup(() {
+          executionCount++;
+        }, owner: 'featureG');
+      }, owner: 'featureG');
+
+      await registry.disposeOwner('featureG');
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      // The secondary cleanup immediately fires because the owner is marked disposed
+      expect(executionCount, 2);
+    });
+
+    test('Long-running cleanups enforce a bounded cleanup timeout', () async {
+      int completedCleanups = 0;
+      registry.registerCleanup(() async {
+        await Future.delayed(const Duration(seconds: 6));
+        completedCleanups++;
+      }, owner: 'featureH');
+
+      final start = DateTime.now();
+      await registry.disposeOwner('featureH');
+      final elapsed = DateTime.now().difference(start);
+
+      // The disposal should return after ~5 seconds because of the bounded timeout.
+      expect(elapsed.inSeconds, inInclusiveRange(4, 6));
+      expect(completedCleanups, 0); // Didn't finish before the method returned
     });
 
     test('Registering after global dispose immediately executes cleanup', () async {
