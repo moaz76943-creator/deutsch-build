@@ -27,10 +27,15 @@ class TurkishProfile(LanguageProfile):
 
     def analyze(self, word: str, analyzer: 'MorphologyAnalyzer') -> List[AnalysisResult]:
         results = []
+        eval_count = [0]
         def decompose(current_word: str, current_tags: List[str], depth: int):
             if len(results) >= analyzer.max_results:
                 return
             if depth > analyzer.max_recursion_depth:
+                return
+
+            eval_count[0] += 1
+            if eval_count[0] > analyzer.max_evaluations:
                 return
 
             for nom in analyzer.lookup_nominal_lemma(current_word):
@@ -71,10 +76,15 @@ class FinnishProfile(LanguageProfile):
 
     def analyze(self, word: str, analyzer: 'MorphologyAnalyzer') -> List[AnalysisResult]:
         results = []
+        eval_count = [0]
         def decompose(current_word: str, current_tags: List[str], depth: int):
             if len(results) >= analyzer.max_results:
                 return
             if depth > analyzer.max_recursion_depth:
+                return
+
+            eval_count[0] += 1
+            if eval_count[0] > analyzer.max_evaluations:
                 return
 
             for nom in analyzer.lookup_nominal_lemma(current_word):
@@ -112,36 +122,11 @@ class GermanProfile(LanguageProfile):
         results = []
 
         for vf in analyzer.lookup_verb_form(word):
-            results.append(AnalysisResult(word, vf['infinitive'], vf['verb_id'], 'verb', [vf['tense'], vf['person']]))
+            tags = [t for t in [vf['tense'], vf['person']] if t and t.strip()]
+            results.append(AnalysisResult(word, vf['infinitive'], vf['verb_id'], 'verb', tags))
         for nf in analyzer.lookup_nominal_form(word):
-            results.append(AnalysisResult(word, nf['lemma'], nf['id'], nf['part_of_speech'], [nf['grammatical_case'], nf['number'], nf['definiteness']]))
-
-        if word.startswith("ge") and word.endswith("t"):
-            stem = word[2:-1]
-            if len(stem) > 0:
-                for v in analyzer.lookup_verb_lemma(stem + "en"):
-                    results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["PART_PERF"]))
-                for v in analyzer.lookup_verb_lemma(stem + "n"):
-                    results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["PART_PERF"]))
-
-        if word.startswith("ge") and word.endswith("en"):
-            stem = word[2:-2]
-            if len(stem) > 0:
-                for v in analyzer.lookup_verb_lemma(stem + "en"):
-                    results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["PART_PERF"]))
-
-        if word.endswith("n"):
-            stem1 = word[:-1]
-            if len(stem1) > 0:
-                for n in analyzer.lookup_nominal_form(stem1):
-                    if n['number'] == 'pl':
-                        results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
-        if word.endswith("en"):
-            stem2 = word[:-2]
-            if len(stem2) > 0:
-                for n in analyzer.lookup_nominal_form(stem2):
-                    if n['number'] == 'pl':
-                        results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
+            tags = [t for t in [nf['grammatical_case'], nf['number'], nf['definiteness']] if t and t.strip()]
+            results.append(AnalysisResult(word, nf['lemma'], nf['id'], nf['part_of_speech'], tags))
 
         return results
 
@@ -153,6 +138,7 @@ class MorphologyAnalyzer:
         self.profile = profile
         self.max_recursion_depth = 4
         self.max_results = 50
+        self.max_evaluations = 50000
 
     def close(self):
         for db in self.dbs:
