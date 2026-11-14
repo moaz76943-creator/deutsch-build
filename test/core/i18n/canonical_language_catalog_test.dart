@@ -26,15 +26,18 @@ void main() {
       final rtlProfiles = CanonicalLanguageCatalog.getRtlProfiles();
       final rtlCodes = rtlProfiles.map((p) => p.bcp47).toSet();
       
-      // Known RTL languages in the 100 catalog: ar, fa, ur, ps, sd, ku, he, yi
+      // Known RTL languages in the 100 catalog: ar, fa, ur, ps, sd, ku, yi
       expect(rtlCodes.contains('ar'), isTrue);
       expect(rtlCodes.contains('fa'), isTrue);
       expect(rtlCodes.contains('ur'), isTrue);
       expect(rtlCodes.contains('ps'), isTrue);
       expect(rtlCodes.contains('sd'), isTrue);
       expect(rtlCodes.contains('ku'), isTrue);
-      expect(rtlCodes.contains('he'), isTrue);
       expect(rtlCodes.contains('yi'), isTrue);
+
+      // Owner policy: Hebrew is permanently excluded from the supported registry.
+      expect(rtlCodes.contains('he'), isFalse);
+      expect(CanonicalLanguageCatalog.getProfile('he'), isNull);
 
       // LTR languages must not be RTL
       expect(CanonicalLanguageCatalog.getProfile('de')!.isRtl, isFalse);
