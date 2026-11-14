@@ -222,8 +222,9 @@ Future<void> _sqliteWorkerEntry(List<Object> args) async {
         break;
       }
       if (command == 'insert') {
-        final rows = (data as List).cast<Map>();
+        final rows = (data as List).cast<Map<dynamic, dynamic>>();
         await db.transaction((txn) async {
+          final batch = txn.batch();
           for (final raw in rows) {
             final row = Map<String, Object?>.from(raw);
             final id = row['id'];
@@ -235,7 +236,7 @@ Future<void> _sqliteWorkerEntry(List<Object> args) async {
               throw const FormatException(
                   'Lexicon rows require nonempty id and surface');
             }
-            await txn.rawInsert(
+            batch.rawInsert(
               'INSERT OR REPLACE INTO lexicon '
               '(id, surface, part_of_speech, fields_json) VALUES (?, ?, ?, ?)',
               <Object?>[
@@ -246,6 +247,7 @@ Future<void> _sqliteWorkerEntry(List<Object> args) async {
               ],
             );
           }
+          await batch.commit(noResult: true);
         });
         reply.send(<String, Object?>{'count': rows.length});
       } else if (command == 'resetFts') {
@@ -266,6 +268,7 @@ Future<void> _sqliteWorkerEntry(List<Object> args) async {
           <Object>[lastId, batchSize],
         );
         await db.transaction((txn) async {
+          final batch = txn.batch();
           for (final row in rows) {
             String translation = '';
             final fields = row['fields_json'];
@@ -279,12 +282,13 @@ Future<void> _sqliteWorkerEntry(List<Object> args) async {
                 // Invalid optional translation JSON is not fatal to indexing.
               }
             }
-            await txn.rawInsert(
+            batch.rawInsert(
               'INSERT INTO lexicon_fts(rowid, surface, translation_ar) '
               'VALUES (?, ?, ?)',
               <Object?>[row['rowid'], row['surface'], translation],
             );
           }
+          await batch.commit(noResult: true);
         });
         reply.send(<String, Object?>{
           'count': rows.length,
