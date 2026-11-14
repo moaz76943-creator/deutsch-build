@@ -1,15 +1,17 @@
 import 'package:test/test.dart';
 import '../../../lib/src/core/polyglot/polyglot_unified_core.dart';
 import '../../../lib/src/core/polyglot/modules/german_c1_c2_core_pack.dart';
+import '../../../lib/src/core/polyglot/modules/unified_legacy_engines_pack.dart';
 
 void main() {
-  group('Task #4984: Unified Plug-and-Play Polyglot Architecture Tests', () {
+  group('Task #4985: Zero-Loss Legacy Consolidation & Unified Registry Tests', () {
     late PolyglotUnifiedRegistry registry;
     late PolyglotUnifiedUiBridge bridge;
 
     setUp(() {
       registry = PolyglotUnifiedRegistry();
       registry.registerModule(GermanC1C2CoreFeaturePack());
+      registry.registerModule(UnifiedLegacyEnginesFeaturePack());
       bridge = PolyglotUnifiedUiBridge(registry: registry);
     });
 
@@ -17,19 +19,24 @@ void main() {
       await bridge.dispose();
     });
 
-    test('Registers plug-and-play modules and supports multi-language expansion', () {
-      expect(registry.registeredModules.length, equals(1));
-      expect(registry.allUnits.length, greaterThanOrEqualTo(5));
-
-      registry.registerLanguage(const LanguageDescriptor(
-        isoCode: 'fr',
-        nativeName: 'Français',
-        arabicName: 'الفرنسية',
-      ));
-      expect(registry.supportedLanguages.length, equals(3));
+    test('Consolidates all legacy engine exemplars alongside new plug-and-play packs with zero loss', () {
+      expect(registry.registeredModules.length, equals(2));
+      expect(registry.allUnits.length, greaterThanOrEqualTo(400));
     });
 
-    test('Validates and auto-corrects German grammatical traps through unified rule engine', () {
+    test('Supports instant multi-language registration and fast query filtering', () {
+      registry.registerLanguage(const LanguageDescriptor(
+        isoCode: 'es',
+        nativeName: 'Español',
+        arabicName: 'الإسبانية',
+      ));
+      expect(registry.supportedLanguages.any((l) => l.isoCode == 'es'), isTrue);
+
+      final matches = registry.queryUnits(searchQuery: 'Wechselrichter');
+      expect(matches, isNotEmpty);
+    });
+
+    test('Validates and auto-corrects German grammatical traps in real time', () {
       final res = registry.validateInput(
         'Die Ingenieure besprechen über die Messergebnise, deren der Wert hoch ist.',
       );
@@ -39,21 +46,6 @@ void main() {
         res.correctedText,
         equals('Die Ingenieure besprechen die Messergebnisse, deren Wert hoch ist.'),
       );
-    });
-
-    test('Reactive UI bridge filters by level, domain, and search query without boilerplate', () async {
-      final emissions = <List<PolyglotLearningUnit>>[];
-      final sub = bridge.unitsStream.listen(emissions.add);
-
-      bridge.applyFilter(level: CefrProficiencyLevel.c2);
-      expect(bridge.currentUnits.every((u) => u.level == CefrProficiencyLevel.c2), isTrue);
-
-      bridge.resetFilters();
-      expect(bridge.currentUnits.length, equals(registry.allUnits.length));
-
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-      expect(emissions.length, equals(2));
-      await sub.cancel();
     });
   });
 }

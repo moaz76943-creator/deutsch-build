@@ -3,9 +3,9 @@ import 'dart:collection';
 
 /// رمز اللغة المدعومة في المنصة (قابل للتوسع الفوري لأي لغة جديدة دون تعديل المحرك)
 class LanguageDescriptor {
-  final String isoCode;       // مثل: 'de', 'ar', 'en', 'fr', 'es', 'tr'
-  final String nativeName;    // مثل: 'Deutsch', 'العربية'
-  final String arabicName;    // مثل: 'الألمانية', 'العربية'
+  final String isoCode;
+  final String nativeName;
+  final String arabicName;
   final bool isRightToLeft;
 
   const LanguageDescriptor({
@@ -26,6 +26,12 @@ class LanguageDescriptor {
     nativeName: 'العربية',
     arabicName: 'العربية',
     isRightToLeft: true,
+  );
+
+  static const LanguageDescriptor english = LanguageDescriptor(
+    isoCode: 'en',
+    nativeName: 'English',
+    arabicName: 'الإنجليزية',
   );
 
   Map<String, dynamic> toJson() => {
@@ -132,55 +138,51 @@ abstract class PolyglotFeatureModule {
 }
 
 /// المحرك المركزي الموحد الخالي من البيروقراطية (Unified Polyglot Registry & Engine)
-/// يجمع كافة الوحدات اللغوية والمزايا في نقطة وصول واحدة سريعة وسهلة الصيانة.
 class PolyglotUnifiedRegistry {
   final Map<String, LanguageDescriptor> _languages = {
     LanguageDescriptor.german.isoCode: LanguageDescriptor.german,
     LanguageDescriptor.arabic.isoCode: LanguageDescriptor.arabic,
+    LanguageDescriptor.english.isoCode: LanguageDescriptor.english,
   };
   final Map<String, PolyglotFeatureModule> _modules = {};
-  final List<PolyglotLearningUnit> _units = [];
-  final List<PolyglotValidationRule> _rules = [];
+  final Map<String, PolyglotLearningUnit> _unitsById = {};
+  final Map<String, PolyglotValidationRule> _rulesById = {};
 
-  /// تسجيل لغة جديدة في المنصة بسهولة
   void registerLanguage(LanguageDescriptor language) {
     _languages[language.isoCode] = language;
   }
 
-  /// تسجيل ميزة أو حزمة محتوى كاملة (Plug-and-Play) دون تعديل أي كود خارجي
   void registerModule(PolyglotFeatureModule module) {
     _modules[module.moduleId] = module;
-    _units.removeWhere((u) => module.units.any((mu) => mu.id == u.id));
-    _units.addAll(module.units);
-    _rules.removeWhere((r) => module.validationRules.any((mr) => mr.ruleId == r.ruleId));
-    _rules.addAll(module.validationRules);
-  }
-
-  /// إضافة وحدات تعليمية مباشرة
-  void registerUnits(Iterable<PolyglotLearningUnit> newUnits) {
-    for (final unit in newUnits) {
-      _units.removeWhere((u) => u.id == unit.id);
-      _units.add(unit);
+    for (final unit in module.units) {
+      _unitsById[unit.id] = unit;
+    }
+    for (final rule in module.validationRules) {
+      _rulesById[rule.ruleId] = rule;
     }
   }
 
-  /// إضافة قواعد تحقق نحوي مباشرة
+  void registerUnits(Iterable<PolyglotLearningUnit> newUnits) {
+    for (final unit in newUnits) {
+      _unitsById[unit.id] = unit;
+    }
+  }
+
   void registerRules(Iterable<PolyglotValidationRule> newRules) {
     for (final rule in newRules) {
-      _rules.removeWhere((r) => r.ruleId == rule.ruleId);
-      _rules.add(rule);
+      _rulesById[rule.ruleId] = rule;
     }
   }
 
   List<LanguageDescriptor> get supportedLanguages =>
       UnmodifiableListView(_languages.values);
 
-  List<PolyglotLearningUnit> get allUnits => UnmodifiableListView(_units);
+  List<PolyglotLearningUnit> get allUnits =>
+      UnmodifiableListView(_unitsById.values);
 
   List<PolyglotFeatureModule> get registeredModules =>
       UnmodifiableListView(_modules.values);
 
-  /// استعلام مرن وسريع حسب اللغة أو المستوى أو المجال أو البحث النصي
   List<PolyglotLearningUnit> queryUnits({
     String? languageCode,
     CefrProficiencyLevel? level,
@@ -189,7 +191,7 @@ class PolyglotUnifiedRegistry {
     String? searchQuery,
   }) {
     final normalizedQuery = searchQuery?.trim().toLowerCase();
-    return _units.where((u) {
+    return _unitsById.values.where((u) {
       if (languageCode != null && u.languageCode != languageCode) return false;
       if (level != null && u.level != level) return false;
       if (domainId != null && u.domainId != domainId) return false;
@@ -204,7 +206,6 @@ class PolyglotUnifiedRegistry {
     }).toList(growable: false);
   }
 
-  /// فحص أي جملة مدخلة عبر كافة القواعد المسجلة للغة المحددة
   PolyglotValidationOutcome validateInput(
     String input, {
     String languageCode = 'de',
@@ -214,7 +215,8 @@ class PolyglotUnifiedRegistry {
     final feedbacks = <String>[];
     var corrected = trimmed;
 
-    for (final rule in _rules.where((r) => r.languageCode == languageCode)) {
+    for (final rule
+        in _rulesById.values.where((r) => r.languageCode == languageCode)) {
       if (rule.errorPattern.hasMatch(corrected)) {
         triggeredIds.add(rule.ruleId);
         feedbacks.add(rule.arabicFeedback);
@@ -232,18 +234,17 @@ class PolyglotUnifiedRegistry {
     );
   }
 
-  /// ملخص إحصائي موحد وخفيف للمنصة
   Map<String, dynamic> generatePlatformSummary() => {
         'supportedLanguagesCount': _languages.length,
         'registeredModulesCount': _modules.length,
-        'totalLearningUnits': _units.length,
-        'totalValidationRules': _rules.length,
+        'totalLearningUnits': _unitsById.length,
+        'totalValidationRules': _rulesById.length,
         'zeroPii': true,
         'offlineFirstReady': true,
       };
 }
 
-/// الجسر التفاعلي الموحد للواجهة (يغني عن إنشاء جسر منفصل لكل مهمة)
+/// الجسر التفاعلي الموحد للواجهة (يغني تماماً عن إنشاء جسر منفصل لكل موجة)
 class PolyglotUnifiedUiBridge {
   final PolyglotUnifiedRegistry registry;
   final StreamController<List<PolyglotLearningUnit>> _unitsController =
