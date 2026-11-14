@@ -1,0 +1,12 @@
+{
+  "latest_version": "4.0.0",
+  "latest_verified_version": null,
+  "release_status": "BLOCKED_DEPENDENCY",
+  "registered_languages": 100,
+  "packs": {},
+  "legacy_version_metadata": {
+    "last_advertised_version": "4.0.0",
+    "withdrawn_missing_pack_urls": 100,
+    "reason": "Referenced *_master.pack.gz files do not exist in public repository; retained language identities in manifest.json."
+  }
+}
