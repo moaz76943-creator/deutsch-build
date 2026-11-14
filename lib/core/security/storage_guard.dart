@@ -12,9 +12,9 @@ class StorageGuard {
     }
   }
 
-  static bool isLocalReadPermitted() => true;
+  static bool isLocalReadPermitted() => hasPermission(StoragePermission.read);
 
-  static bool isLocalWritePermitted() => true;
+  static bool isLocalWritePermitted() => hasPermission(StoragePermission.write);
 
   static bool validateJsonIntegrity(String rawJson) {
     try {
@@ -29,7 +29,9 @@ class StorageGuard {
     try {
       final decoded = jsonDecode(rawJson);
       if (decoded is! Map) return false;
-      if (decoded['algorithm'] == null || decoded['hash'] == null || decoded['keyId'] == null) {
+      if (decoded['algorithm'] == null ||
+          decoded['hash'] == null ||
+          decoded['keyId'] == null) {
         return false;
       }
       return true;

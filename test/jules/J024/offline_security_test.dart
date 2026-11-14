@@ -7,17 +7,28 @@ import '../../../lib/core/security/data_integrity_signer.dart';
 void main() {
   group('OfflineGate', () {
     test('Denies telemetry and unrestricted network', () {
-      expect(OfflineGate.isOperationPermitted(OperationType.telemetry), isFalse);
-      expect(OfflineGate.isOperationPermitted(OperationType.unrestrictedNetwork), isFalse);
+      expect(
+          OfflineGate.isOperationPermitted(OperationType.telemetry), isFalse);
+      expect(
+          OfflineGate.isOperationPermitted(OperationType.unrestrictedNetwork),
+          isFalse);
+    });
+
+    test('authorizeUserDownload denies forged authorization', () {
+      expect(OfflineGate.authorizeUserDownload(false), isFalse);
+      expect(OfflineGate.authorizeUserDownload(true), isTrue);
     });
 
     test('Allows local read and write', () {
       expect(OfflineGate.isOperationPermitted(OperationType.localRead), isTrue);
-      expect(OfflineGate.isOperationPermitted(OperationType.localWrite), isTrue);
+      expect(
+          OfflineGate.isOperationPermitted(OperationType.localWrite), isTrue);
     });
 
     test('Requires unexpired capability for download', () {
-      expect(OfflineGate.isOperationPermitted(OperationType.userRequestedDownload), isFalse);
+      expect(
+          OfflineGate.isOperationPermitted(OperationType.userRequestedDownload),
+          isFalse);
 
       final expired = DownloadCapability(
         expiresAt: DateTime.now().millisecondsSinceEpoch - 1000,
@@ -48,6 +59,8 @@ void main() {
     test('Reflects offline gate policy', () {
       expect(StorageGuard.hasPermission(StoragePermission.read), isTrue);
       expect(StorageGuard.hasPermission(StoragePermission.write), isTrue);
+      expect(StorageGuard.isLocalReadPermitted(), isTrue);
+      expect(StorageGuard.isLocalWritePermitted(), isTrue);
     });
 
     test('Validates JSON integrity', () {
@@ -68,17 +81,40 @@ void main() {
         'algorithm': 'fnv1a',
         'hash': 123,
       };
-      expect(StorageGuard.validateManifestStructure(jsonEncode(invalid1)), isFalse);
+      expect(StorageGuard.validateManifestStructure(jsonEncode(invalid1)),
+          isFalse);
       expect(StorageGuard.validateManifestStructure('invalid'), isFalse);
     });
   });
 
   group('DataIntegritySigner', () {
+    test('Rejects missing manifests and empty payload', () {
+      expect(DataIntegritySigner.verifyManifest(null, 'payload'), isFalse);
+      expect(DataIntegritySigner.verifyManifest({}, null), isFalse);
+      expect(
+          DataIntegritySigner.verifyManifest(
+              {'hash': 123, 'algorithm': 'fnv1a'}, ''),
+          isFalse);
+    });
+
     test('Computes and verifies checksum', () {
       final payload = 'test payload';
       final hash = DataIntegritySigner.computeChecksum(payload);
       expect(DataIntegritySigner.verifyIntegrity(payload, hash), isTrue);
       expect(DataIntegritySigner.verifyIntegrity(payload, hash + 1), isFalse);
+    });
+
+    test('Rejects altered content (invalid checksum)', () {
+      final payload = 'test payload';
+      final hash = DataIntegritySigner.computeChecksum(payload);
+      final manifest = {
+        'algorithm': 'fnv1a',
+        'hash': hash,
+        'keyId': DataIntegritySigner.approvedTrustedKey,
+      };
+
+      expect(DataIntegritySigner.verifyManifest(manifest, 'altered payload'),
+          isFalse);
     });
 
     test('Verifies valid manifest', () {
