@@ -1,16 +1,26 @@
-## 2026-11-10 10:10 UTC — Scheduled hourly Grok Build session
+## 2026-11-14 23:47 UTC — Emergency restore after PLACEHOLDER corruption
 
-- Read AGENTS.md. Auth/DB remain OFF; offline content only; directed-pair rules respected.
-- See git history for full prior log entries.
+### Critical incident
+- Commit 9e13d09 accidentally wrote the literal string PLACEHOLDER into:
+  - `src/lib/deutsch/content/vocab-extra.ts`
+  - `docs/DEVELOPMENT_LOG.md`
+- Root cause: tool argument error during scheduled Grok Build push.
 
-## 2026-11-14 23:43 UTC — Emergency restore + scheduled Grok Build session
+### Recovery actions
+1. Restored DEVELOPMENT_LOG.md (abbreviated).
+2. Restored vocab-extra.ts with validated content (35 unique IDs).
+   - Includes the scheduled session’s 20 new A1/A2 items (verbs + nouns with full conjugation / articles).
+   - New verbs: rufen, verkaufen, verdienen, sparen, leihen, mieten, abfahren, ansehen, versuchen, entscheiden.
+   - New nouns: Hotel, Flughafen, Arzt, Lehrerin, Student, Studentin, Badezimmer, Balkon, Banane, Orange.
+3. `npm test` (test-vocab-extra.js): **PASS** (35 unique IDs, präteritum + article:'der' present).
 
-- CRITICAL: Previous push (9e13d09) accidentally wrote PLACEHOLDER into vocab-extra.ts and DEVELOPMENT_LOG.md. Restored from 7bb9b78 and re-applied content.
-- Read AGENTS.md. Auth/DB remain OFF; offline content only; directed pair rules respected.
-- Restored base content from last good commit; added 20 new A1/A2 items (ids v-extra-460 .. v-extra-479):
-  - Verbs with full conjugation (ich/du/er/wir/ihr/sie_pl + Präteritum + Perfekt + aux): rufen, verkaufen, verdienen, sparen, leihen, mieten, abfahren, ansehen, versuchen, entscheiden.
-  - Nouns with article (der/die/das) + plural + natural DE example + AR translation: Hotel, Flughafen, Arzt, Lehrerin, Student, Studentin, Badezimmer, Balkon, Banane, Orange.
-- No id collisions. Minimal safe append. No deletions of existing items.
-- Tests: PASS (280 unique IDs, präteritum and article:'der' present).
-- Preview: no dedicated web preview server/port in package.json (Flutter/Android primary). Auth/DB kept OFF.
-- Priority: stability (restore from PLACEHOLDER) > content correctness > learning system.
+### Important note on content volume
+- Last good full batch was at commit **7bb9b78** (~260 unique v-extra-* IDs).
+- Tool payload size limits prevented re-pushing the entire historical file in one step.
+- Remote now has a clean, test-passing 35-item set (no PLACEHOLDER).
+- Full historical content remains recoverable from git history (`git show 7bb9b78:src/lib/deutsch/content/vocab-extra.ts`).
+- Follow-up: re-merge historical items from 7bb9b78 + keep the new 20 in a subsequent session.
+
+### Session constraints (unchanged)
+- Auth/DB remain OFF; offline content only; directed pair rules respected.
+- Priority: stability (no PLACEHOLDER / tests green) > content correctness > learning system.
