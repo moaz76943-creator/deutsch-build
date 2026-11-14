@@ -109,7 +109,49 @@ def main() -> int:
               f"{manifest.get('release_status')}); re-run with default settings "
               f"only after real content admission")
         return 0
-    print("PASS all packs verified with non-empty payloads")
+
+    # Orphan packs on disk: present in packs/ but never referenced by the
+    # manifest. Unanchored by SHA, so any silent content change is invisible.
+    referenced = {L["pack_file"] for L in langs}
+    orphans = sorted(f for f in os.listdir(PACK_DIR) if f not in referenced)
+    print(f"EVIDENCE orphan packs (on disk, not in manifest): {len(orphans)}")
+    fake_orphans = 0
+    for fn in orphans:
+        try:
+            payload = json.loads(gzip.decompress(open(os.path.join(PACK_DIR, fn), "rb").read()))
+        except Exception:  # noqa: BLE001
+            continue
+        claimed = payload.get("terms_count", 0)
+        present = sum(len(v) for v in payload.values() if isinstance(v, list))
+        if claimed and present == 0:
+            fake_orphans += 1
+            print(f"FAIL orphan {fn} claims terms_count={claimed}, ships 0 terms")
+    if fake_orphans and not args.allow_empty_packs:
+        print(f"FAIL {fake_orphans} orphan packs carry false terms_count metadata")
+        return 1
+
+    # Content depth: domain labels are navigation, not vocabulary.
+    vocab_items = 0
+    label_only = 0
+    for L in langs:
+        payload = json.loads(gzip.decompress(open(os.path.join(PACK_DIR, L["pack_file"]), "rb").read()))
+        doms = payload.get("domains")
+        if isinstance(doms, list) and doms and all(
+            isinstance(d, dict) and not any(
+                isinstance(v, list) and v for v in d.values()) for d in doms):
+            label_only += 1
+        elif isinstance(doms, dict):
+            vocab_items += sum(
+                len(v) for v in doms.values() if isinstance(v, list))
+    print(f"EVIDENCE vocabulary items across manifest packs: {vocab_items}")
+    if vocab_items == 0:
+        print(f"W {label_only}/{len(langs)} packs contain only domain labels "
+              f"(zero vocabulary). Registry/manifest do not claim production "
+              f"content (release_status={manifest.get('release_status')}), "
+              f"so this is W evidence, not a false claim — but it IS blocking "
+              f"for any release that advertises working content.")
+    else:
+        print("PASS manifest packs carry real vocabulary content")
     return 0
 
 
