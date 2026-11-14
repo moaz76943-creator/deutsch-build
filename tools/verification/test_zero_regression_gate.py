@@ -1,6 +1,7 @@
 import unittest
 import os
 import json
+import stat
 import subprocess
 from pathlib import Path
 from unittest.mock import patch, MagicMock
@@ -15,14 +16,16 @@ class TestZeroRegressionGate(unittest.TestCase):
     @patch('tools.verification.zero_regression_gate.run_command')
     def test_analyzer_failure_blocks_acceptance(self, mock_run):
         mock_run.return_value = (1, "error • Something is wrong", "")
-        res = gate.run_dart_analyzer()
+        res = gate.run_dart_analyzer(self.root)
         self.assertEqual(res.status, gate.STATUS_FAIL)
+        self.assertEqual(res.details['error_count'], 1)
 
     @patch('tools.verification.zero_regression_gate.run_command')
     def test_analyzer_pass(self, mock_run):
         mock_run.return_value = (0, "No issues found!", "")
-        res = gate.run_dart_analyzer()
+        res = gate.run_dart_analyzer(self.root)
         self.assertEqual(res.status, gate.STATUS_PASS)
+        self.assertEqual(res.details['error_count'], 0)
 
     @patch('pathlib.Path.rglob')
     def test_missing_sqlite_tests_not_run(self, mock_rglob):
@@ -55,6 +58,11 @@ class TestZeroRegressionGate(unittest.TestCase):
             "benchmarks": gate.GateResult(gate.STATUS_FAIL, "Failed"),
         }
         test_file = "test_manifest.json"
+
+        if os.path.exists(test_file):
+            os.chmod(test_file, stat.S_IWUSR | stat.S_IRUSR)
+            os.remove(test_file)
+
         overall = gate.generate_manifest(results, test_file)
         self.assertEqual(overall, gate.STATUS_FAIL)
 
@@ -64,7 +72,12 @@ class TestZeroRegressionGate(unittest.TestCase):
             self.assertEqual(data["results"]["benchmarks"]["status"], gate.STATUS_FAIL)
             self.assertIn("hash", data)
 
+        file_stat = os.stat(test_file)
+        self.assertTrue(bool(file_stat.st_mode & stat.S_IRUSR))
+        self.assertFalse(bool(file_stat.st_mode & stat.S_IWUSR))
+
         if os.path.exists(test_file):
+            os.chmod(test_file, stat.S_IWUSR | stat.S_IRUSR)
             os.remove(test_file)
 
     def test_baseline_comparison_missing(self):
@@ -82,6 +95,11 @@ class TestZeroRegressionGate(unittest.TestCase):
                          "details": {
                              "peak_memory_mb": 50.0
                          }
+                     },
+                     "dart_analyzer": {
+                         "details": {
+                             "error_count": 0
+                         }
                      }
                  }
              }, f)
@@ -93,6 +111,11 @@ class TestZeroRegressionGate(unittest.TestCase):
                          "details": {
                              "peak_memory_mb": 70.0 # Regression > 20%
                          }
+                     },
+                     "dart_analyzer": {
+                         "details": {
+                             "error_count": 1
+                         }
                      }
                  }
              }, f)
@@ -100,6 +123,8 @@ class TestZeroRegressionGate(unittest.TestCase):
         res = gate.compare_baselines(c_file, b_file)
         self.assertEqual(res.status, gate.STATUS_FAIL)
         self.assertIn("Regressions detected", res.message)
+        self.assertTrue(any("Dart analyzer degraded" in r for r in res.details["regressions"]))
+        self.assertTrue(any("Memory Peak regressed" in r for r in res.details["regressions"]))
 
         if os.path.exists(b_file): os.remove(b_file)
         if os.path.exists(c_file): os.remove(c_file)

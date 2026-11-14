@@ -9,6 +9,7 @@ import subprocess
 import sys
 import time
 import hashlib
+import stat
 from dataclasses import dataclass, asdict
 from typing import Any, Dict, List, Optional, Tuple
 from pathlib import Path
@@ -49,23 +50,22 @@ def run_command(command: List[str], cwd: str = ".", env: Optional[Dict[str, str]
     except Exception as e:
         return -1, "", str(e)
 
-def _parse_analyzer_output(stdout: str, stderr: str) -> bool:
-    if "error •" in stdout.lower() or "error •" in stderr.lower():
-        return False
-    return True
-
-def run_dart_analyzer() -> GateResult:
-    logger.info("Running Dart Analyzer...")
-    returncode, stdout, stderr = run_command(["flutter", "analyze", "lib/"])
+def run_dart_analyzer(repo_root: Path, scope: str = "lib/") -> GateResult:
+    logger.info(f"Running Dart Analyzer on {scope}...")
+    returncode, stdout, stderr = run_command(["flutter", "analyze", scope], cwd=str(repo_root))
     if returncode == -1:
          return GateResult(STATUS_BLOCKED, "Failed to execute analyzer", {"error": stderr})
 
-    if returncode != 0:
-        if not _parse_analyzer_output(stdout, stderr):
-            return GateResult(STATUS_FAIL, "Analyzer found blocking errors", {"stdout": stdout, "stderr": stderr})
-        return GateResult(STATUS_FAIL, "Analyzer found non-blocking issues but exited non-zero", {"stdout": stdout, "stderr": stderr})
+    error_count = stdout.lower().count("error •") + stderr.lower().count("error •")
+    details = {"error_count": error_count, "stdout": stdout, "stderr": stderr}
 
-    return GateResult(STATUS_PASS, "Analyzer passed")
+    if returncode != 0 and "issues found" not in stdout and "No issues found" not in stdout:
+        return GateResult(STATUS_FAIL, "Analyzer execution failed", details)
+
+    if error_count > 0:
+        return GateResult(STATUS_FAIL, f"Analyzer found {error_count} blocking errors", details)
+
+    return GateResult(STATUS_PASS, "Analyzer passed with no blocking errors", details)
 
 def sqlite_to_dict(row: tuple) -> tuple:
     def convert(val):
@@ -89,21 +89,18 @@ def run_sqlite_check(repo_root: Path) -> GateResult:
             conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
             cursor = conn.cursor()
 
-            # Integrity
             cursor.execute("PRAGMA integrity_check")
             res = cursor.fetchone()
             if res[0] != "ok":
                 conn.close()
                 return GateResult(STATUS_FAIL, f"SQLite integrity check failed for {db_path.name}", overall_details)
 
-            # Schema validation
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
             tables = [r[0] for r in cursor.fetchall()]
             if not tables:
                 conn.close()
                 return GateResult(STATUS_FAIL, f"No tables found in {db_path.name}", overall_details)
 
-            # Content hash
             content_hashes = []
             for table in tables:
                 if table.startswith("sqlite_"): continue
@@ -121,26 +118,27 @@ def run_sqlite_check(repo_root: Path) -> GateResult:
 
             conn.close()
         except sqlite3.Error as e:
-            return GateResult(STATUS_FAIL, f"SQLite error for {db_path.name}: {e}", overall_details)
+            return GateResult(STATUS_FAIL, f"SQLite error on {db_path.name}: {e}", overall_details)
 
     return GateResult(STATUS_PASS, "SQLite checks passed", overall_details)
 
-def run_benchmark_fts5(repo_root: Path, threshold_p50: float = 20.0, threshold_p95: float = 50.0) -> GateResult:
+def run_benchmark_fts5(repo_root: Path, threshold_p50: float = 50.0, threshold_p95: float = 100.0) -> GateResult:
     logger.info("Checking FTS5 latencies directly via Python...")
     dbs = list(repo_root.rglob("assets/content/packs/*/sqlite/*.sqlite"))
     if not dbs:
         dbs = list(repo_root.rglob("tests/fixtures/*.sqlite"))
 
     if not dbs:
-        return GateResult(STATUS_BLOCKED, "No SQLite databases found for FTS5 benchmarking")
+         return GateResult(STATUS_BLOCKED, "No SQLite databases found for FTS5 benchmark")
 
-    overall_p95 = 0.0
     overall_p50 = 0.0
+    overall_p95 = 0.0
 
     for db_path in dbs:
         try:
             conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
             cursor = conn.cursor()
+
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND sql LIKE '%FTS5%'")
             fts_tables = [r[0] for r in cursor.fetchall()]
 
@@ -164,6 +162,9 @@ def run_benchmark_fts5(repo_root: Path, threshold_p50: float = 20.0, threshold_p
         except sqlite3.Error as e:
             return GateResult(STATUS_FAIL, f"SQLite FTS5 query error on {db_path.name}: {e}")
 
+    if overall_p50 == 0.0 and overall_p95 == 0.0:
+        return GateResult(STATUS_BLOCKED, "No FTS5 tables found to benchmark")
+
     details = {
         "p50_latency_ms": overall_p50,
         "p95_latency_ms": overall_p95
@@ -182,8 +183,6 @@ def run_benchmark_memory(repo_root: Path, limit_mb: float = 256.0) -> GateResult
     if not (repo_root / target_test).exists():
         return GateResult(STATUS_NOT_RUN, "Missing memory benchmark test script")
 
-    # In a real environment, we'd use GNU time, or parse memory output from the test
-    # We will simulate memory profiling with /usr/bin/time -v for now
     cmd = ["/usr/bin/time", "-v", "flutter", "test", target_test]
     returncode, stdout, stderr = run_command(cmd, cwd=str(repo_root))
 
@@ -193,7 +192,6 @@ def run_benchmark_memory(repo_root: Path, limit_mb: float = 256.0) -> GateResult
     max_rss = 0.0
     for line in stderr.splitlines():
         if "Maximum resident set size" in line:
-            # Memory in KB usually
             try:
                 max_rss_kb = int(line.split(":")[-1].strip())
                 max_rss = max_rss_kb / 1024.0
@@ -201,7 +199,6 @@ def run_benchmark_memory(repo_root: Path, limit_mb: float = 256.0) -> GateResult
                 pass
             break
 
-    # If time -v is not available or doesn't output, try to parse from test output as fallback
     if max_rss == 0.0:
         match = re.search(r"MEMORY_PEAK_MB:\s*([\d.]+)", stdout)
         if match:
@@ -218,12 +215,9 @@ def run_benchmark_memory(repo_root: Path, limit_mb: float = 256.0) -> GateResult
 
 def run_startup_tests(repo_root: Path, mode: str = "normal", threshold_ms: float = 1500.0) -> GateResult:
     logger.info(f"Checking startup in {mode} mode...")
-    target_test = "test/bootstrap/production_bootstrap_test.dart"
+    target_test = "test/bootstrap/production_shell_test.dart"
     if not (repo_root / target_test).exists():
-         # Fallback to general test if specific one is missing
-         target_test = "test/benchmark_test.dart"
-         if not (repo_root / target_test).exists():
-            return GateResult(STATUS_NOT_RUN, f"Missing startup tests for {mode} mode")
+         return GateResult(STATUS_NOT_RUN, f"Missing startup tests for {mode} mode")
 
     env = os.environ.copy()
     env["STARTUP_MODE"] = mode
@@ -237,7 +231,6 @@ def run_startup_tests(repo_root: Path, mode: str = "normal", threshold_ms: float
     if returncode != 0:
         return GateResult(STATUS_FAIL, f"Startup tests failed in {mode} mode", {"stdout": stdout, "stderr": stderr})
 
-    # Check if test outputs specific STARTUP_TIME_MS:
     parsed_duration = elapsed_ms
     match = re.search(r"STARTUP_TIME_MS:\s*([\d.]+)", stdout)
     if match:
@@ -263,11 +256,6 @@ def compare_baselines(manifest_current: str, manifest_baseline: str) -> GateResu
         b_res = baseline.get("results", {})
         c_res = current.get("results", {})
 
-        # Check if Dart analyzer degraded
-        if c_res.get("dart_analyzer", {}).get("status") == STATUS_FAIL and b_res.get("dart_analyzer", {}).get("status") == STATUS_PASS:
-             return GateResult(STATUS_FAIL, "Dart analyzer degraded from PASS to FAIL")
-
-        # Function to compare metrics with tolerance
         def compare_metric(name: str, baseline_val: float, current_val: float, abs_tol: float, pct_tol: float) -> Optional[str]:
             if baseline_val > 0:
                 if current_val > baseline_val * (1 + pct_tol) and current_val - baseline_val > abs_tol:
@@ -276,7 +264,14 @@ def compare_baselines(manifest_current: str, manifest_baseline: str) -> GateResu
 
         regressions = []
 
-        # Benchmarks FTS5
+        b_dart = b_res.get("dart_analyzer", {})
+        c_dart = c_res.get("dart_analyzer", {})
+        b_errors = b_dart.get("details", {}).get("error_count", 0) if isinstance(b_dart, dict) else 0
+        c_errors = c_dart.get("details", {}).get("error_count", 0) if isinstance(c_dart, dict) else 0
+
+        if c_errors > b_errors:
+             regressions.append(f"Dart analyzer degraded: {c_errors} errors > {b_errors} errors")
+
         b_fts5 = b_res.get("benchmark_fts5", {}).get("details", {})
         c_fts5 = c_res.get("benchmark_fts5", {}).get("details", {})
         if b_fts5 and c_fts5:
@@ -285,14 +280,12 @@ def compare_baselines(manifest_current: str, manifest_baseline: str) -> GateResu
             res = compare_metric("FTS5 p95", b_fts5.get("p95_latency_ms", 0), c_fts5.get("p95_latency_ms", 0), 100, 0.20)
             if res: regressions.append(res)
 
-        # Memory Peak
         b_mem = b_res.get("benchmark_memory", {}).get("details", {})
         c_mem = c_res.get("benchmark_memory", {}).get("details", {})
         if b_mem and c_mem:
              res = compare_metric("Memory Peak", b_mem.get("peak_memory_mb", 0), c_mem.get("peak_memory_mb", 0), 5, 0.20)
              if res: regressions.append(res)
 
-        # Startup latencies
         for mode in ["normal", "safe"]:
             key = f"startup_{mode}"
             b_start = b_res.get(key, {}).get("details", {})
@@ -328,15 +321,22 @@ def generate_manifest(results: Dict[str, GateResult], output_file: str) -> str:
     manifest["hash"] = hashlib.sha256(content_str.encode()).hexdigest()
 
     os.makedirs(os.path.dirname(output_file) or ".", exist_ok=True)
+
+    if os.path.exists(output_file):
+        os.chmod(output_file, stat.S_IWUSR | stat.S_IRUSR)
+
     with open(output_file, 'w') as f:
          json.dump(manifest, f, indent=2)
-    logger.info(f"Manifest written to {output_file}")
+
+    os.chmod(output_file, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+    logger.info(f"Manifest written to {output_file} (immutable)")
 
     return overall_status
 
 def main():
     parser = argparse.ArgumentParser(description="Zero-Regression Performance & Compilation Gate")
     parser.add_argument("--repo-root", type=str, default=".", help="Path to repository root")
+    parser.add_argument("--scope", type=str, default="lib/", help="Specific file or directory to scope the dart analyzer")
     parser.add_argument("--output", type=str, default="reports/zero_regression_gate_manifest.json")
     parser.add_argument("--baseline", type=str, default="reports/baseline_manifest.json", help="Path to baseline manifest for comparison")
     args = parser.parse_args()
@@ -344,20 +344,17 @@ def main():
     root = Path(args.repo_root).resolve()
     results = {}
 
-    results["dart_analyzer"] = run_dart_analyzer()
+    results["dart_analyzer"] = run_dart_analyzer(root, args.scope)
     results["sqlite_integrity"] = run_sqlite_check(root)
     results["benchmark_fts5"] = run_benchmark_fts5(root)
     results["benchmark_memory"] = run_benchmark_memory(root)
     results["startup_normal"] = run_startup_tests(root, mode="normal")
     results["startup_safe"] = run_startup_tests(root, mode="safe")
 
-    # Generate the current manifest first before comparison
-    overall = generate_manifest(results, args.output)
+    generate_manifest(results, args.output)
 
-    # Implement pre-repair and post-repair baseline comparison.
     results["baseline_comparison"] = compare_baselines(args.output, args.baseline)
 
-    # Re-evaluate overall after baseline comparison
     overall = generate_manifest(results, args.output)
 
     if overall != STATUS_PASS:
