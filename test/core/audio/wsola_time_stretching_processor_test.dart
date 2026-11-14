@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'dart:typed_data';
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/core/audio/wsola_time_stretching_processor.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/core/audio/wsola_time_stretching_processor.dart';
 
 void main() {
   group('WsolaTimeStretchingProcessor Tests', () {

@@ -1,6 +1,6 @@
-import 'dart:async';
-import 'package:test/test.dart';
-import 'package:deutsch_app/core/audio/question_audio_coordinator.dart';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/core/audio/question_audio_coordinator.dart';
 
 class MockAudioPlayerClient implements AudioPlayerClient {
   String? currentlyPlayingUri;
@@ -45,20 +45,20 @@ void main() {
       final q1Playback = coordinator.requestQuestionAudio(
         questionId: 'question_001',
         audioUriResolver: () async {
-          await Future.delayed(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
           return 'audio://cache/q1_pronunciation.mp3';
         },
       );
 
       // 2. User quickly taps Next to Question 2 after 10ms
-      await Future.delayed(const Duration(milliseconds: 10));
+      await Future<void>.delayed(const Duration(milliseconds: 10));
       await coordinator.transitionToQuestion('question_002');
 
       // 3. User requests audio for Question 2 (fast, 10ms)
       final q2Playback = coordinator.requestQuestionAudio(
         questionId: 'question_002',
         audioUriResolver: () async {
-          await Future.delayed(const Duration(milliseconds: 10));
+          await Future<void>.delayed(const Duration(milliseconds: 10));
           return 'audio://cache/q2_pronunciation.mp3';
         },
       );
