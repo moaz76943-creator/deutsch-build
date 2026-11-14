@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/languages/cross_pair_e2e_harness.dart';
 
 void main() {

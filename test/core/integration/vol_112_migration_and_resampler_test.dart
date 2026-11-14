@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/storage/sqlite_migration_rollback_engine.dart';
 import 'package:deutsch_build/src/core/voice/synthesis/pcm_adaptive_sample_rate_converter.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_112_wave3_ui_bridge.dart';

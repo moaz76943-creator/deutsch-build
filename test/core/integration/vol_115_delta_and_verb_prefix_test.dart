@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/content/binary_delta_patch_applier.dart';
 import 'package:deutsch_build/src/core/content/german_separable_verb_recombiner.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_115_wave3_ui_bridge.dart';

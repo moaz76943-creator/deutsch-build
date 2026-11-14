@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/content/a2_b1_work_careers_bank.dart';
 
 void main() {

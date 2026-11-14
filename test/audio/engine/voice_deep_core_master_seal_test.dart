@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/audio/engine/voice_deep_core_master_seal.dart';
 
 void main() {

@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/dialogue/full_duplex_voice_dialogue_engine.dart';
 
 void main() {

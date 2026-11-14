@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/typography/universal_script_shaper.dart';
 import 'package:deutsch_build/src/core/typography/universal_multi_script_typography_engine.dart';
 

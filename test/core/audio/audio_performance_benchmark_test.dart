@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/audio/piper_voice_model.dart';
 import 'package:deutsch_build/src/core/audio/piper_onnx_neural_tts_engine.dart';
 import 'package:deutsch_build/src/core/audio/wsola_time_stretching_processor.dart';

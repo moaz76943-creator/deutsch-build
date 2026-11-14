@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/security/app_cloaking_guard.dart';
 
 class MockWindowSecurityBridge implements WindowSecurityBridge {

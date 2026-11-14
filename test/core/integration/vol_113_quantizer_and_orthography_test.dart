@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/content/arabic_german_orthography_normalizer.dart';
 import 'package:deutsch_build/src/core/semantic_search/vector_scalar_quantizer.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_113_wave1_ui_bridge.dart';

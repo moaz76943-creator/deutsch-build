@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../../lib/src/core/content/german_n_declension_engine.dart';
 import '../../../lib/src/ui/bridges/vol_116_wave43_ui_bridge.dart';
 

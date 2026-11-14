@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/platform/p2p_self_update_engine.dart';
 
 void main() {

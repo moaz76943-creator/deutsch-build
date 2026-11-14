@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/platform/fdroid_reproducible_packager.dart';
 
 void main() {

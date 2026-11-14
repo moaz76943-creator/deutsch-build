@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/features/sync/infrastructure/http_cloud_storage_service.dart';
 import 'package:deutsch_build/src/core/content/sovereign_content_compliance_validator.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_111_ui_bridge.dart';

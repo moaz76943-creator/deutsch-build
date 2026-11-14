@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/cache/semantic_cache_invalidation_bus.dart';
 import 'package:deutsch_build/src/core/security/offline_pack_encryption_vault.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_112_wave2_ui_bridge.dart';

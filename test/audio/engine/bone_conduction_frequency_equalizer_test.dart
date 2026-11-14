@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/audio/engine/bone_conduction_frequency_equalizer.dart';
 
 void main() {

@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/core/curriculum/pillar2_curriculum_acceptance_gate.dart';
 
 void main() {

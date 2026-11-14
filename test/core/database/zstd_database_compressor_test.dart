@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/database/zstd_database_compressor.dart';
 
 void main() {

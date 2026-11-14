@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/content/a1_a2_time_calendar_bank.dart';
 
 void main() {

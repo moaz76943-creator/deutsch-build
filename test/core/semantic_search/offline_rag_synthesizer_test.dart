@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/core/semantic_search/offline_rag_synthesizer.dart';
 
 void main() {

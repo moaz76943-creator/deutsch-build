@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:crypto/crypto.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_app/core/storage/atomic_pack_admission.dart';
 
 void main() {

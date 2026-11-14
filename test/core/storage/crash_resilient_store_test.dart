@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_app/core/storage/crash_resilient_store.dart';
 
 void main() {

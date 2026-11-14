@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/speech/encrypted_audio_sample_vault.dart';
 
 void main() {

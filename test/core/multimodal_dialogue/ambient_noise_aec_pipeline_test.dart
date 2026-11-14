@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/core/multimodal_dialogue/ambient_noise_aec_pipeline.dart';
 
 void main() {

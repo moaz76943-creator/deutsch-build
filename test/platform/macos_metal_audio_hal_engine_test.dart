@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/platform/macos_metal_audio_hal_engine.dart';
 
 void main() {

@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/content/sovereign_translation_memory_aligner.dart';
 import 'package:deutsch_build/src/core/mesh/protocol/merkle_range_state_rebalancer.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_113_wave4_ui_bridge.dart';

@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Core FTS5 Full-Text Search Index Tests', () {

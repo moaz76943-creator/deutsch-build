@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/content/pack_migration_compatibility_auditor.dart';
 
 void main() {

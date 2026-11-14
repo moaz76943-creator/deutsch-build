@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/content/german_morphological_lemmatizer.dart';
 import 'package:deutsch_build/src/core/voice/synthesis/low_bitrate_frame_packetizer.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_113_wave5_ui_bridge.dart';

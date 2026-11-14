@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/release/polyglot_universal_v4_master_seal.dart';
 
 void main() {

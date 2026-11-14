@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/content/c1_c2_eloquence_literature_bank.dart';
 
 void main() {

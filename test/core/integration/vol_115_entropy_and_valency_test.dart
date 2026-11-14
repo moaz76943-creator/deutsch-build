@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/content/german_verb_valency_matcher.dart';
 import 'package:deutsch_build/src/core/mesh/protocol/anti_entropy_reconciliation_protocol.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_115_wave1_ui_bridge.dart';

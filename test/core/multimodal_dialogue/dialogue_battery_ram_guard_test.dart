@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/core/multimodal_dialogue/dialogue_battery_ram_guard.dart';
 
 void main() {

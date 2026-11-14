@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/content/civilizational_dialogue_story_corpus.dart';
 
 void main() {

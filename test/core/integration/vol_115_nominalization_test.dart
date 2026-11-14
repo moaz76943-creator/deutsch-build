@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/content/german_nominalization_converter.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_115_wave9_ui_bridge.dart';
 

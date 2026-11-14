@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/core/multimodal_dialogue/multimodal_dialogue_orchestrator.dart';
 
 void main() {

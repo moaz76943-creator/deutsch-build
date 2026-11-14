@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/content/pillar2_scenarios_acceptance_gate.dart';
 
 void main() {

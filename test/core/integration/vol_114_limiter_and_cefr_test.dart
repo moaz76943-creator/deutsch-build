@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/content/cefr_lexical_frequency_classifier.dart';
 import 'package:deutsch_build/src/core/mesh/protocol/token_bucket_rate_limiter.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_114_wave1_ui_bridge.dart';

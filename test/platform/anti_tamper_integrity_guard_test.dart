@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/platform/anti_tamper_integrity_guard.dart';
 
 void main() {

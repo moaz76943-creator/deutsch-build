@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/languages/declarative_language_engine.dart';
 import 'package:deutsch_build/src/core/languages/african_languages_registry.dart';
 
