@@ -1,0 +1,37 @@
+name: Polyglot Unified CI & Security Gate
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Unified Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run Zero-Secrets & Status Audit
+        run: |
+          python3 tool/polyglot_cli.py status
+          python3 tool/polyglot_cli.py security-scan
+
+      - name: Set up Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install Dependencies & Analyze
+        run: |
+          dart pub get
+          dart analyze lib/polyglot_core.dart
+
+      - name: Run Unified Polyglot Test Suite
+        run: dart test test/core/polyglot/

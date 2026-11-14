@@ -1,0 +1,36 @@
+{
+  "language": {
+    "isoCode": "de",
+    "nativeName": "Deutsch",
+    "arabicName": "الألمانية",
+    "isRightToLeft": false
+  },
+  "units": [
+    {
+      "id": "json_de_prag_01",
+      "languageCode": "de",
+      "level": "C1",
+      "domainId": "business",
+      "categoryId": "polite_disagreement",
+      "title": "الاختلاف المهني المهذب في الرأي أثناء الاجتماعات",
+      "targetExpression": "Ich sehe diesen Punkt etwas differenzierter",
+      "contextualSentence": "Ich schätze Ihren Entwurf sehr, allerdings sehe ich diesen Punkt im Hinblick auf die Lieferzeit etwas differenzierter.",
+      "commonPitfall": "Das ist falsch (الرفض المباشر الحاد يفقد الحوار اللباقة المهنية)",
+      "arabicExplanation": "عبارة دبلوماسية رفيعة في بيئة العمل الألمانية لتقديم رأي مخالف باحترام وتقدير.",
+      "tags": ["Wirtschaft", "Pragmatik", "C1"]
+    },
+    {
+      "id": "json_de_prag_02",
+      "languageCode": "de",
+      "level": "B2",
+      "domainId": "engineering",
+      "categoryId": "safety_briefing",
+      "title": "التأكيد على إجراءات السلامة المهنية قبل بدء التشغيل",
+      "targetExpression": "auf Nummer sicher gehen",
+      "contextualSentence": "Bevor wir die Hochspannungsleitung zuschalten, prüfen wir alle Erdungsklemmen doppelt, um auf Nummer sicher zu gehen.",
+      "commonPitfall": "sicher sein gehen (ترجمة حرفية غير صحيحة)",
+      "arabicExplanation": "التعبير الاصطلاحي auf Nummer sicher gehen يعني اتخاذ أقصى درجات الاحتياط والسلامة لتفادي أي مخاطرة.",
+      "tags": ["Ingenieurwesen", "Sicherheit", "B2"]
+    }
+  ]
+}
