@@ -32,6 +32,8 @@ class TurkishProfile(LanguageProfile):
                 return
             if depth > analyzer.max_recursion_depth:
                 return
+            if len(current_tags) > 10:
+                return
 
             for nom in analyzer.lookup_nominal_lemma(current_word):
                 results.append(AnalysisResult(word, nom['lemma'], nom['id'], nom['part_of_speech'], list(reversed(current_tags))))
@@ -48,16 +50,30 @@ class TurkishProfile(LanguageProfile):
     def _check_vowel_harmony(self, stem: str, suffix: str) -> bool:
         back_vowels = set("aıouAIOU")
         front_vowels = set("eiöüEİÖÜ")
+        rounded_vowels = set("ouöüOUÖÜ")
+        unrounded_vowels = set("aeıiAEIİ")
+        high_vowels = set("ıiuüIİUÜ")
+
         stem_vowels = [c for c in stem if c in back_vowels or c in front_vowels]
         suffix_vowels = [c for c in suffix if c in back_vowels or c in front_vowels]
         if not stem_vowels or not suffix_vowels:
             return True
         last_stem_vowel = stem_vowels[-1]
         first_suffix_vowel = suffix_vowels[0]
+
+        # 2-way harmony (front/back)
         if last_stem_vowel in back_vowels and first_suffix_vowel in front_vowels:
             return False
         if last_stem_vowel in front_vowels and first_suffix_vowel in back_vowels:
             return False
+
+        # 4-way harmony for high vowels
+        if first_suffix_vowel in high_vowels:
+            if last_stem_vowel in rounded_vowels and first_suffix_vowel in unrounded_vowels:
+                return False
+            if last_stem_vowel in unrounded_vowels and first_suffix_vowel in rounded_vowels:
+                return False
+
         return True
 
 class FinnishProfile(LanguageProfile):
@@ -76,6 +92,8 @@ class FinnishProfile(LanguageProfile):
                 return
             if depth > analyzer.max_recursion_depth:
                 return
+            if len(current_tags) > 10:
+                return
 
             for nom in analyzer.lookup_nominal_lemma(current_word):
                 results.append(AnalysisResult(word, nom['lemma'], nom['id'], nom['part_of_speech'], list(reversed(current_tags))))
@@ -92,19 +110,35 @@ class FinnishProfile(LanguageProfile):
     def _check_vowel_harmony(self, stem: str, suffix: str) -> bool:
         back_vowels = set("aouAOU")
         front_vowels = set("äöyÄÖY")
-        stem_vowels = [c for c in stem if c in back_vowels or c in front_vowels]
-        suffix_vowels = [c for c in suffix if c in back_vowels or c in front_vowels]
-        if not stem_vowels or not suffix_vowels:
-            return True
-        has_back = any(v in back_vowels for v in stem_vowels)
-        has_front = any(v in front_vowels for v in stem_vowels)
-        suffix_has_back = any(v in back_vowels for v in suffix_vowels)
-        suffix_has_front = any(v in front_vowels for v in suffix_vowels)
+        neutral_vowels = set("eiEI")
+        all_vowels = back_vowels | front_vowels | neutral_vowels
 
-        if has_back and suffix_has_front:
+        stem_vowels = [c for c in stem if c in all_vowels]
+        suffix_harmonic_vowels = [c for c in suffix if c in back_vowels or c in front_vowels]
+
+        if not stem_vowels or not suffix_harmonic_vowels:
+            return True
+
+        last_harmonic_vowel = None
+        for v in reversed(stem_vowels):
+            if v in back_vowels or v in front_vowels:
+                last_harmonic_vowel = v
+                break
+
+        suffix_has_back = any(v in back_vowels for v in suffix_harmonic_vowels)
+        suffix_has_front = any(v in front_vowels for v in suffix_harmonic_vowels)
+
+        if last_harmonic_vowel is None:
+            # All stem vowels are neutral, treat as front
+            if suffix_has_back:
+                return False
+            return True
+
+        if last_harmonic_vowel in back_vowels and suffix_has_front:
             return False
-        if has_front and not has_back and suffix_has_back:
+        if last_harmonic_vowel in front_vowels and suffix_has_back:
             return False
+
         return True
 
 class GermanProfile(LanguageProfile):
@@ -132,16 +166,29 @@ class GermanProfile(LanguageProfile):
 
         if word.endswith("n"):
             stem1 = word[:-1]
-            if len(stem1) > 0:
+            if len(stem1) > 0 and not stem1.endswith("n") and not stem1.endswith("s"):
                 for n in analyzer.lookup_nominal_form(stem1):
                     if n['number'] == 'pl':
                         results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
         if word.endswith("en"):
             stem2 = word[:-2]
-            if len(stem2) > 0:
+            if len(stem2) > 0 and not stem2.endswith("n") and not stem2.endswith("s"):
                 for n in analyzer.lookup_nominal_form(stem2):
                     if n['number'] == 'pl':
                         results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
+
+        if word.endswith("s"):
+            stem3 = word[:-1]
+            if len(stem3) > 0:
+                for n in analyzer.lookup_nominal_form(stem3):
+                    if n['gender'] in ('masc', 'neu') and n['number'] == 'sg' and n['grammatical_case'] == 'nom':
+                        results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["GEN", "SG"]))
+        if word.endswith("es"):
+            stem4 = word[:-2]
+            if len(stem4) > 0:
+                for n in analyzer.lookup_nominal_form(stem4):
+                    if n['gender'] in ('masc', 'neu') and n['number'] == 'sg' and n['grammatical_case'] == 'nom':
+                        results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["GEN", "SG"]))
 
         return results
 
@@ -185,7 +232,7 @@ class MorphologyAnalyzer:
 
     def lookup_nominal_form(self, form: str) -> List[Dict[str, Any]]:
         return self._query_all("""
-            SELECT n.id, n.lemma, n.part_of_speech, c.grammatical_case, c.number, c.definiteness
+            SELECT n.id, n.lemma, n.part_of_speech, n.gender, c.grammatical_case, c.number, c.definiteness
             FROM nominal_declensions c
             JOIN nominals n ON c.nominal_id = n.id
             WHERE c.inflected_form = ?
