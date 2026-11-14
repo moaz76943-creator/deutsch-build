@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:deutsch_bilarabi/design_system/app_typography.dart';
 import 'accessible_multilingual_text.dart';
 import 'resilient_text_container.dart';
 import 'lexicon_rich_details.dart';
@@ -40,7 +39,7 @@ class BidiLexiconView extends StatelessWidget {
           AccessibleMultilingualText(
             text: sourceText,
             languageCode: sourceLanguageCode,
-            style: AppTypography.title,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 8.0),
           LexiconRichDetails(
@@ -57,7 +56,7 @@ class BidiLexiconView extends StatelessWidget {
           AccessibleMultilingualText(
             text: targetText,
             languageCode: targetLanguageCode,
-            style: AppTypography.h2,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
         ],
       ),
