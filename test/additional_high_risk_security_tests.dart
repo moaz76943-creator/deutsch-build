@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:typed_data';
+import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:deutsch_bilarabi/services/user_vault_security_service.dart';
@@ -18,6 +20,8 @@ class FakeCipher implements VaultCipher {
     return Uint8List.fromList(data.skip(29).map((v) => v ^ 0x55).toList());
   }
 }
+
+String _sha256Hex(String input) => sha256.convert(utf8.encode(input)).toString();
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -60,35 +64,32 @@ void main() {
       );
 
       const id = 'progress/v1/test/corrupt';
-      // Insert a deliberately bad envelope via direct DB
+      // Insert a deliberately bad envelope via direct DB using public hash computation
       await db.insert('vault_entries', {
-        'record_hash': UserVaultSecurityService._index(id), // note: private, but for test we use public path
+        'record_hash': _sha256Hex(id),
         'ciphertext': Uint8List.fromList([0, 1, 2]), // too short + bad version
       });
 
-      // Note: _index is private; in real tests we would use a public method or compute SHA256 ourselves.
-      // For this addition we rely on the service throwing on bad data.
       expect(
         () => vault.readRecord(id),
         throwsA(isA<CorruptRecordException>()),
       );
     });
 
-    test('recovery lock prevents writes during recovery', () async {
+    test('recovery message is set and can be cleared without data loss', () async {
       final vault = UserVaultSecurityService(
         cipher: FakeCipher(),
         openVaultDatabase: () async => db,
       );
 
-      // Simulate recovery state
-      // Accessing private _isRecovering requires reflection or testing via public API if exposed.
-      // The service sets _isRecovering only inside restoreOperationalSnapshot.
-      // We test the public reportKeyFailure path which sets static flags.
       UserVaultSecurityService.reportKeyFailure();
       expect(UserVaultSecurityService.recoveryMessage.value, isNotNull);
+      expect(UserVaultSecurityService.recoveryMessage.value, contains('محفوظة'));
 
-      // After clear, writes should succeed again
       UserVaultSecurityService.clearRecoveryMessage();
+      expect(UserVaultSecurityService.recoveryMessage.value, isNull);
+
+      // Writes still succeed after clear
       await vault.putRecord('progress/v1/test/after-clear', Uint8List.fromList([1]));
       expect(await vault.readRecord('progress/v1/test/after-clear'), [1]);
     });
@@ -108,17 +109,19 @@ void main() {
   });
 
   group('Google Play Data Safety Alignment', () {
-    test('No network-related identifiers or plaintext progress stored', () async {
+    test('No plaintext progress identifiers stored in SQLite hash or ciphertext', () async {
       final vault = UserVaultSecurityService(
         cipher: FakeCipher(),
         openVaultDatabase: () async => db,
       );
-      await vault.putRecord('progress/v1/srs/user-progress', Uint8List.fromList(utf8.encode('local-only-data')));
+      const sensitiveId = 'progress/v1/srs/user-private-progress';
+      await vault.putRecord(sensitiveId, Uint8List.fromList(utf8.encode('local-only-data')));
 
       final rows = await db.query('vault_entries');
       final hash = rows.single['record_hash'] as String;
-      expect(hash, isNot(contains('user-progress')));
-      expect(hash.length, 64); // SHA-256 hex
+      expect(hash, _sha256Hex(sensitiveId));
+      expect(hash, isNot(contains('user-private-progress')));
+      expect(hash.length, 64);
     });
   });
 }
