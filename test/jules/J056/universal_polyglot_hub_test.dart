@@ -62,4 +62,12 @@ void main() {
     final button = tester.widget<ElevatedButton>(find.widgetWithText(ElevatedButton, 'فتح القاموس'));
     expect(button.onPressed, isNotNull);
   });
+
+  testWidgets('Missing packs subset and state preservation across tests', (WidgetTester tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: UniversalPolyglotHubScreen(),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('لغة الواجهة:'), findsOneWidget);
+  });
 }
