@@ -151,16 +151,16 @@ class _MockFaultInjectionOperations implements StartupOperations {
       final failures = (prefs.getInt('bootstrap.optional_failures.v1') ?? 0) + 1;
       await prefs.setInt('bootstrap.optional_failures.v1', failures);
       if (failures >= 2) {
-        return const StartupOutcome(StartupState.SAFE_MODE);
+        return const StartupOutcome(StartupState.safeMode);
       }
     } else {
       await prefs.remove('bootstrap.optional_failures.v1');
     }
 
     if (hasOptionalFailure) {
-      return const StartupOutcome(StartupState.DEGRADED, contentAvailable: true);
+      return const StartupOutcome(StartupState.degraded, contentAvailable: true);
     }
-    return const StartupOutcome(StartupState.READY, contentAvailable: true);
+    return const StartupOutcome(StartupState.ready, contentAvailable: true);
   }
 
   @override
@@ -171,7 +171,7 @@ class _MockFaultInjectionOperations implements StartupOperations {
 
   @override
   Future<StartupOutcome> continueSafeOffline() async {
-    return const StartupOutcome(StartupState.DEGRADED, contentAvailable: true);
+    return const StartupOutcome(StartupState.degraded, contentAvailable: true);
   }
 }
 
@@ -251,15 +251,15 @@ void main() {
         () async {
       final mockGuard = _MockCrashLoopGuard();
       // Since it's a real DeviceStartupOperations, _ActiveContentStep will try to hit the real DB.
-      // We expect it to throw or fail, resulting in CRITICAL_ERROR or DEGRADED based on pipeline behavior.
+      // We expect it to throw or fail, resulting in fatal or DEGRADED based on pipeline behavior.
       final ops = DeviceStartupOperations(guard: mockGuard);
       final outcome = await ops.start();
 
       // Without DB initialized, it falls into a critical error for preferences or DB
       // We just ensure it doesn't infinite loop.
       expect(
-          outcome.state == StartupState.CRITICAL_ERROR ||
-              outcome.state == StartupState.DEGRADED,
+          outcome.state == StartupState.fatal ||
+              outcome.state == StartupState.degraded,
           isTrue);
     });
 
@@ -268,7 +268,7 @@ void main() {
       final ops = DeviceStartupOperations(guard: mockGuard);
       final outcome = await ops.start();
 
-      expect(outcome.state, StartupState.SAFE_MODE);
+      expect(outcome.state, StartupState.safeMode);
     });
   });
 
