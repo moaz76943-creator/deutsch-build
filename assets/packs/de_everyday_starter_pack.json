@@ -1,0 +1,36 @@
+{
+  "language": {
+    "isoCode": "de",
+    "nativeName": "Deutsch",
+    "arabicName": "الألمانية",
+    "isRightToLeft": false
+  },
+  "units": [
+    {
+      "id": "json_de_daily_01",
+      "languageCode": "de",
+      "level": "B1",
+      "domainId": "daily_life",
+      "categoryId": "polite_requests",
+      "title": "الطلب المهذب في المواقف اليومية",
+      "targetExpression": "Wären Sie so freundlich, ... zu + Infinitiv?",
+      "contextualSentence": "Wären Sie so freundlich, mir kurz den Weg zum nächsten Ausgang zu erklären?",
+      "commonPitfall": "استخدام صيغة الأمر المباشر مع الغرباء",
+      "arabicExplanation": "تمنح صيغة Konjunktiv II في الطلب (Wären Sie so freundlich...) لباقة عالية في التعامل اليومي.",
+      "tags": ["Alltag", "Höflichkeit", "B1"]
+    },
+    {
+      "id": "json_de_biz_01",
+      "languageCode": "de",
+      "level": "B2",
+      "domainId": "business",
+      "categoryId": "email_closing",
+      "title": "اختتام المراسلات المهنية بأسلوب رفيع",
+      "targetExpression": "Für Rückfragen stehe ich Ihnen jederzeit gerne zur Verfügung.",
+      "contextualSentence": "Anbei erhalten Sie den aktuellen Projektbericht; für Rückfragen stehe ich Ihnen jederzeit gerne zur Verfügung.",
+      "commonPitfall": "Wenn Sie Fragen haben, fragen Sie mich",
+      "arabicExplanation": "عبارة ختامية قياسية ومهنية تدل على الاستعداد للتوضيح والمتابعة في بيئة العمل.",
+      "tags": ["Wirtschaft", "Korrespondenz", "B2"]
+    }
+  ]
+}
