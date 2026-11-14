@@ -41,6 +41,11 @@
       "declensions": []
     },
     {
+      "id": "tr:göz", "lemma": "göz", "part_of_speech": "noun",
+      "gender": "none", "number": "sg",
+      "declensions": []
+    },
+    {
       "id": "fi:talo1", "lemma": "talo", "part_of_speech": "noun",
       "gender": "none", "number": "sg",
       "declensions": []

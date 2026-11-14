@@ -31,6 +31,26 @@
           "tense": "present",
           "person": "ich",
           "conjugated_form": "mache"
+        },
+        {
+          "conjugation_id": "de:machen:past:ich",
+          "tense": "past",
+          "person": "ich",
+          "conjugated_form": "machte"
+        }
+      ]
+    },
+    {
+      "verb_id": "de:singen",
+      "infinitive": "singen",
+      "translation_ar": "يغني",
+      "frequency_rank": 2,
+      "conjugations": [
+        {
+          "conjugation_id": "de:singen:past:3s",
+          "tense": "past",
+          "person": "3s",
+          "conjugated_form": "sang"
         }
       ]
     }
