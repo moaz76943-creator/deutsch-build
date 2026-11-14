@@ -1,0 +1,36 @@
+{
+  "language": {
+    "isoCode": "de",
+    "nativeName": "Deutsch",
+    "arabicName": "الألمانية",
+    "isRightToLeft": false
+  },
+  "units": [
+    {
+      "id": "json_de_med_exp_01",
+      "languageCode": "de",
+      "level": "C1",
+      "domainId": "medicine",
+      "categoryId": "radiology_briefing",
+      "title": "شرح نتائج التصوير المقطعي للمراجع بوضوح وهدوء",
+      "targetExpression": "keinen auffälligen Befund zeigen",
+      "contextualSentence": "Die Magnetresonanztomographie zeigt erfreulicherweise keinen auffälligen Befund, sodass wir nun mit der gezielten Physiotherapie beginnen können.",
+      "commonPitfall": "kein Problem zeigen (الصياغة الطبية الدقيقة: keinen auffälligen Befund zeigen)",
+      "arabicExplanation": "التعبير الطبي القياسي في ألمانيا للدلالة على سلامة الأشعة أو الفحص هو keinen auffälligen Befund zeigen.",
+      "tags": ["Medizin", "Radiologie", "C1"]
+    },
+    {
+      "id": "json_de_biz_exp_01",
+      "languageCode": "de",
+      "level": "C1",
+      "domainId": "business",
+      "categoryId": "project_milestone",
+      "title": "تحديث الجدول الزمني للمشروع وتنسيق الموارد",
+      "targetExpression": "den Zeitplan einhalten / Kapazitäten bündeln",
+      "contextualSentence": "Um den vereinbarten Meilenstein trotz der erhöhten Prüfanforderungen einzuhalten, bündeln wir ab Montag unsere technischen Kapazitäten.",
+      "commonPitfall": "die Zeit behalten",
+      "arabicExplanation": "في إدارة المشاريع الألمانية، نستخدم den Zeitplan/Meilenstein einhalten للالتزام بالموعد و Kapazitäten bündeln لتوحيد الجهود.",
+      "tags": ["Wirtschaft", "Projektmanagement", "C1"]
+    }
+  ]
+}
