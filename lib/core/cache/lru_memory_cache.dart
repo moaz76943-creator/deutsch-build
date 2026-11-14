@@ -10,10 +10,13 @@ class LruMemoryCache<K, V> {
 
   int _currentMemoryBytes = 0;
 
+  final int Function(K, V)? sizeEstimator;
+
   LruMemoryCache({
     this.maxCapacity = 200,
     this.maxMemoryBytes,
     this.onEvict,
+    this.sizeEstimator,
   });
 
   V? get(K key) {
@@ -24,7 +27,12 @@ class LruMemoryCache<K, V> {
   }
 
   void put(K key, V value, {int itemSizeBytes = 0}) {
-    if (maxMemoryBytes != null && itemSizeBytes > maxMemoryBytes!) {
+    int effectiveSize = itemSizeBytes;
+    if (effectiveSize == 0 && sizeEstimator != null) {
+      effectiveSize = sizeEstimator!(key, value);
+    }
+
+    if (maxMemoryBytes != null && effectiveSize > maxMemoryBytes!) {
       return; // Reject oversized item without caching
     }
 
@@ -34,8 +42,8 @@ class LruMemoryCache<K, V> {
     }
 
     _cache[key] = value;
-    _sizes[key] = itemSizeBytes;
-    _currentMemoryBytes += itemSizeBytes;
+    _sizes[key] = effectiveSize;
+    _currentMemoryBytes += effectiveSize;
 
     _evictToFit();
   }
@@ -61,6 +69,10 @@ class LruMemoryCache<K, V> {
         onEvict!(firstKey);
       }
     }
+  }
+
+  void onMemoryPressure() {
+    trimMemoryPressure();
   }
 
   void trimMemoryPressure() {
