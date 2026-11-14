@@ -13,52 +13,17 @@
   ],
   "languages": [
     {
-      "code": "de",
-      "native": "Deutsch",
-      "ar": "الألمانية",
-      "family": "Germanic",
+      "code": "af",
+      "native": "Afrikaans",
+      "ar": "الأفريقانية",
+      "family": "",
       "cefr": "A1-C2"
     },
     {
-      "code": "en",
-      "native": "English",
-      "ar": "الإنجليزية",
-      "family": "Germanic",
-      "cefr": "A1-C2"
-    },
-    {
-      "code": "es",
-      "native": "Español",
-      "ar": "الإسبانية",
-      "family": "Romance",
-      "cefr": "A1-C2"
-    },
-    {
-      "code": "fr",
-      "native": "Français",
-      "ar": "الفرنسية",
-      "family": "Romance",
-      "cefr": "A1-C2"
-    },
-    {
-      "code": "it",
-      "native": "Italiano",
-      "ar": "الإيطالية",
-      "family": "Romance",
-      "cefr": "A1-C2"
-    },
-    {
-      "code": "tr",
-      "native": "Türkçe",
-      "ar": "التركية",
-      "family": "Turkic",
-      "cefr": "A1-C2"
-    },
-    {
-      "code": "ru",
-      "native": "Русский",
-      "ar": "الروسية",
-      "family": "Slavic",
+      "code": "am",
+      "native": "አማርኛ",
+      "ar": "الأمهرية",
+      "family": "",
       "cefr": "A1-C2"
     },
     {
@@ -69,6 +34,265 @@
       "cefr": "A1-C2"
     },
     {
+      "code": "az",
+      "native": "Azərbaycan",
+      "ar": "الأذربيجانية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "be",
+      "native": "Беларуская",
+      "ar": "البيلاروسية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "bg",
+      "native": "Български",
+      "ar": "البلغارية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "bn",
+      "native": "বাংলা",
+      "ar": "البنغالية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "bs",
+      "native": "Bosanski",
+      "ar": "البوسنية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ca",
+      "native": "Català",
+      "ar": "الكتالونية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ceb",
+      "native": "Cebuano",
+      "ar": "السيبوانية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "co",
+      "native": "Corsu",
+      "ar": "الكورسيكية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "cs",
+      "native": "Čeština",
+      "ar": "التشيكية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "cy",
+      "native": "Cymraeg",
+      "ar": "الويلزية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "da",
+      "native": "Dansk",
+      "ar": "الدانماركية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "de",
+      "native": "Deutsch",
+      "ar": "الألمانية",
+      "family": "Germanic",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "el",
+      "native": "Ελληνικά",
+      "ar": "اليونانية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "en",
+      "native": "English",
+      "ar": "الإنجليزية",
+      "family": "Germanic",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "eo",
+      "native": "Esperanto",
+      "ar": "الإسبرانتو",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "es",
+      "native": "Español",
+      "ar": "الإسبانية",
+      "family": "Romance",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "et",
+      "native": "Eesti",
+      "ar": "الإستونية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "eu",
+      "native": "Euskara",
+      "ar": "الباسكية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "fa",
+      "native": "فارسی",
+      "ar": "الفارسية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "fi",
+      "native": "Suomi",
+      "ar": "الفنلندية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "fr",
+      "native": "Français",
+      "ar": "الفرنسية",
+      "family": "Romance",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "fy",
+      "native": "Frysk",
+      "ar": "الفريزية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ga",
+      "native": "Gaeilge",
+      "ar": "الأيرلندية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "gd",
+      "native": "Gàidhlig",
+      "ar": "الغيلية الإسكتلندية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "gl",
+      "native": "Galego",
+      "ar": "الجاليكية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "gu",
+      "native": "ગુજરાતી",
+      "ar": "الغوجاراتية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ha",
+      "native": "Hausa",
+      "ar": "الهوسا",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "haw",
+      "native": "ʻŌlelo Hawaiʻi",
+      "ar": "الهاوايية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "hi",
+      "native": "हिन्दी",
+      "ar": "الهندية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "hr",
+      "native": "Hrvatski",
+      "ar": "الكرواتية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ht",
+      "native": "Kreyòl ayisyen",
+      "ar": "الكريولية الهايتية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "hu",
+      "native": "Magyar",
+      "ar": "المجرية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "hy",
+      "native": "Հայերեն",
+      "ar": "الأرمنية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "id",
+      "native": "Bahasa Indonesia",
+      "ar": "الإندونيسية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ig",
+      "native": "Igbo",
+      "ar": "الإيجبو",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "is",
+      "native": "Íslenska",
+      "ar": "الأيسلندية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "it",
+      "native": "Italiano",
+      "ar": "الإيطالية",
+      "family": "Romance",
+      "cefr": "A1-C2"
+    },
+    {
       "code": "ja",
       "native": "日本語",
       "ar": "اليابانية",
@@ -76,10 +300,416 @@
       "cefr": "A1-C2"
     },
     {
+      "code": "jv",
+      "native": "Basa Jawa",
+      "ar": "الجاوية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ka",
+      "native": "ქართული",
+      "ar": "الجورجية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "kk",
+      "native": "Қазақ",
+      "ar": "الكازاخية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "km",
+      "native": "ភាសាខ្មែរ",
+      "ar": "الخميرية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "kn",
+      "native": "ಕನ್ನಡ",
+      "ar": "الكانادا",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ko",
+      "native": "한국어",
+      "ar": "الكورية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ku",
+      "native": "Kurdî",
+      "ar": "الكردية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ky",
+      "native": "Кыргызча",
+      "ar": "القيرغيزية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "la",
+      "native": "Latina",
+      "ar": "اللاتينية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "lb",
+      "native": "Lëtzebuergesch",
+      "ar": "اللوكسمبورغية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "lo",
+      "native": "ພາສາລາວ",
+      "ar": "اللاوية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "lt",
+      "native": "Lietuvių",
+      "ar": "الليتوانية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "lv",
+      "native": "Latviešu",
+      "ar": "اللاتفية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "mg",
+      "native": "Malagasy",
+      "ar": "الملغاشية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "mi",
+      "native": "Māori",
+      "ar": "الماورية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "mk",
+      "native": "Македонски",
+      "ar": "المقدونية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ml",
+      "native": "മലയാളം",
+      "ar": "المالايالامية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "mn",
+      "native": "Монгол",
+      "ar": "المنغولية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "mr",
+      "native": "मराठी",
+      "ar": "الماراثية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ms",
+      "native": "Bahasa Melayu",
+      "ar": "الماليزية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "mt",
+      "native": "Malti",
+      "ar": "المالطية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "my",
+      "native": "မြန်မာ",
+      "ar": "البورمية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ne",
+      "native": "नेपाली",
+      "ar": "النيبالية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "nl",
+      "native": "Nederlands",
+      "ar": "الهولندية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "no",
+      "native": "Norsk",
+      "ar": "النرويجية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "pa",
+      "native": "ਪੰਜਾਬੀ",
+      "ar": "البنجابية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "pl",
+      "native": "Polski",
+      "ar": "البولندية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ps",
+      "native": "پښتو",
+      "ar": "البشتو",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "pt",
+      "native": "Português",
+      "ar": "البرتغالية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ro",
+      "native": "Română",
+      "ar": "الرومانية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ru",
+      "native": "Русский",
+      "ar": "الروسية",
+      "family": "Slavic",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "sd",
+      "native": "سنڌي",
+      "ar": "السندية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "si",
+      "native": "සිංහල",
+      "ar": "السنهالية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "sk",
+      "native": "Slovenčina",
+      "ar": "السلوفاكية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "sl",
+      "native": "Slovenščina",
+      "ar": "السلوفينية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "sm",
+      "native": "Gagana Sāmoa",
+      "ar": "الساموية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "sn",
+      "native": "chiShona",
+      "ar": "الشونا",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "so",
+      "native": "Soomaali",
+      "ar": "الصومالية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "sq",
+      "native": "Shqip",
+      "ar": "الألبانية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "sr",
+      "native": "Српски",
+      "ar": "الصربية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "su",
+      "native": "Basa Sunda",
+      "ar": "السوندية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "sv",
+      "native": "Svenska",
+      "ar": "السويدية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "sw",
+      "native": "Kiswahili",
+      "ar": "السواحيلية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ta",
+      "native": "தமிழ்",
+      "ar": "التاميلية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "te",
+      "native": "తెలుగు",
+      "ar": "التيلوغوية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "tg",
+      "native": "Тоҷикӣ",
+      "ar": "الطاجيكية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "th",
+      "native": "ไทย",
+      "ar": "التايلاندية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "tl",
+      "native": "Tagalog",
+      "ar": "الفلبينية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "tr",
+      "native": "Türkçe",
+      "ar": "التركية",
+      "family": "Turkic",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "tt",
+      "native": "Татар",
+      "ar": "التتارية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "uk",
+      "native": "Українська",
+      "ar": "الأوكرانية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ur",
+      "native": "اردو",
+      "ar": "الأردية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "uz",
+      "native": "Oʻzbek",
+      "ar": "الأوزبكية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "vi",
+      "native": "Tiếng Việt",
+      "ar": "الفيتنامية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "xh",
+      "native": "isiXhosa",
+      "ar": "الخوسية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "yi",
+      "native": "ייִדיש",
+      "ar": "اليديشية",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "yo",
+      "native": "Yorùbá",
+      "ar": "اليوروبا",
+      "family": "",
+      "cefr": "A1-C2"
+    },
+    {
       "code": "zh",
       "native": "中文",
       "ar": "الصينية",
       "family": "Sinitic",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "zu",
+      "native": "isiZulu",
+      "ar": "الزولو",
+      "family": "",
       "cefr": "A1-C2"
     }
   ],
