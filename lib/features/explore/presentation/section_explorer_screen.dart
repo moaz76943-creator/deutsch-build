@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../../core/services/pack_manager.dart';
 import '../../../core/services/audio_tts_service.dart';
+import '../../../services/fts_search_service.dart';
 
 /// Exact metadata display only. Nonempty fields are not proof that a pack
 /// has passed the legal/source-evidence acceptance process.
@@ -51,6 +52,11 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
   int _loadGeneration = 0;
   int _searchGeneration = 0;
   Timer? _searchDebounce;
+  final FtsSearchService _ftsSearchService = FtsSearchService();
+  final ScrollController _scrollController = ScrollController();
+  bool isFetchingMore = false;
+  bool hasMoreResults = true;
+  int searchLimit = 20;
 
   static const Set<String> rtlLanguages = {
     'ar',
@@ -88,10 +94,56 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
     super.initState();
     currentLanguage = widget.initialLanguage;
     loadSectionData();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      if (isSearching && !isLoading && !isFetchingMore && hasMoreResults) {
+        _loadMoreResults();
+      }
+    }
+  }
+
+  Future<void> _loadMoreResults() async {
+    if (!mounted || !isSearching) return;
+    setState(() {
+      isFetchingMore = true;
+    });
+
+    final currentGen = _searchGeneration;
+    final normalized = searchController.text.trim();
+
+    try {
+      final results = await _ftsSearchService.searchDictionary(
+        normalized,
+        currentLanguage,
+        limit: searchLimit + 20
+      );
+
+      if (!mounted || currentGen != _searchGeneration) return;
+
+      setState(() {
+        if (results.length > searchResults.length) {
+          searchResults = results;
+          searchLimit += 20;
+          hasMoreResults = results.length == searchLimit;
+        } else {
+          hasMoreResults = false;
+        }
+        isFetchingMore = false;
+      });
+    } catch (e) {
+      if (!mounted || currentGen != _searchGeneration) return;
+      setState(() {
+        isFetchingMore = false;
+      });
+    }
   }
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _loadGeneration++;
     _searchGeneration++;
     _searchDebounce?.cancel();
@@ -165,17 +217,22 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
 
     setState(() => isSearching = true);
 
+    final generation = gen;
     _searchDebounce = Timer(const Duration(milliseconds: 250), () async {
+      if (!mounted || generation != _searchGeneration) return;
+      setState(() => isLoading = true);
       try {
-        final results = await PackManager.searchInstant(normalized);
-        if (!mounted || gen != _searchGeneration) return;
+        final results = await _ftsSearchService.searchDictionary(normalized, currentLanguage, limit: 20);
+        if (!mounted || generation != _searchGeneration) return;
         setState(() {
           searchResults = results;
+          isLoading = false;
         });
       } catch (e) {
-        if (!mounted || gen != _searchGeneration) return;
+        if (!mounted || generation != _searchGeneration) return;
         setState(() {
           searchResults = [];
+          isLoading = false;
           loadError = 'فشل البحث: $e';
         });
       }
@@ -357,7 +414,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
               color: Colors.indigo.shade50,
               child: Column(
                 children: [
-                  Text(loadingMessage,
+                  Text(isSearching ? 'جاري البحث...' : loadingMessage,
                       style: const TextStyle(
                           fontSize: 13, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
@@ -487,7 +544,12 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                           ),
                           subtitle: Text(
                             isSearching
-                                ? 'المعرف: ${item['concept_id']}'
+                                ? [
+                                    if (item['translation_ar'] != null && (item['translation_ar'] as String).isNotEmpty) 'المعنى: ${item['translation_ar']}',
+                                    if (item['gender'] != null) 'الجنس: ${item['gender']}',
+                                    if (item['plural'] != null) 'الجمع: ${item['plural']}',
+                                    if (item['lemma'] != null && item['lemma'] != word) 'الأصل: ${item['lemma']}',
+                                  ].join(' | ')
                                 : 'المستوى في الذاكرة: صندوق $boxLevel',
                           ),
                           trailing: Wrap(
