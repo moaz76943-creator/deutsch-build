@@ -75,7 +75,7 @@ void main() {
   group('PackDownloaderService Basic', () {
     test('Standard successful download', () async {
       final client = MockClient((request) async {
-        if (request.url.toString() == 'http://example.com/pack.zip') {
+        if (request.url.toString() == 'https://example.com/pack.zip') {
           return http.Response.bytes(
             [1, 2, 3, 4],
             200,
@@ -89,7 +89,7 @@ void main() {
 
       final success = await PackDownloaderService.requestDownload(
         'de-DE',
-        'http://example.com/pack.zip',
+        'https://example.com/pack.zip',
         expectedHash,
         client: client
       );
@@ -118,7 +118,7 @@ void main() {
 
       final success = await PackDownloaderService.requestDownload(
         'fr-FR',
-        'http://example.com/pack2.zip',
+        'https://example.com/pack2.zip',
         expectedHash,
         client: client
       );
@@ -155,7 +155,7 @@ void main() {
 
       final success = await PackDownloaderService.requestDownload(
         'es-ES',
-        'http://example.com/pack3.zip',
+        'https://example.com/pack3.zip',
         expectedHash,
         client: client
       );
@@ -180,7 +180,7 @@ void main() {
 
       final success = await PackDownloaderService.requestDownload(
         'ru-RU',
-        'http://example.com/pack4.zip',
+        'https://example.com/pack4.zip',
         wrongExpectedHash,
         client: client
       );
@@ -197,7 +197,7 @@ void main() {
       // Start the download
       final futureSuccess = PackDownloaderService.requestDownload(
         'zh-CN',
-        'http://example.com/pack5.zip',
+        'https://example.com/pack5.zip',
         expectedHash,
         client: client
       );
@@ -225,7 +225,7 @@ void main() {
       // Start first download
       final future1 = PackDownloaderService.requestDownload(
         'ar-SA',
-        'http://example.com/pack6.zip',
+        'https://example.com/pack6.zip',
         expectedHash,
         client: client
       );
@@ -237,7 +237,7 @@ void main() {
       // Attempt to start second download for same language
       final success2 = await PackDownloaderService.requestDownload(
         'ar-SA',
-        'http://example.com/pack6.zip',
+        'https://example.com/pack6.zip',
         expectedHash,
         client: client
       );
@@ -276,7 +276,7 @@ void main() {
       // No memory state exists yet for tr-TR since app restarted
       final success = await PackDownloaderService.requestDownload(
         'tr-TR',
-        'http://example.com/pack7.zip',
+        'https://example.com/pack7.zip',
         expectedHash,
         client: client
       );
@@ -321,7 +321,7 @@ void main() {
 
       final success = await PackDownloaderService.requestDownload(
         'it-IT',
-        'http://example.com/pack8.zip',
+        'https://example.com/pack8.zip',
         expectedHash,
         client: client
       );

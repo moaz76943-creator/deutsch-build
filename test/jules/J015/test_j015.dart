@@ -90,7 +90,7 @@ void main() {
     test('Successful full download and validation', () async {
       final client = createMockClient(fileBytes: testData, etag: '"12345"');
 
-      final future = LanguagePackManager.acquirePack('de-DE', 'http://example.com/pack', testHash, client: client);
+      final future = LanguagePackManager.acquirePack('de-DE', 'https://example.com/pack', testHash, client: client);
 
       final result = await future;
 
@@ -99,7 +99,7 @@ void main() {
 
     test('Rejected on invalid hash', () async {
       final client = createMockClient(fileBytes: testData, etag: '"12345"');
-      final result = await LanguagePackManager.acquirePack('de-DE', 'http://example.com/pack', "invalid_hash", client: client);
+      final result = await LanguagePackManager.acquirePack('de-DE', 'https://example.com/pack', "invalid_hash", client: client);
       expect(result, isFalse);
     });
 
@@ -122,7 +122,7 @@ void main() {
         }
       });
 
-      final result = await LanguagePackManager.acquirePack('de-DE', 'http://example.com/pack', testHash, client: retryClient);
+      final result = await LanguagePackManager.acquirePack('de-DE', 'https://example.com/pack', testHash, client: retryClient);
       expect(result, isTrue);
     });
 
@@ -154,14 +154,14 @@ void main() {
         }
       });
 
-      final result = await LanguagePackManager.acquirePack('de-DE', 'http://example.com/pack', testHash, client: retryClient);
+      final result = await LanguagePackManager.acquirePack('de-DE', 'https://example.com/pack', testHash, client: retryClient);
       expect(result, isTrue);
     });
 
     test('Prevents concurrent duplicate downloads', () async {
       final client = createMockClient(fileBytes: testData, etag: '"123"');
-      final future1 = LanguagePackManager.acquirePack('de-DE', 'http://example.com/pack', testHash, client: client);
-      final future2 = LanguagePackManager.acquirePack('de-DE', 'http://example.com/pack', testHash, client: client);
+      final future1 = LanguagePackManager.acquirePack('de-DE', 'https://example.com/pack', testHash, client: client);
+      final future2 = LanguagePackManager.acquirePack('de-DE', 'https://example.com/pack', testHash, client: client);
 
       final res2 = await future2;
       expect(res2, isFalse);
@@ -176,7 +176,7 @@ void main() {
          return http.StreamedResponse(streamController.stream, 200, headers: {'etag': '"123"', 'content-length': '100'});
       });
 
-      final future = LanguagePackManager.acquirePack('de-DE', 'http://example.com/pack', testHash, client: client);
+      final future = LanguagePackManager.acquirePack('de-DE', 'https://example.com/pack', testHash, client: client);
 
       await Future.delayed(const Duration(milliseconds: 50));
       await PackDownloaderService.cancelDownload('de-DE');
@@ -215,7 +215,7 @@ void main() {
         }
       });
 
-      final result = await LanguagePackManager.acquirePack('de-DE', 'http://example.com/pack', testHash, client: retryClient);
+      final result = await LanguagePackManager.acquirePack('de-DE', 'https://example.com/pack', testHash, client: retryClient);
       expect(result, isTrue);
     });
   });

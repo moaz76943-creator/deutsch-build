@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'vocabulary_provider.dart';
 import '../services/crash_loop_guard.dart';
 import '../services/database_integrity_service.dart';
+import '../core/security/trusted_network_target.dart';
 
 /// The public catalog supplies metadata, not proof that a pack has been mounted
 /// into the content database. Never use its is_active field as install status.
@@ -252,7 +253,7 @@ class LanguagePackStorage {
       ..connectionTimeout = const Duration(seconds: 12);
     try {
       final request = await client
-          .getUrl(Uri.parse(languagePackManifestUrl))
+          .getUrl(TrustedNetworkTarget.requireTrusted(Uri.parse(languagePackManifestUrl)))
           .timeout(const Duration(seconds: 15));
       final response =
           await request.close().timeout(const Duration(seconds: 15));
@@ -336,7 +337,10 @@ class LanguagePackStorage {
     final client = HttpClient()
       ..connectionTimeout = const Duration(seconds: 12);
     try {
-      final uri = Uri.parse(_packBaseUrl + pack.packFile!);
+      final uri = TrustedNetworkTarget.requireTrusted(
+        Uri.parse(_packBaseUrl + (pack.packFile ?? '')),
+        allowedHosts: const {'raw.githubusercontent.com'},
+      );
       final request =
           await client.getUrl(uri).timeout(const Duration(seconds: 15));
       final response =
