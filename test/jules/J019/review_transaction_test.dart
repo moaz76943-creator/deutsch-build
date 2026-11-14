@@ -1,33 +1,37 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/progress/review_transaction_envelope.dart';
-import 'package:deutsch_bilarabi/core/progress/transaction_state.dart';
 import 'package:deutsch_bilarabi/core/progress/transaction_persistence_port.dart';
 import 'package:deutsch_bilarabi/core/progress/review_transaction_manager.dart';
 import 'package:deutsch_bilarabi/core/srs/review_command_port.dart';
 
 class MockTransactionPersistencePort implements TransactionPersistencePort {
-  final Map<String, TransactionState> states = {};
   final Map<String, ReviewTransactionEnvelope> envelopes = {};
+  int commitCallCount = 0;
+  bool shouldThrow = false;
 
   @override
-  Future<TransactionState?> getTransactionState(String reviewEventId) async {
-    return states[reviewEventId];
-  }
+  Future<ReviewCommitResult> commitOnce({
+    required ReviewCommand command,
+    required ReviewTransactionEnvelope envelope,
+  }) async {
+    if (shouldThrow) {
+      throw Exception('Simulated storage failure');
+    }
+    commitCallCount++;
 
-  @override
-  Future<ReviewTransactionEnvelope?> getTransactionEnvelope(String reviewEventId) async {
-    return envelopes[reviewEventId];
-  }
+    // Exact idempotent match simulation
+    final existing = envelopes[envelope.reviewEventId];
+    if (existing != null) {
+      if (existing.learnerContentKey == envelope.learnerContentKey &&
+          existing.rating == envelope.rating &&
+          existing.languagePairKey == envelope.languagePairKey) {
+        return ReviewCommitResult.alreadyCommitted;
+      }
+      throw StateError('Review event ID reused with a conflicting payload');
+    }
 
-  @override
-  Future<void> saveTransaction(ReviewTransactionEnvelope envelope, TransactionState state) async {
     envelopes[envelope.reviewEventId] = envelope;
-    states[envelope.reviewEventId] = state;
-  }
-
-  @override
-  Future<void> updateTransactionState(String reviewEventId, TransactionState state) async {
-    states[reviewEventId] = state;
+    return ReviewCommitResult.committed;
   }
 }
 
@@ -64,26 +68,18 @@ void main() {
         hinted: false,
       );
 
-      int commitCountAB = 0;
-      int commitCountBA = 0;
+      final resultAB = await manager.processTransaction(commandAB);
+      final resultBA = await manager.processTransaction(commandBA);
 
-      await manager.processTransaction(commandAB, () async {
-        commitCountAB++;
-      });
+      expect(mockPersistence.commitCallCount, 2);
+      expect(resultAB, ReviewCommitResult.committed);
+      expect(resultBA, ReviewCommitResult.committed);
 
-      await manager.processTransaction(commandBA, () async {
-        commitCountBA++;
-      });
-
-      expect(commitCountAB, 1);
-      expect(commitCountBA, 1);
-      expect(mockPersistence.states['rev-1'], TransactionState.committed);
-      expect(mockPersistence.states['rev-2'], TransactionState.committed);
-      expect(mockPersistence.envelopes['rev-1']?.languagePairKey, 'de->ar');
-      expect(mockPersistence.envelopes['rev-2']?.languagePairKey, 'ar->de');
+      expect(mockPersistence.envelopes['rev-1']?.languagePairKey, 'de_ar_1.0.0');
+      expect(mockPersistence.envelopes['rev-2']?.languagePairKey, 'ar_de_1.0.0');
     });
 
-    test('Idempotency: Repeated identical commands do not re-commit', () async {
+    test('Idempotency: Repeated identical commands return alreadyCommitted', () async {
       final command = ReviewCommand(
         reviewId: 'rev-3',
         sourceLanguageId: 'de',
@@ -95,20 +91,17 @@ void main() {
         hinted: false,
       );
 
-      int commitCount = 0;
-      final performCommit = () async {
-        commitCount++;
-      };
+      final result1 = await manager.processTransaction(command);
+      final result2 = await manager.processTransaction(command);
+      final result3 = await manager.processTransaction(command);
 
-      await manager.processTransaction(command, performCommit);
-      await manager.processTransaction(command, performCommit);
-      await manager.processTransaction(command, performCommit);
-
-      expect(commitCount, 1);
-      expect(mockPersistence.states['rev-3'], TransactionState.committed);
+      expect(mockPersistence.commitCallCount, 3);
+      expect(result1, ReviewCommitResult.committed);
+      expect(result2, ReviewCommitResult.alreadyCommitted);
+      expect(result3, ReviewCommitResult.alreadyCommitted);
     });
 
-    test('Duplicate commands with conflicting data are rejected', () async {
+    test('Duplicate commands with conflicting data are rejected by durable persistence', () async {
       final command1 = ReviewCommand(
         reviewId: 'rev-4',
         sourceLanguageId: 'de',
@@ -131,21 +124,19 @@ void main() {
         hinted: false,
       );
 
-      int commitCount = 0;
-
-      await manager.processTransaction(command1, () async {
-        commitCount++;
-      });
+      final result1 = await manager.processTransaction(command1);
+      expect(result1, ReviewCommitResult.committed);
 
       expect(
-        () => manager.processTransaction(command2, () async { commitCount++; }),
-        throwsA(isA<Exception>()),
+        () => manager.processTransaction(command2),
+        throwsA(isA<StateError>()),
       );
 
-      expect(commitCount, 1);
+      expect(mockPersistence.commitCallCount, 2);
     });
 
-    test('Storage failure transitions state to recoverable', () async {
+    test('Storage failure propagates correctly', () async {
+      mockPersistence.shouldThrow = true;
       final command = ReviewCommand(
         reviewId: 'rev-5',
         sourceLanguageId: 'de',
@@ -157,15 +148,32 @@ void main() {
         hinted: false,
       );
 
-      try {
-        await manager.processTransaction(command, () async {
-          throw Exception('Simulated storage failure');
-        });
-      } catch (e) {
-        // Expected
-      }
+      expect(
+        () => manager.processTransaction(command),
+        throwsA(isA<Exception>()),
+      );
 
-      expect(mockPersistence.states['rev-5'], TransactionState.recoverable);
+      expect(mockPersistence.envelopes, isEmpty);
+    });
+
+    test('Rejects malformed commands synchronously', () async {
+      final malformedCommand = ReviewCommand(
+        reviewId: '   ', // Invalid ID
+        sourceLanguageId: 'de',
+        targetLanguageId: 'ar',
+        cardId: 'card-1',
+        facetKey: 'f-1',
+        pairEpoch: 1,
+        rating: ReviewRating.good,
+        hinted: false,
+      );
+
+      expect(
+        () => manager.processTransaction(malformedCommand),
+        throwsA(isA<ArgumentError>()),
+      );
+
+      expect(mockPersistence.commitCallCount, 0);
     });
   });
 }

@@ -1,19 +1,24 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/progress/review_transaction_envelope.dart';
-import 'package:deutsch_bilarabi/core/progress/review_transaction_manager.dart';
-import 'package:deutsch_bilarabi/core/progress/transaction_state.dart';
+import 'package:deutsch_bilarabi/core/progress/idempotent_review_transaction_manager.dart';
+import 'dart:async';
 
 void main() {
-  group('ReviewTransactionManager', () {
-    late ReviewTransactionManager manager;
+  group('IdempotentReviewTransactionManager', () {
+    late IdempotentReviewTransactionManager manager;
     late List<ReviewTransactionEnvelope> persistedEnvelopes;
     late bool shouldFailPersistence;
+    late Completer<void>? persistenceDelay;
 
     setUp(() {
       persistedEnvelopes = [];
       shouldFailPersistence = false;
-      manager = ReviewTransactionManager(
-        persistenceHandler: (envelope) async {
+      persistenceDelay = null;
+      manager = IdempotentReviewTransactionManager(
+        persistencePort: (envelope) async {
+          if (persistenceDelay != null) {
+            await persistenceDelay!.future;
+          }
           if (shouldFailPersistence) {
             throw Exception('Simulated storage failure');
           }
@@ -28,13 +33,14 @@ void main() {
         learnerContentKey: 'content1',
         rating: 3,
         timestamp: DateTime.now(),
-        languagePairKey: 'de-ar',
+        languagePairKey: 'de_ar',
       );
 
-      final state = await manager.processTransaction(envelope, 'en-ar');
+      final status = await manager.commitReview(envelope, activeLanguagePairKey: 'en_ar');
 
-      expect(state, isA<TransactionStateFailed>());
-      expect((state as TransactionStateFailed).reason, 'Language pair mismatch');
+      expect(status.state, TransactionState.failed);
+      expect(status.error, isA<String>());
+      expect((status.error as String), contains('Pair mismatch'));
       expect(persistedEnvelopes, isEmpty);
     });
 
@@ -44,12 +50,12 @@ void main() {
         learnerContentKey: 'content1',
         rating: 3,
         timestamp: DateTime.now(),
-        languagePairKey: 'de-ar',
+        languagePairKey: 'de_ar',
       );
 
-      final state = await manager.processTransaction(envelope, 'de-ar');
+      final status = await manager.commitReview(envelope, activeLanguagePairKey: 'de_ar');
 
-      expect(state, isA<TransactionStateCommitted>());
+      expect(status.state, TransactionState.committed);
       expect(persistedEnvelopes, hasLength(1));
       expect(persistedEnvelopes.first, envelope);
     });
@@ -60,17 +66,41 @@ void main() {
         learnerContentKey: 'content1',
         rating: 3,
         timestamp: DateTime.now(),
-        languagePairKey: 'de-ar',
+        languagePairKey: 'de_ar',
       );
 
-      final state1 = await manager.processTransaction(envelope, 'de-ar');
-      expect(state1, isA<TransactionStateCommitted>());
+      final status1 = await manager.commitReview(envelope, activeLanguagePairKey: 'de_ar');
+      expect(status1.state, TransactionState.committed);
       expect(persistedEnvelopes, hasLength(1));
 
       // Simulate a repeated tap / retry
-      final state2 = await manager.processTransaction(envelope, 'de-ar');
-      expect(state2, isA<TransactionStateCommitted>());
+      final status2 = await manager.commitReview(envelope, activeLanguagePairKey: 'de_ar');
+      expect(status2.state, TransactionState.committed);
       expect(persistedEnvelopes, hasLength(1)); // No duplicate persistence
+    });
+
+    test('identical retry during in-flight write returns same pending future', () async {
+      final envelope = ReviewTransactionEnvelope(
+        reviewEventId: 'event1',
+        learnerContentKey: 'content1',
+        rating: 3,
+        timestamp: DateTime.now(),
+        languagePairKey: 'de_ar',
+      );
+
+      persistenceDelay = Completer<void>();
+
+      final future1 = manager.commitReview(envelope, activeLanguagePairKey: 'de_ar');
+      final future2 = manager.commitReview(envelope, activeLanguagePairKey: 'de_ar');
+
+      persistenceDelay!.complete();
+
+      final status1 = await future1;
+      final status2 = await future2;
+
+      expect(status1.state, TransactionState.committed);
+      expect(status2.state, TransactionState.committed);
+      expect(persistedEnvelopes, hasLength(1)); // Ensures it was only written once
     });
 
     test('duplicate command with changed payload fails', () async {
@@ -80,25 +110,25 @@ void main() {
         learnerContentKey: 'content1',
         rating: 3,
         timestamp: timestamp,
-        languagePairKey: 'de-ar',
+        languagePairKey: 'de_ar',
       );
 
       final envelope2 = ReviewTransactionEnvelope(
         reviewEventId: 'event1',
         learnerContentKey: 'content1',
-        rating: 4, // Changed rating
+        rating: 2, // Changed rating
         timestamp: timestamp,
-        languagePairKey: 'de-ar',
+        languagePairKey: 'de_ar',
       );
 
-      final state1 = await manager.processTransaction(envelope1, 'de-ar');
-      expect(state1, isA<TransactionStateCommitted>());
+      final status1 = await manager.commitReview(envelope1, activeLanguagePairKey: 'de_ar');
+      expect(status1.state, TransactionState.committed);
 
-      final state2 = await manager.processTransaction(envelope2, 'de-ar');
-      expect(state2, isA<TransactionStateFailed>());
+      final status2 = await manager.commitReview(envelope2, activeLanguagePairKey: 'de_ar');
+      expect(status2.state, TransactionState.failed);
       expect(
-        (state2 as TransactionStateFailed).reason,
-        'Duplicate review ID with different payload',
+        status2.error,
+        'Conflicting reviewEventId payload',
       );
       expect(persistedEnvelopes, hasLength(1));
     });
@@ -110,38 +140,25 @@ void main() {
         learnerContentKey: 'content1',
         rating: 3,
         timestamp: DateTime.now(),
-        languagePairKey: 'de-ar',
+        languagePairKey: 'de_ar',
       );
 
-      final state = await manager.processTransaction(envelope, 'de-ar');
+      final status = await manager.commitReview(envelope, activeLanguagePairKey: 'de_ar');
 
-      expect(state, isA<TransactionStateRecoverable>());
-      expect((state as TransactionStateRecoverable).error, isA<Exception>());
+      expect(status.state, TransactionState.recoverable);
+      expect(status.error, isA<Exception>());
       expect(persistedEnvelopes, isEmpty);
+
+      // Verify it's returned by getRecoverableTransactions
+      final recoverable = manager.getRecoverableTransactions();
+      expect(recoverable, hasLength(1));
+      expect(recoverable.first.envelope, envelope);
 
       // Now fix storage and retry
       shouldFailPersistence = false;
-      final retryState = await manager.processTransaction(envelope, 'de-ar');
-      expect(retryState, isA<TransactionStateCommitted>());
+      final retryStatus = await manager.commitReview(envelope, activeLanguagePairKey: 'de_ar');
+      expect(retryStatus.state, TransactionState.committed);
       expect(persistedEnvelopes, hasLength(1));
-    });
-
-    test('restoration of session history preserves committed state', () async {
-      final envelope = ReviewTransactionEnvelope(
-        reviewEventId: 'event1',
-        learnerContentKey: 'content1',
-        rating: 3,
-        timestamp: DateTime.now(),
-        languagePairKey: 'de-ar',
-      );
-
-      manager.restoreSession([envelope]);
-
-      // Retry should immediately return committed without calling persistence
-      final state = await manager.processTransaction(envelope, 'de-ar');
-
-      expect(state, isA<TransactionStateCommitted>());
-      expect(persistedEnvelopes, isEmpty); // Already committed from restoration
     });
   });
 }
