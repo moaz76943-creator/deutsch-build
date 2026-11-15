@@ -180,12 +180,15 @@ def run_benchmark_memory(repo_root: Path, limit_mb: float = 256.0) -> GateResult
     logger.info("Checking peak memory...")
     target_test = "test/benchmark_test.dart"
     if not (repo_root / target_test).exists():
-        return GateResult(STATUS_NOT_RUN, "Missing memory benchmark test script")
+        return GateResult(STATUS_BLOCKED, "Missing memory benchmark test script")
 
     # In a real environment, we'd use GNU time, or parse memory output from the test
     # We will simulate memory profiling with /usr/bin/time -v for now
     cmd = ["/usr/bin/time", "-v", "flutter", "test", target_test]
     returncode, stdout, stderr = run_command(cmd, cwd=str(repo_root))
+
+    if returncode == -1:
+        return GateResult(STATUS_BLOCKED, "Failed to execute memory benchmark test", {"error": stderr})
 
     if returncode != 0:
         return GateResult(STATUS_FAIL, "Memory test execution failed", {"stderr": stderr})
@@ -208,7 +211,7 @@ def run_benchmark_memory(repo_root: Path, limit_mb: float = 256.0) -> GateResult
             max_rss = float(match.group(1))
 
     if max_rss == 0.0:
-        return GateResult(STATUS_FAIL, "Could not extract memory peak metrics")
+        return GateResult(STATUS_BLOCKED, "Could not extract memory peak metrics")
 
     details = {"peak_memory_mb": max_rss}
     if max_rss > limit_mb:
@@ -223,7 +226,7 @@ def run_startup_tests(repo_root: Path, mode: str = "normal", threshold_ms: float
          # Fallback to general test if specific one is missing
          target_test = "test/benchmark_test.dart"
          if not (repo_root / target_test).exists():
-            return GateResult(STATUS_NOT_RUN, f"Missing startup tests for {mode} mode")
+            return GateResult(STATUS_BLOCKED, f"Missing startup tests for {mode} mode")
 
     env = os.environ.copy()
     env["STARTUP_MODE"] = mode
@@ -232,16 +235,20 @@ def run_startup_tests(repo_root: Path, mode: str = "normal", threshold_ms: float
 
     start = time.perf_counter()
     returncode, stdout, stderr = run_command(["flutter", "test", target_test], cwd=str(repo_root), env=env)
+
+    if returncode == -1:
+        return GateResult(STATUS_BLOCKED, f"Failed to execute startup tests in {mode} mode", {"error": stderr})
+
     elapsed_ms = (time.perf_counter() - start) * 1000
 
     if returncode != 0:
         return GateResult(STATUS_FAIL, f"Startup tests failed in {mode} mode", {"stdout": stdout, "stderr": stderr})
 
     # Check if test outputs specific STARTUP_TIME_MS:
-    parsed_duration = elapsed_ms
     match = re.search(r"STARTUP_TIME_MS:\s*([\d.]+)", stdout)
-    if match:
-        parsed_duration = float(match.group(1))
+    if not match:
+        return GateResult(STATUS_BLOCKED, "Could not extract explicit STARTUP_TIME_MS metric")
+    parsed_duration = float(match.group(1))
 
     details = {"latency_ms": parsed_duration}
     if parsed_duration > threshold_ms:
