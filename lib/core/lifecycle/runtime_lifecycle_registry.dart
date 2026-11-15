@@ -25,7 +25,7 @@ class RuntimeLifecycleRegistry {
   }
 
   void registerTimer(Timer timer, {String owner = 'global'}) {
-    if (_isDisposed) {
+    if (isOwnerDisposed(owner)) {
       timer.cancel();
       return;
     }
