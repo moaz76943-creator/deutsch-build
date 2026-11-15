@@ -30,6 +30,10 @@ class PackDownloaderService {
   static final RegExp _validLanguageCode =
       RegExp(r'^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$');
 
+  /// A trusted manifest digest is exactly 64 hex characters; anything else
+  /// is a caller-only claim and must never reach the network or the disk.
+  static final RegExp _validManifestDigest = RegExp(r'^[a-fA-F0-9]{64}$');
+
   /// Bound a single pack transfer so a hostile or broken origin cannot stream
   /// unbounded bytes into app-private storage.
   static const int maxUncompressedPackBytes = 64 * 1024 * 1024;
@@ -137,6 +141,14 @@ class PackDownloaderService {
     if (!_validLanguageCode.hasMatch(languageCode)) {
       throw ArgumentError.value(
         languageCode, 'languageCode', 'Invalid language-pack identifier',
+      );
+    }
+    // T64: the hash must look like a manifest-bound SHA-256 digest before any
+    // bytes are requested. Production callers source it from the pinned-host
+    // catalog manifest; never accept a malformed caller-only claim.
+    if (!_validManifestDigest.hasMatch(expectedHash)) {
+      throw ArgumentError.value(
+        expectedHash, 'expectedHash', 'Expected a 64-character SHA-256 hex digest',
       );
     }
     final contentLanguageCode = languageCode.split('-').first.toLowerCase();

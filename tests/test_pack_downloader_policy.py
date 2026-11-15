@@ -73,3 +73,22 @@ def test_archive_extractor_keeps_bounded_limits() -> None:
     assert "defaultMaxSingleEntryBytes" in source
     assert "defaultMaxEntryCount" in source
     assert "defaultMaxExpansionRatio" in source
+
+def test_downloader_rejects_malformed_caller_digest_before_io() -> None:
+    source = SERVICE.read_text(encoding="utf-8")
+    assert "_validManifestDigest" in source
+    assert "r'^[a-fA-F0-9]{64}$'" in source
+    # The gate must run before any network request is constructed.
+    assert source.index("_validManifestDigest.hasMatch(expectedHash)") < source.index(
+        "http.Request('GET', target)"
+    )
+
+
+def test_admission_gate_rejects_malformed_digest() -> None:
+    admission = ROOT / "lib/core/storage/pack_admission_service.dart"
+    source = admission.read_text(encoding="utf-8")
+    assert "_safeDigest" in source
+    assert "_safeDigest.hasMatch(expectedHash)" in source
+    assert source.index("_safeDigest.hasMatch(expectedHash)") < source.index(
+        "Isolate.run"
+    )
