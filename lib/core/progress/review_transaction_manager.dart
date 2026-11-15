@@ -8,10 +8,6 @@ import 'transaction_persistence_port.dart';
 class ReviewTransactionManager {
   // Pair keys use underscores as separators; locale/version components must
   // never contain them or two different directed pairs can share one key.
-  static final RegExp _languageTagPattern =
-      RegExp(r'^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*$');
-  static final RegExp _versionPattern =
-      RegExp(r'^[A-Za-z0-9][A-Za-z0-9.+-]*$');
 
   final TransactionPersistencePort persistencePort;
   final DateTime Function() clock;
