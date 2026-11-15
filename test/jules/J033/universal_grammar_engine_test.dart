@@ -11,7 +11,7 @@ class EnglishGrammarProvider extends UniversalGrammarProvider {
   @override
   GrammarProfile get profile => const GrammarProfile(
         languageCode: 'en',
-        capabilities: {GrammarCapability.analytic, GrammarCapability.number, GrammarCapability.tense, GrammarCapability.person},
+        capabilities: {GrammarFeature.analytic, GrammarFeature.number, GrammarFeature.tense, GrammarFeature.person},
       );
 
   @override
@@ -25,11 +25,11 @@ class TurkishGrammarProvider extends UniversalGrammarProvider {
   @override
   GrammarProfile get profile => const GrammarProfile(
         languageCode: 'tr',
-        capabilities: {GrammarCapability.agglutinative, GrammarCapability.caseSystem, GrammarCapability.number},
+        capabilities: {GrammarFeature.agglutinative, GrammarFeature.caseSystem, GrammarFeature.number},
       );
 
   @override
-  GrammaticalCase extractCase(String word) {
+  GrammaticalCase extractCase(String word, {String? context}) {
     if (word.endsWith('ı') || word.endsWith('i') || word.endsWith('u') || word.endsWith('ü')) {
       return GrammaticalCase.accusative;
     }
@@ -42,10 +42,10 @@ class ArabicGrammarProvider extends UniversalGrammarProvider {
   GrammarProfile get profile => const GrammarProfile(
         languageCode: 'ar',
         capabilities: {
-          GrammarCapability.rootPattern,
-          GrammarCapability.gender,
-          GrammarCapability.number,
-          GrammarCapability.caseSystem,
+          GrammarFeature.rootPattern,
+          GrammarFeature.gender,
+          GrammarFeature.number,
+          GrammarFeature.caseSystem,
         },
       );
 
@@ -61,10 +61,10 @@ class RussianGrammarProvider extends UniversalGrammarProvider {
   GrammarProfile get profile => const GrammarProfile(
         languageCode: 'ru',
         capabilities: {
-          GrammarCapability.inflectional,
-          GrammarCapability.gender,
-          GrammarCapability.caseSystem,
-          GrammarCapability.number,
+          GrammarFeature.inflectional,
+          GrammarFeature.gender,
+          GrammarFeature.caseSystem,
+          GrammarFeature.number,
         },
       );
 

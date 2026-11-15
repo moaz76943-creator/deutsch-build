@@ -116,17 +116,18 @@ class VerifiedGrammarEvidence {
 
 /// Legacy boolean capabilities and declared metadata share one contract.
 class GrammarCapabilityProfile extends GrammarProfile {
-  final bool? _hasGender;
-  final bool? _hasCases;
-  final bool? _hasNumber;
-  final bool? _hasPerson;
-  final bool? _hasTense;
-  final bool? _hasAspect;
-  final bool? _hasMood;
-  final bool? _hasRootPatternMorphology;
-  final bool? _isAgglutinative;
-  final bool? _isAnalytic;
-  final bool? _hasNounClasses;
+
+  final bool hasGender;
+  final bool hasCases;
+  final bool hasNumber;
+  final bool hasPerson;
+  final bool hasTense;
+  final bool hasAspect;
+  final bool hasMood;
+  final bool hasRootPatternMorphology;
+  final bool isAgglutinative;
+  final bool isAnalytic;
+  final bool hasNounClasses;
 
   const GrammarCapabilityProfile({
     this.hasGender = false,
@@ -140,15 +141,50 @@ class GrammarCapabilityProfile extends GrammarProfile {
     this.isAgglutinative = false,
     this.isAnalytic = false,
     this.hasNounClasses = false,
+
   });
+
+  @override
+  bool supports(GrammarFeature feature) {
+    switch (feature) {
+      case GrammarFeature.gender:
+        return hasGender;
+      case GrammarFeature.caseSystem:
+      case GrammarFeature.grammaticalCase:
+        return hasCases;
+      case GrammarFeature.number:
+        return hasNumber;
+      case GrammarFeature.person:
+        return hasPerson;
+      case GrammarFeature.tense:
+        return hasTense;
+      case GrammarFeature.aspect:
+        return hasAspect;
+      case GrammarFeature.mood:
+        return hasMood;
+      case GrammarFeature.rootPattern:
+        return hasRootPatternMorphology;
+      case GrammarFeature.agglutinative:
+        return isAgglutinative;
+      case GrammarFeature.analytic:
+        return isAnalytic;
+      case GrammarFeature.nounClasses:
+        return hasNounClasses;
+      default:
+        return super.supports(feature);
+    }
+  }
 }
 
 abstract class LanguageGrammarRuleProvider {
+  bool get _usesDeclarativeProfile => profile is! GrammarCapabilityProfile;
   String get languageCode;
 
   /// Returns the grammar capability profile for the specific language
   GrammarCapabilityProfile get capabilityProfile =>
       const GrammarCapabilityProfile();
+
+  GrammarProfile get profile => capabilityProfile;
 
   /// استنتاج الجنس النحوي للكلمة
   GrammaticalGender determineGender(String word, {String? article});
@@ -164,67 +200,63 @@ abstract class LanguageGrammarRuleProvider {
 
   /// Determine the grammatical number
   GrammaticalNumber? determineNumber(String word) {
-    if (_usesDeclarativeProfile) return GrammaticalNumber.none;
-    if (!capabilityProfile.hasNumber) return null;
-    return GrammaticalNumber.unknown;
+    if (!profile.supports(GrammarFeature.number)) return _usesDeclarativeProfile ? GrammaticalNumber.none : null;
+    return _usesDeclarativeProfile ? GrammaticalNumber.none : GrammaticalNumber.unknown;
   }
 
   /// Determine the grammatical person
   GrammaticalPerson? determinePerson(String word) {
-    if (_usesDeclarativeProfile) return GrammaticalPerson.none;
-    if (!capabilityProfile.hasPerson) return null;
-    return GrammaticalPerson.unknown;
+    if (!profile.supports(GrammarFeature.person)) return _usesDeclarativeProfile ? GrammaticalPerson.none : null;
+    return _usesDeclarativeProfile ? GrammaticalPerson.none : GrammaticalPerson.unknown;
   }
 
   /// Determine the grammatical case
   GrammaticalCase? determineCase(String word, {String? context}) {
-    if (_usesDeclarativeProfile) return GrammaticalCase.none;
-    if (!capabilityProfile.hasCases) return null;
-    return GrammaticalCase.unknown;
+    if (!profile.supports(GrammarFeature.caseSystem) && !profile.supports(GrammarFeature.grammaticalCase)) {
+      return _usesDeclarativeProfile ? GrammaticalCase.none : null;
+    }
+    return _usesDeclarativeProfile ? GrammaticalCase.none : GrammaticalCase.unknown;
   }
 
   /// Determine the tense
   Tense? determineTense(String word) {
-    if (_usesDeclarativeProfile) return Tense.none;
-    if (!capabilityProfile.hasTense) return null;
-    return Tense.unknown;
+    if (!profile.supports(GrammarFeature.tense)) return _usesDeclarativeProfile ? Tense.none : null;
+    return _usesDeclarativeProfile ? Tense.none : Tense.unknown;
   }
 
   /// Determine the aspect
   Aspect? determineAspect(String word) {
-    if (_usesDeclarativeProfile) return Aspect.none;
-    if (!capabilityProfile.hasAspect) return null;
-    return Aspect.unknown;
+    if (!profile.supports(GrammarFeature.aspect)) return _usesDeclarativeProfile ? Aspect.none : null;
+    return _usesDeclarativeProfile ? Aspect.none : Aspect.unknown;
   }
 
   /// Determine the mood
   Mood? determineMood(String word) {
-    if (_usesDeclarativeProfile) return Mood.none;
-    if (!capabilityProfile.hasMood) return null;
-    return Mood.unknown;
+    if (!profile.supports(GrammarFeature.mood)) return _usesDeclarativeProfile ? Mood.none : null;
+    return _usesDeclarativeProfile ? Mood.none : Mood.unknown;
   }
 
   /// Extract root for Semitic languages
   String? extractRoot(String word) {
-    if (!capabilityProfile.hasRootPatternMorphology) return null;
+    if (!profile.supports(GrammarFeature.rootPattern)) return null;
     return null;
   }
 
   /// Extract pattern for Semitic languages
   String? extractPattern(String word) {
-    if (!capabilityProfile.hasRootPatternMorphology) return null;
+    if (!profile.supports(GrammarFeature.rootPattern)) return null;
     return null;
   }
 
   /// Extract affixes for agglutinative languages
   List<String>? extractAffixes(String word) {
-    if (!capabilityProfile.isAgglutinative) return null;
+    if (!profile.supports(GrammarFeature.agglutinative)) return null;
     return [];
   }
 
   /// Determine noun class
   String? determineNounClass(String word) {
-    if (!capabilityProfile.hasNounClasses) return null;
+    if (!profile.supports(GrammarFeature.nounClasses)) return null;
     return null;
   }
 }
