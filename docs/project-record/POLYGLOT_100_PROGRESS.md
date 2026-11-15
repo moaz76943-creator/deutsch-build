@@ -61,7 +61,16 @@ CI/merge) · **IN PROGRESS** · **BLOCKED** (with the real blocker) · **QUEUED*
 2. Machine-readable PR triage: classify all 787 open PRs (empty diff / unique
    content / stale base / duplicate) and absorb unique content before closing
    anything.
-3. Absorb content-factory unique assets into the application tree with
-   equivalence proof (packs, standards, legal ledger).
+3. DONE 2026-11-15 — absorbed `standards/` (directed_pairs, lexical,
+   morphology) + `tools/factory_extensions/directed_translation_scale/`
+   byte-identical from the content-factory import onto
+   `chore/absorb-factory-standards` (see
+   docs/project-record/INCREMENT3_ABSORPTION_2026-11-15.md; 29/lexical/morphology
+   unittests OK; registry_sync --check exit 0). packs/ BLOCKED by the
+   rights/provenance gate; proficiency standard BLOCKED pending an owner
+   decision on canonical-registry proficiency metadata (must not import the
+   factory's stale catalog registry); legal ledger kept (app copy better);
+   factory catalog superseded by the canonical registry. Merge awaits owner
+   authorization.
 4. Security/trust tasks 21–30 (audit exit codes, secret scanning, path and
    archive hardening, bounded downloads).
