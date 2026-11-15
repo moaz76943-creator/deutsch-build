@@ -199,16 +199,16 @@ def process_ledger(parsed, content):
     recover_from = getattr(parsed, "recover_from", None)
     owner_evidence = getattr(parsed, "owner_evidence", None)
 
+    if recover_from and owner_evidence and recover_from in ledger and ledger[recover_from].get("state") in ["CLAIM", "ACTIVE"]:
+        ledger[recover_from]["state"] = "CANCELLED"
+        ledger[recover_from]["owner_evidence"] = owner_evidence
+
     overlap, overlap_msg = check_overlapping_claims(ledger, parsed.task_id, report["permitted_paths"], now, recover_from, owner_evidence)
     if overlap:
         report["blockers"].append(overlap_msg)
 
     if report["blockers"]:
         return 1, report, ledger
-
-    if recover_from and owner_evidence and recover_from in ledger and ledger[recover_from].get("state") in ["CLAIM", "ACTIVE"]:
-        ledger[recover_from]["state"] = "CANCELLED"
-        ledger[recover_from]["owner_evidence"] = owner_evidence
 
     ledger_entry = ledger.get(parsed.task_id, {"paths": []})
     ledger_entry["state"] = parsed.transition
@@ -238,6 +238,8 @@ def main(args=None):
     parser.add_argument("--transition", choices=["CLAIM", "ACTIVE", "COMPLETE", "BLOCKED", "CANCELLED"], required=True)
     parser.add_argument("--paths", nargs="*", help="List of files/dirs to claim")
     parser.add_argument("--depends-on", nargs="*", help="List of task IDs this task depends on")
+    parser.add_argument("--recover-from", help="Task ID of a stale claim to recover from")
+    parser.add_argument("--owner-evidence", help="Evidence of the previous owner's failure")
     parser.add_argument("--ledger", default=str(default_state_dir() / "task_ledger.json"))
     parser.add_argument("--report", default=str(default_state_dir() / "evidence_report.json"))
 
@@ -252,10 +254,9 @@ def main(args=None):
         try:
             if ledger_path.exists():
                 with ledger_path.open("r", encoding="utf-8") as current:
-                    result_code, report, updated_ledger = process_ledger(parsed, current)
+                    result_code, report, updated_ledger = process_ledger(parsed, current.read())
             else:
-                import io
-                result_code, report, updated_ledger = process_ledger(parsed, io.StringIO(""))
+                result_code, report, updated_ledger = process_ledger(parsed, "")
         except (json.JSONDecodeError, ValueError, TypeError, AttributeError):
             result_code = 1
             report = {"task_id": parsed.task_id, "base_sha": parsed.base_sha,
