@@ -232,6 +232,23 @@ jobs:
             echo "- Traceability record: \`release-metadata/release_traceability.json\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Promote last-known-good release record (T97)
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 tools/polyglot/lkg_rollback.py --promote \
+            --traceability release-metadata/release_traceability.json \
+            --artifact build/app/outputs/bundle/release/app-release.aab \
+            --output release-metadata/release_lkg.json \
+            --reason "verified signed AAB release build"
+          python3 tools/polyglot/lkg_rollback.py --check \
+            --record release-metadata/release_lkg.json \
+            --artifact build/app/outputs/bundle/release/app-release.aab \
+            --require-artifact
+          {
+            echo "- LKG record: \`release-metadata/release_lkg.json\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload signed AAB artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -240,6 +257,7 @@ jobs:
             build/app/outputs/bundle/release/app-release.aab
             release-metadata/SHA256SUMS.txt
             release-metadata/release_traceability.json
+            release-metadata/release_lkg.json
             assets/registry/build_provenance.json
           if-no-files-found: error
           retention-days: 7
