@@ -109,11 +109,16 @@ class LanguageManagerScreen extends ConsumerWidget {
                           .read(activeLanguageProvider.notifier)
                           .refreshCatalog(),
                       child: ListView.separated(
+                        // Performance: bound pre-build area beyond viewport.
+                        // Moderate value balances smoothness vs memory on complex pack cards.
+                        cacheExtent: 300,
+                        addAutomaticKeepAlives: false,
                         padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
                         itemCount: packs.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 10),
-                        itemBuilder: (context, index) =>
-                            _packCard(context, ref, state, packs[index]),
+                        itemBuilder: (context, index) => RepaintBoundary(
+                          child: _packCard(context, ref, state, packs[index]),
+                        ),
                       ),
                     ),
                   ),
