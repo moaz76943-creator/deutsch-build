@@ -74,6 +74,7 @@ class PooledDatabaseManager {
   Future<Database?> _tryOpenLocked(String code) async {
     final existing = _connections.remove(code);
     if (existing != null && existing.isOpen) {
+      // Maintain LRU by re-inserting at the end
       _connections[code] = existing;
       return existing;
     }

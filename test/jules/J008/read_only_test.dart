@@ -1,0 +1,41 @@
+import 'dart:async';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'dart:io';
+import '../../../lib/services/pooled_database_manager.dart';
+
+void main() {
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
+
+  test('verify read-only packs remain read-only', () async {
+    // Create a database and write some data
+    final dbPath = 'test_readonly.db';
+    if (File(dbPath).existsSync()) {
+      File(dbPath).deleteSync();
+    }
+    final dbSetup = await databaseFactory.openDatabase(dbPath);
+    await dbSetup.execute('CREATE TABLE IF NOT EXISTS test (id INTEGER)');
+    await dbSetup.close();
+
+    final pool = PooledDatabaseManager(
+      openConnection: (String code) async {
+        return await databaseFactory.openDatabase(
+          dbPath,
+          options: OpenDatabaseOptions(readOnly: true),
+        );
+      },
+      maxConnections: 1,
+    );
+
+    final db = await pool.open('en');
+    expect(
+      () => db.execute('INSERT INTO test (id) VALUES (1)'),
+      throwsA(isA<DatabaseException>()),
+    );
+    await pool.closeAll();
+    if (File(dbPath).existsSync()) {
+      File(dbPath).deleteSync();
+    }
+  });
+}
