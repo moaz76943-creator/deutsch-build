@@ -31,6 +31,7 @@ CI/merge) · **IN PROGRESS** · **BLOCKED** (with the real blocker) · **QUEUED*
 | 10 | red-line fix: removed excluded-language pack stub assets/packs/he.json | PR #1191 merged @ d5dc8cef9 | MERGED |
 | 11 | T66/T70-adjacent: fail-closed guard against excluded-language pack assets in registry_sync.py --check | PR #1192 merged @ ac048707f | MERGED |
 | 12 | T71: measured, provenance-backed content inventory (708 files, 5002 units, 27 languages with content; 73 measure zero — factory harvest pending) | PR #1193 merged @ e87f0f90c | MERGED |
+| 13 | T71-adjacent: Language Registry Guard CI now runs `content-inventory --check`, failing the gate on measured-content drift | PR #1195 merged @ 825a366b2 | MERGED |
 | 9 | T69: transactional, idempotent, recoverable migrations — `SafeLearnerMigration.applySafeMigrations` runs DDL + journal write in one transaction with pragma-guarded ALTERs and ConflictAlgorithm.ignore journaling; fixed `MigrationJournal` recording the timestamp as the migration id (dedupe never worked); `PairProgressDatabase.attach` now runs full bootstrap in one transaction | PR `feat/transactional-migrations-t69` | merged to `main` as `09630f748` via PR #1189 | MERGED |
 
 ## Verified facts (not claims)
