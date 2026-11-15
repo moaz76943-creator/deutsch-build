@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "captured_at_utc": "2026-11-15T13:45:00+00:00",
+  "state": "SECRETS_INCIDENT_RECORDED_OWNER_REVOCATION_REQUIRED",
+  "task_id": "SECRETS-AUDIT-20261115",
+  "owner": "Hermes autonomous session (owner full-autonomy mandate)",
+  "repository": "moaz76943-creator/deutsch-build",
+  "branch": "main",
+  "scope": [
+    "docs/project-record/SECRETS_INCIDENT_2026-11-15.md",
+    "repo security settings (secret scanning + push protection)"
+  ],
+  "trigger": "PR #1187 Security Audit run 43681022541: SECRETS_OUTCOME=failure (305 Gitleaks findings), POLICY_OUTCOME=failure",
+  "classification": {
+    "total_findings": 305,
+    "confirmed_real_pat_in_history": 1,
+    "test_only_ed25519_private_keys_in_history": 2,
+    "false_positives": 302,
+    "current_tree_clean": true,
+    "gh_session_token_compromised": false
+  },
+  "exposure": {
+    "file": "get-app",
+    "line": 5,
+    "commit": "b19dfd490",
+    "committed_at": "2026-10-11 00:09:16 +0000",
+    "token_prefix": "ghp_Yw",
+    "token_suffix": "cU50",
+    "full_value_recorded": false,
+    "reachable_from": ["main", "all branches", "tags latest/v3.0.0/v420.0.0-release-build-verified (+18 more)"]
+  },
+  "actions_taken": [
+    "classified all 305 findings without printing any matched value",
+    "verified current tree clean via tools/security/scoped_security_audit.py (PASS) and grep",
+    "confirmed gh session token differs from leaked value (gho_ vs ghp_)",
+    "enabled secret_scanning=enabled and secret_scanning_push_protection=enabled via gh api"
+  ],
+  "not_done_and_why": "No history rewrite / force-push: irreversible, dangles lineage anchor ab207624e + all merge receipts + 100 open PRs; revocation is the only effective remediation and is owner-only; contract forbids destructive force-push without explicit owner authorization",
+  "blocker": "OWNER MUST REVOKE the leaked PAT (github.com/settings/tokens) and decide on coordinated history purge",
+  "next_action": "Owner revokes token; then either authorize coordinated purge or accept revocation as sufficient; keep push protection on",
+  "red_lines": "no secret value recorded; no force-push; no test weakening; excluded languages untouched"
+}
