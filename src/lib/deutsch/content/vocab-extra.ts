@@ -459,4 +459,295 @@ export const vocabExtra = [
     exampleAr: 'الطفل يلعب في الحديقة.'
   }
 
+
+  {
+    id: 'v-extra-531',
+    type: 'verb',
+    infinitive: 'sprechen',
+    arabic: 'يتحدث',
+    conjugation: {
+      ich: 'spreche',
+      du: 'sprichst',
+      er: 'spricht',
+      wir: 'sprechen',
+      ihr: 'sprecht',
+      sie_pl: 'sprechen',
+      präteritum: 'sprach',
+      perfekt: 'hat gesprochen',
+      aux: 'haben'
+    },
+    example: 'Ich spreche Deutsch mit Freunden.',
+    exampleAr: 'أتحدث الألمانية مع الأصدقاء.'
+  },
+  {
+    id: 'v-extra-532',
+    type: 'noun',
+    german: 'Tisch',
+    article: 'der',
+    plural: 'Tische',
+    arabic: 'طاولة',
+    example: 'Der Tisch ist aus Holz.',
+    exampleAr: 'الطاولة من الخشب.'
+  },
+  {
+    id: 'v-extra-533',
+    type: 'verb',
+    infinitive: 'kommen',
+    arabic: 'يأتي',
+    conjugation: {
+      ich: 'komme',
+      du: 'kommst',
+      er: 'kommt',
+      wir: 'kommen',
+      ihr: 'kommt',
+      sie_pl: 'kommen',
+      präteritum: 'kam',
+      perfekt: 'ist gekommen',
+      aux: 'sein'
+    },
+    example: 'Er kommt heute Abend.',
+    exampleAr: 'هو يأتي هذا المساء.'
+  },
+  {
+    id: 'v-extra-534',
+    type: 'noun',
+    german: 'Stuhl',
+    article: 'der',
+    plural: 'Stühle',
+    arabic: 'كرسي',
+    example: 'Der Stuhl steht neben dem Tisch.',
+    exampleAr: 'الكرسي يقف بجانب الطاولة.'
+  },
+  {
+    id: 'v-extra-535',
+    type: 'verb',
+    infinitive: 'schlafen',
+    arabic: 'ينام',
+    conjugation: {
+      ich: 'schlafe',
+      du: 'schläfst',
+      er: 'schläft',
+      wir: 'schlafen',
+      ihr: 'schlaft',
+      sie_pl: 'schlafen',
+      präteritum: 'schlief',
+      perfekt: 'hat geschlafen',
+      aux: 'haben'
+    },
+    example: 'Das Kind schläft schon.',
+    exampleAr: 'الطفل ينام بالفعل.'
+  },
+  {
+    id: 'v-extra-536',
+    type: 'noun',
+    german: 'Tür',
+    article: 'die',
+    plural: 'Türen',
+    arabic: 'باب',
+    example: 'Die Tür ist offen.',
+    exampleAr: 'الباب مفتوح.'
+  },
+  {
+    id: 'v-extra-537',
+    type: 'verb',
+    infinitive: 'trinken',
+    arabic: 'يشرب',
+    conjugation: {
+      ich: 'trinke',
+      du: 'trinkst',
+      er: 'trinkt',
+      wir: 'trinken',
+      ihr: 'trinkt',
+      sie_pl: 'trinken',
+      präteritum: 'trank',
+      perfekt: 'hat getrunken',
+      aux: 'haben'
+    },
+    example: 'Wir trinken Wasser.',
+    exampleAr: 'نحن نشرب الماء.'
+  },
+  {
+    id: 'v-extra-538',
+    type: 'noun',
+    german: 'Fenster',
+    article: 'das',
+    plural: 'Fenster',
+    arabic: 'نافذة',
+    example: 'Das Fenster ist groß.',
+    exampleAr: 'النافذة كبيرة.'
+  },
+  {
+    id: 'v-extra-539',
+    type: 'verb',
+    infinitive: 'lesen',
+    arabic: 'يقرأ',
+    conjugation: {
+      ich: 'lese',
+      du: 'liest',
+      er: 'liest',
+      wir: 'lesen',
+      ihr: 'lest',
+      sie_pl: 'lesen',
+      präteritum: 'las',
+      perfekt: 'hat gelesen',
+      aux: 'haben'
+    },
+    example: 'Du liest ein Buch.',
+    exampleAr: 'أنت تقرأ كتاباً.'
+  },
+  {
+    id: 'v-extra-540',
+    type: 'noun',
+    german: 'Auto',
+    article: 'das',
+    plural: 'Autos',
+    arabic: 'سيارة',
+    example: 'Das Auto ist neu.',
+    exampleAr: 'السيارة جديدة.'
+  },
+  {
+    id: 'v-extra-541',
+    type: 'verb',
+    infinitive: 'schreiben',
+    arabic: 'يكتب',
+    conjugation: {
+      ich: 'schreibe',
+      du: 'schreibst',
+      er: 'schreibt',
+      wir: 'schreiben',
+      ihr: 'schreibt',
+      sie_pl: 'schreiben',
+      präteritum: 'schrieb',
+      perfekt: 'hat geschrieben',
+      aux: 'haben'
+    },
+    example: 'Ich schreibe einen Brief.',
+    exampleAr: 'أكتب رسالة.'
+  },
+  {
+    id: 'v-extra-542',
+    type: 'noun',
+    german: 'Stadt',
+    article: 'die',
+    plural: 'Städte',
+    arabic: 'مدينة',
+    example: 'Die Stadt ist schön.',
+    exampleAr: 'المدينة جميلة.'
+  },
+  {
+    id: 'v-extra-543',
+    type: 'verb',
+    infinitive: 'kaufen',
+    arabic: 'يشتري',
+    conjugation: {
+      ich: 'kaufe',
+      du: 'kaufst',
+      er: 'kauft',
+      wir: 'kaufen',
+      ihr: 'kauft',
+      sie_pl: 'kaufen',
+      präteritum: 'kaufte',
+      perfekt: 'hat gekauft',
+      aux: 'haben'
+    },
+    example: 'Sie kaufen Brot.',
+    exampleAr: 'هم يشترون خبزاً.'
+  },
+  {
+    id: 'v-extra-544',
+    type: 'noun',
+    german: 'Land',
+    article: 'das',
+    plural: 'Länder',
+    arabic: 'بلد',
+    example: 'Deutschland ist ein schönes Land.',
+    exampleAr: 'ألمانيا بلد جميل.'
+  },
+  {
+    id: 'v-extra-545',
+    type: 'verb',
+    infinitive: 'arbeiten',
+    arabic: 'يعمل',
+    conjugation: {
+      ich: 'arbeite',
+      du: 'arbeitest',
+      er: 'arbeitet',
+      wir: 'arbeiten',
+      ihr: 'arbeitet',
+      sie_pl: 'arbeiten',
+      präteritum: 'arbeitete',
+      perfekt: 'hat gearbeitet',
+      aux: 'haben'
+    },
+    example: 'Er arbeitet in einem Büro.',
+    exampleAr: 'هو يعمل في مكتب.'
+  },
+  {
+    id: 'v-extra-546',
+    type: 'noun',
+    german: 'Freund',
+    article: 'der',
+    plural: 'Freunde',
+    arabic: 'صديق',
+    example: 'Mein Freund kommt aus Ägypten.',
+    exampleAr: 'صديقي يأتي من مصر.'
+  },
+  {
+    id: 'v-extra-547',
+    type: 'verb',
+    infinitive: 'spielen',
+    arabic: 'يلعب',
+    conjugation: {
+      ich: 'spiele',
+      du: 'spielst',
+      er: 'spielt',
+      wir: 'spielen',
+      ihr: 'spielt',
+      sie_pl: 'spielen',
+      präteritum: 'spielte',
+      perfekt: 'hat gespielt',
+      aux: 'haben'
+    },
+    example: 'Die Kinder spielen Fußball.',
+    exampleAr: 'الأطفال يلعبون كرة القدم.'
+  },
+  {
+    id: 'v-extra-548',
+    type: 'noun',
+    german: 'Frau',
+    article: 'die',
+    plural: 'Frauen',
+    arabic: 'امرأة',
+    example: 'Die Frau liest die Zeitung.',
+    exampleAr: 'المرأة تقرأ الجريدة.'
+  },
+  {
+    id: 'v-extra-549',
+    type: 'verb',
+    infinitive: 'wohnen',
+    arabic: 'يسكن',
+    conjugation: {
+      ich: 'wohne',
+      du: 'wohnst',
+      er: 'wohnt',
+      wir: 'wohnen',
+      ihr: 'wohnt',
+      sie_pl: 'wohnen',
+      präteritum: 'wohnte',
+      perfekt: 'hat gewohnt',
+      aux: 'haben'
+    },
+    example: 'Wir wohnen in Berlin.',
+    exampleAr: 'نحن نسكن في برلين.'
+  },
+  {
+    id: 'v-extra-550',
+    type: 'noun',
+    german: 'Mann',
+    article: 'der',
+    plural: 'Männer',
+    arabic: 'رجل',
+    example: 'Der Mann arbeitet hart.',
+    exampleAr: 'الرجل يعمل بجد.'
+  },
 ];

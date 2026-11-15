@@ -14,3 +14,15 @@ Placeholder fix in progress.
 - No crashes. Content correctness prioritized. Preview remains on approved workspace port.
 - Next: continue expanding content or integrate into learning system if needed.
 
+
+## 2026-11-15 Hourly Session 2 (Grok Build)
+
+- Read AGENTS.md and SESSION_OPERATING_CONTRACT.md / PROJECT_INTENT.md. Auth/DB remain OFF.
+- Ran `npm test` (test-vocab-extra.js): PASS (31 unique items already present).
+- Added 20 new high-quality A1/A2 items to `src/lib/deutsch/content/vocab-extra.ts` (ids v-extra-531 to v-extra-550):
+  - 10 verbs with full conjugation (ich/du/er/wir/ihr/sie_pl + Präteritum + Perfekt + aux haben/sein): sprechen, kommen, schlafen, trinken, lesen, schreiben, kaufen, arbeiten, spielen, wohnen.
+  - 10 nouns with correct article (der/die/das), plural, natural German example sentences + Arabic translations: Tisch, Stuhl, Tür, Fenster, Auto, Stadt, Land, Freund, Frau, Mann.
+  - No ID repeats. Existing content preserved. No auto-deletion of similar items.
+- Re-ran tests: PASS (51 unique items, contains präteritum and article: 'der').
+- No bugs/crashes found. Content correctness prioritized. Preview remains on approved workspace port.
+- Next: continue expanding content or integrate into learning system if needed.
