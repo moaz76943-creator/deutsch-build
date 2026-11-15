@@ -48,6 +48,8 @@ class TurkishProfile(LanguageProfile):
     def _check_vowel_harmony(self, stem: str, suffix: str) -> bool:
         back_vowels = set("aıouAIOU")
         front_vowels = set("eiöüEİÖÜ")
+        unrounded_vowels = set("aeıiAEIİ")
+        rounded_vowels = set("ouöüOUÖÜ")
         stem_vowels = [c for c in stem if c in back_vowels or c in front_vowels]
         suffix_vowels = [c for c in suffix if c in back_vowels or c in front_vowels]
         if not stem_vowels or not suffix_vowels:
@@ -58,6 +60,11 @@ class TurkishProfile(LanguageProfile):
             return False
         if last_stem_vowel in front_vowels and first_suffix_vowel in back_vowels:
             return False
+        if first_suffix_vowel in set("ıiuüIİUÜ"):
+            if last_stem_vowel in unrounded_vowels and first_suffix_vowel in rounded_vowels:
+                return False
+            if last_stem_vowel in rounded_vowels and first_suffix_vowel in unrounded_vowels:
+                return False
         return True
 
 class FinnishProfile(LanguageProfile):
@@ -92,8 +99,9 @@ class FinnishProfile(LanguageProfile):
     def _check_vowel_harmony(self, stem: str, suffix: str) -> bool:
         back_vowels = set("aouAOU")
         front_vowels = set("äöyÄÖY")
-        stem_vowels = [c for c in stem if c in back_vowels or c in front_vowels]
-        suffix_vowels = [c for c in suffix if c in back_vowels or c in front_vowels]
+        neutral_vowels = set("eiEI")
+        stem_vowels = [c for c in stem if c in back_vowels or c in front_vowels or c in neutral_vowels]
+        suffix_vowels = [c for c in suffix if c in back_vowels or c in front_vowels or c in neutral_vowels]
         if not stem_vowels or not suffix_vowels:
             return True
         has_back = any(v in back_vowels for v in stem_vowels)
@@ -103,7 +111,7 @@ class FinnishProfile(LanguageProfile):
 
         if has_back and suffix_has_front:
             return False
-        if has_front and not has_back and suffix_has_back:
+        if not has_back and suffix_has_back:
             return False
         return True
 
@@ -130,17 +138,25 @@ class GermanProfile(LanguageProfile):
                 for v in analyzer.lookup_verb_lemma(stem + "en"):
                     results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["PART_PERF"]))
 
+        if word.endswith("iert"):
+            stem = word[:-4]
+            if len(stem) > 0:
+                for v in analyzer.lookup_verb_lemma(stem + "ieren"):
+                    results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["PART_PERF"]))
+                for v in analyzer.lookup_verb_lemma(stem + "ier"):
+                    results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["PART_PERF"]))
+
         if word.endswith("n"):
             stem1 = word[:-1]
             if len(stem1) > 0:
                 for n in analyzer.lookup_nominal_form(stem1):
-                    if n['number'] == 'pl':
+                    if n.get('number') == 'pl' and n.get('grammatical_case') != 'dat':
                         results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
         if word.endswith("en"):
             stem2 = word[:-2]
             if len(stem2) > 0:
                 for n in analyzer.lookup_nominal_form(stem2):
-                    if n['number'] == 'pl':
+                    if n.get('number') == 'pl' and n.get('grammatical_case') != 'dat':
                         results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
 
         return results

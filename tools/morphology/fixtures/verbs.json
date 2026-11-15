@@ -33,6 +33,13 @@
           "conjugated_form": "mache"
         }
       ]
+    },
+    {
+      "verb_id": "de:studieren",
+      "infinitive": "studieren",
+      "translation_ar": "to study",
+      "frequency_rank": 3,
+      "conjugations": []
     }
   ]
 }

@@ -49,6 +49,16 @@
       "id": "fi:metsä1", "lemma": "metsä", "part_of_speech": "noun",
       "gender": "none", "number": "sg",
       "declensions": []
+    },
+    {
+      "id": "fi:vesi1", "lemma": "vesi", "part_of_speech": "noun",
+      "gender": "none", "number": "sg",
+      "declensions": []
+    },
+    {
+      "id": "tr:göz1", "lemma": "göz", "part_of_speech": "noun",
+      "gender": "none", "number": "sg",
+      "declensions": []
     }
   ]
 }
