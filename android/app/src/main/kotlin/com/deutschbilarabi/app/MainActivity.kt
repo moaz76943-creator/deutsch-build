@@ -67,6 +67,12 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Early integrity check: exit immediately if rooted, debugged, or emulated (release only).
+        if (!BuildConfig.DEBUG && SecurityGuard.isCompromised(this)) {
+            finishAffinity()
+            return
+        }
+
         WindowCompat.enableEdgeToEdge(window)
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
