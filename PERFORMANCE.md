@@ -1,5 +1,23 @@
 # Performance Improvements
 
+## L1 Vocabulary Cache Tuning (2026-11-15)
+
+**Change:** Reduced `L1VocabularyCache` maxCapacity from 100 to 80 and maxMemoryBytes from 10 MB to 8 MB in `lib/core/l1_cache.dart`.
+
+**Before:** 100 items / 10 MB.
+
+**After:** 80 items / 8 MB.
+
+**Expected measurable impact:**
+- ~20% lower vocabulary in-memory cache footprint on mid-range devices during extended learning sessions.
+- Fewer GC pauses and modest battery savings (complements ImageCache tuning).
+- LRU eviction ensures hot languages stay cached; no impact on offline functionality.
+- No security regression (identity checks, persistence, R8, offline policy unchanged).
+
+**Best practices applied:** Caching limits with size awareness, memory pressure handling (`trimMemoryPressure`), efficient data structures.
+
+**Verification:** Monitor via Android Studio Profiler or Flutter DevTools Memory view during multi-language or long vocabulary sessions. Startup time unaffected.
+
 ## ImageCache Tuning (2026-11-15)
 
 **Change:** Reduced Flutter `ImageCache` from 200 items / 32 MB to 150 items / 24 MB in `lib/main.dart`.
