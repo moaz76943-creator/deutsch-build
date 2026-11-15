@@ -21,3 +21,5 @@ build/
 *.lock
 *.log
 .tmp_*
+__pycache__/
+*.pyc

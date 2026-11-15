@@ -67,8 +67,17 @@ CI/merge) · **IN PROGRESS** · **BLOCKED** (with the real blocker) · **QUEUED*
    `language_registry.dart` = 100 entries; he/iw excluded throughout.
 2. DONE 2026-11-15 — machine-readable triage of all 787 open PRs completed
    (state/PR_TRIAGE_2026-11-15.md, state/pr_unique_content.json; tasks 11–12);
-   0 clean merge candidates; no PR closed/merged. Absorption decisions pending.
-3. Absorb content-factory unique assets into the application tree with
-   equivalence proof (packs, standards, legal ledger). PENDING — not started.
+   no PR closed/merged at triage time. Absorption decisions pending.
+3. DONE 2026-11-15 — absorbed `standards/` (directed_pairs, lexical,
+   morphology) + `tools/factory_extensions/directed_translation_scale/`
+   byte-identical from the content-factory import onto
+   `chore/absorb-factory-standards` (see
+   docs/project-record/INCREMENT3_ABSORPTION_2026-11-15.md; directed_pairs/lexical/
+   morphology unittests OK; registry_sync --check exit 0) via PR #1184 @
+   `f46af1abd` (base `main` @ `3273e013d`); merge authorized by owner mandate.
+   packs/ BLOCKED by the rights/provenance gate; proficiency standard BLOCKED
+   pending an owner decision on canonical-registry proficiency metadata (must
+   not import the factory's stale catalog registry); legal ledger kept (app
+   copy better); factory catalog superseded by the canonical registry.
 4. DONE 2026-11-15 — security/trust tasks 21–30 landed on `agent/security-hardening`
    (commits `599c28ac8`, `be7435f67`; 60 tests passed) — see state/TASK_LOG.md.
