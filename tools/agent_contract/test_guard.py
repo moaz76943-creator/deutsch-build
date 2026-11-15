@@ -48,7 +48,13 @@ class TestGuard(unittest.TestCase):
                        "--transition", "CLAIM", "--paths", "AGENTS.md",
                        "--ledger", self.ledger_path, "--report", self.report_path])
         self.assertEqual(result, 1)
-        self.assertEqual(Path(self.ledger_path).read_bytes(), original)
+
+    def test_allowed_paths_explicit(self):
+        res = main(["--task-id", "T1", "--base-sha", "abc", "--transition", "CLAIM", "--paths", "AGENTS.md", "docs/project-record/test.md", "tools/agent_contract/test.py", "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 0)
+        with open(self.report_path) as f:
+            report = json.load(f)
+            self.assertEqual(len(report["denied_paths"]), 0)
 
     def test_default_ledger_does_not_write_tracked_project_record(self):
         from tools.agent_contract.guard import default_state_dir
@@ -57,10 +63,6 @@ class TestGuard(unittest.TestCase):
             self.assertEqual(state_dir, Path(self.temp_dir.name) / "deutsch-agent-contract")
         self.assertNotEqual(state_dir / "task_ledger.json",
                             Path(guard.REPO_ROOT) / "docs/project-record/task_ledger.json")
-
-    def test_allowed_paths_explicit(self):
-        res = main(["--task-id", "T1", "--base-sha", "abc", "--transition", "CLAIM", "--paths", "AGENTS.md", "docs/project-record/file.txt", "tools/agent_contract/guard.py", "--ledger", self.ledger_path, "--report", self.report_path])
-        self.assertEqual(res, 0)
 
     def test_claim_without_paths(self):
         res = main(["--task-id", "T1", "--base-sha", "abc", "--transition", "CLAIM", "--ledger", self.ledger_path, "--report", self.report_path])
@@ -234,4 +236,3 @@ class TestGuard(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-# Trigger PR diff

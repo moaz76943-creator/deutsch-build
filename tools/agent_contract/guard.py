@@ -100,6 +100,8 @@ def check_overlapping_claims(ledger, task_id, requested_paths, now, recover_from
     for other_task, data in list(ledger.items()):
         if other_task == task_id or other_task == "_metadata":
             continue
+        if recover_from and owner_evidence and other_task == recover_from:
+            continue
         if data.get("state") in ["CLAIM", "ACTIVE"]:
             # Age alone does not prove the original process stopped writing.
             # Keep overlapping ownership until explicit cancellation/completion;
@@ -240,6 +242,8 @@ def main(args=None):
     parser.add_argument("--depends-on", nargs="*", help="List of task IDs this task depends on")
     parser.add_argument("--ledger", default=str(default_state_dir() / "task_ledger.json"))
     parser.add_argument("--report", default=str(default_state_dir() / "evidence_report.json"))
+    parser.add_argument("--recover-from", help="Task ID of stale task to recover from")
+    parser.add_argument("--owner-evidence", help="Evidence required for recovery")
 
     parsed = parser.parse_args(args)
 
@@ -252,10 +256,10 @@ def main(args=None):
         try:
             if ledger_path.exists():
                 with ledger_path.open("r", encoding="utf-8") as current:
-                    result_code, report, updated_ledger = process_ledger(parsed, current)
+                    result_code, report, updated_ledger = process_ledger(parsed, current.read())
             else:
                 import io
-                result_code, report, updated_ledger = process_ledger(parsed, io.StringIO(""))
+                result_code, report, updated_ledger = process_ledger(parsed, "")
         except (json.JSONDecodeError, ValueError, TypeError, AttributeError):
             result_code = 1
             report = {"task_id": parsed.task_id, "base_sha": parsed.base_sha,
