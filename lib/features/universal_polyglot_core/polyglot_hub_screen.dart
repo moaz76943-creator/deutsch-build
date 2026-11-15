@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'polyglot_models.dart';
 import 'package:deutsch_bilarabi/services/polyglot_intelligence_engine.dart';
 import 'package:deutsch_bilarabi/services/language_pack_manager.dart';
+import 'package:deutsch_bilarabi/services/preferences_service.dart';
 
 class UniversalPolyglotHubScreen extends StatefulWidget {
   const UniversalPolyglotHubScreen({super.key});
@@ -12,8 +13,99 @@ class UniversalPolyglotHubScreen extends StatefulWidget {
 }
 
 class _UniversalPolyglotHubScreenState
-    extends State<UniversalPolyglotHubScreen> {
-  final String _activeLocale = 'ar';
+    extends State<UniversalPolyglotHubScreen> with WidgetsBindingObserver {
+  String _interfaceLocale = 'ar';
+  String _sourceLocale = 'en';
+  String _targetLocale = 'de';
+  bool _isSourceReady = false;
+  bool _isTargetReady = false;
+  bool _isLoading = false;
+  int _resolutionId = 0;
+
+  static const String _interfacePrefKey = 'polyglot_interface_locale';
+  static const String _sourcePrefKey = 'polyglot_source_locale';
+  static const String _targetPrefKey = 'polyglot_target_locale';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _loadPreferences();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _resolveCapabilities();
+    }
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await PreferencesService.instance();
+    if (mounted) {
+       setState(() {
+          _interfaceLocale = prefs.getString(_interfacePrefKey) ?? 'ar';
+          _sourceLocale = prefs.getString(_sourcePrefKey) ?? 'en';
+          _targetLocale = prefs.getString(_targetPrefKey) ?? 'de';
+       });
+       _resolveCapabilities();
+    }
+  }
+
+  Future<void> _savePreference(String key, String value) async {
+    final prefs = await PreferencesService.instance();
+    await prefs.setString(key, value);
+  }
+
+  Future<void> _resolveCapabilities() async {
+    final int currentResolutionId = ++_resolutionId;
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
+
+    bool sourceReady = false;
+    bool targetReady = false;
+
+    try {
+      final isSourceSupported = LanguagePackManager.isLanguagesSupported(_sourceLocale);
+      final isTargetSupported = LanguagePackManager.isLanguagesSupported(_targetLocale);
+
+      if (isSourceSupported) {
+         final sourceSync = PolyglotIntelligenceEngine.checkDeltaSyncVersion(_sourceLocale, 2);
+         if (!(sourceSync['needsDeltaPatch'] as bool)) {
+            sourceReady = await LanguagePackManager.verifyAndMountOfflinePack(_sourceLocale);
+         }
+      }
+
+      if (isTargetSupported) {
+         final targetSync = PolyglotIntelligenceEngine.checkDeltaSyncVersion(_targetLocale, 2);
+         if (!(targetSync['needsDeltaPatch'] as bool)) {
+            targetReady = await LanguagePackManager.verifyAndMountOfflinePack(_targetLocale);
+         }
+      }
+
+    } catch (e) {
+      // Functional UI on error
+      sourceReady = false;
+      targetReady = false;
+    }
+
+    if (mounted && _resolutionId == currentResolutionId) {
+      setState(() {
+        _isSourceReady = sourceReady;
+        _isTargetReady = targetReady;
+        _isLoading = false;
+      });
+    }
+  }
 
   final List<CrossLinguisticCognate> _cognates = const [
     CrossLinguisticCognate(
@@ -67,23 +159,98 @@ class _UniversalPolyglotHubScreenState
     ),
   ];
 
+  Widget _buildLanguageDropdown(
+    String label,
+    String value,
+    ValueChanged<String?> onChanged,
+    List<String> options,
+  ) {
+    return Row(
+      children: [
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(width: 8),
+        Expanded(
+          child: DropdownButton<String>(
+            isExpanded: true,
+            value: value,
+            items: options.map((code) {
+              return DropdownMenuItem(
+                value: code,
+                child: Text(LanguagePackManager.getLanguageName(code)),
+              );
+            }).toList(),
+            onChanged: onChanged,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final double sm2Factor =
-        PolyglotIntelligenceEngine.getMorphologicalMultiplier(_activeLocale);
+        PolyglotIntelligenceEngine.getMorphologicalMultiplier(_interfaceLocale);
     final String languageName =
-        LanguagePackManager.getLanguageName(_activeLocale);
+        LanguagePackManager.getLanguageName(_interfaceLocale);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('المحور اللغوي الشامل (Wave 04)'),
-        centerTitle: true,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // 1. رادار الكلمات المتشابهة والأصدقاء المزيفون
-          _buildSectionCard(
+    final isRtl = LanguagePackManager.isRtlLanguage(_interfaceLocale);
+    final allLanguages = {
+      ...LanguagePackManager.supportedBcp47Locales,
+      ...LanguagePackManager.supportedLanguages
+    }.toList();
+
+    return Directionality(
+      textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('المحور اللغوي الشامل'),
+          centerTitle: true,
+        ),
+        body: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+            Card(
+              margin: const EdgeInsets.only(bottom: 16),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  children: [
+                    _buildLanguageDropdown('لغة الواجهة:', _interfaceLocale, (val) {
+                      if (val != null && val != _interfaceLocale) {
+                        setState(() {
+                          _interfaceLocale = val;
+                        });
+                        _savePreference(_interfacePrefKey, val);
+                        _resolveCapabilities();
+                      }
+                    }, allLanguages),
+                    _buildLanguageDropdown('اللغة المصدر:', _sourceLocale, (val) {
+                      if (val != null && val != _sourceLocale) {
+                        setState(() {
+                          _sourceLocale = val;
+                        });
+                        _savePreference(_sourcePrefKey, val);
+                        _resolveCapabilities();
+                      }
+                    }, allLanguages),
+                    _buildLanguageDropdown('اللغة الهدف:', _targetLocale, (val) {
+                      if (val != null && val != _targetLocale) {
+                        setState(() {
+                          _targetLocale = val;
+                        });
+                        _savePreference(_targetPrefKey, val);
+                        _resolveCapabilities();
+                      }
+                    }, allLanguages),
+                  ],
+                ),
+              ),
+            ),
+            // 1. رادار الكلمات المتشابهة والأصدقاء المزيفون
+            _buildSectionCard(
             title: '1. رادار الكلمات المشتركة (INNOV-W04-01)',
             subtitle:
                 'كشف الأصدقاء المزيفين والتشابه الدلالي لربط الذاكرة باللغات الأخرى',
@@ -178,7 +345,71 @@ class _UniversalPolyglotHubScreenState
               ],
             ),
           ),
-        ],
+
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                children: [
+                   Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          onPressed: (_isSourceReady && _isTargetReady) ? () {} : null,
+                          child: const Text('فتح القاموس'),
+                        ),
+                        ElevatedButton(
+                          onPressed: (_isSourceReady && _isTargetReady) ? () {} : null,
+                          child: const Text('بدء الدروس'),
+                        ),
+                      ],
+                   ),
+                   if (!_isSourceReady || !_isTargetReady)
+                     Padding(
+                       padding: const EdgeInsets.only(top: 8.0),
+                       child: Text(
+                         _isLoading ? 'جاري التحقق...' : 'المحتوى غير متاح لهذا الزوج من اللغات',
+                         style: TextStyle(color: _isLoading ? Colors.blue : Colors.red),
+                       ),
+                     ),
+                ],
+              ),
+            ),
+          ),
+
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16.0),
+            child: Text(
+              'كل اللغات المسجلة:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+          ),
+                ]),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final code = allLanguages[index];
+                    return ListTile(
+                      title: Text(LanguagePackManager.getLanguageName(code)),
+                      subtitle: Text(code),
+                      leading: Icon(
+                        Icons.language,
+                        color: LanguagePackManager.isLanguagesSupported(code)
+                            ? Colors.green
+                            : Colors.grey,
+                      ),
+                    );
+                  },
+                  childCount: allLanguages.length,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

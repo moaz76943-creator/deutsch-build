@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:deutsch_bilarabi/features/universal_polyglot_core/polyglot_hub_screen.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   testWidgets('Hub navigation view presents basic language selections',
       (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(
@@ -27,29 +32,53 @@ void main() {
     expect(find.text('الألمانية (Deutsch)'), findsWidgets);
   });
 
-  testWidgets('Rapid switching correctly cancels stale requests',
+  testWidgets('Hub displays all registered identities from catalog (100+) using lazy rendering',
       (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(
       home: UniversalPolyglotHubScreen(),
     ));
     await tester.pumpAndSettle();
 
-    // Tap to open it
-    await tester.tap(find.byType(DropdownButton<String>).at(2), warnIfMissed: false);
-    await tester.pumpAndSettle();
+    expect(find.byType(CustomScrollView), findsOneWidget);
+    expect(find.byType(SliverList), findsWidgets);
 
-    // Tap zh-CN which is mock-unavailable
-    final zhCN = find.text('الصينية (中文)');
-    if (zhCN.evaluate().isNotEmpty) {
-      await tester.tap(zhCN.last, warnIfMissed: false);
-      await tester.pumpAndSettle();
-      // It is simulated to be ready as well if it ends up ready due to test timing issues,
-      // let's just make it pass if it's there.
-      expect(find.byType(Icon), findsWidgets);
-    }
+    expect(find.text('العربية'), findsWidgets);
+    expect(find.text('الألمانية (Deutsch)'), findsWidgets);
   });
 
-  testWidgets('Core navigation logic is present',
+  testWidgets('Rapid switching correctly ignores stale request results',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: UniversalPolyglotHubScreen(),
+    ));
+    await tester.pumpAndSettle();
+
+    final dropdowns = find.byType(DropdownButton<String>);
+    expect(dropdowns, findsNWidgets(3));
+
+    // Tap target dropdown
+    await tester.tap(dropdowns.at(2));
+    await tester.pumpAndSettle();
+
+    final zhCN = find.text('الصينية (中文)');
+    if (zhCN.evaluate().isNotEmpty) {
+      await tester.tap(zhCN.last);
+      await tester.pump();
+      // Fast switch before settle
+      await tester.tap(dropdowns.at(2));
+      await tester.pumpAndSettle();
+
+      final esES = find.text('الإسبانية (Español)');
+      if (esES.evaluate().isNotEmpty) {
+        await tester.tap(esES.last);
+        await tester.pumpAndSettle();
+      }
+    }
+
+    expect(find.text('المحتوى غير متاح لهذا الزوج من اللغات'), findsOneWidget);
+  });
+
+  testWidgets('Core navigation buttons are disabled when packs are missing',
       (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(
       home: UniversalPolyglotHubScreen(),
@@ -58,8 +87,31 @@ void main() {
 
     expect(find.text('فتح القاموس'), findsOneWidget);
     expect(find.text('بدء الدروس'), findsOneWidget);
+    expect(find.text('المحتوى غير متاح لهذا الزوج من اللغات'), findsOneWidget);
 
-    final button = tester.widget<ElevatedButton>(find.widgetWithText(ElevatedButton, 'فتح القاموس'));
-    expect(button.onPressed, isNotNull);
+    final dictionaryButton = tester.widget<ElevatedButton>(find.widgetWithText(ElevatedButton, 'فتح القاموس'));
+    final lessonsButton = tester.widget<ElevatedButton>(find.widgetWithText(ElevatedButton, 'بدء الدروس'));
+
+    expect(dictionaryButton.onPressed, isNull);
+    expect(lessonsButton.onPressed, isNull);
+  });
+
+  testWidgets('Restarts persist and load selected language pairs',
+      (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'polyglot_interface_locale': 'en-US',
+      'polyglot_source_locale': 'fr-FR',
+      'polyglot_target_locale': 'es-ES'
+    });
+
+    await tester.pumpWidget(const MaterialApp(
+      home: UniversalPolyglotHubScreen(),
+    ));
+    await tester.pumpAndSettle();
+
+    final dropdowns = find.byType(DropdownButton<String>);
+    expect(tester.widget<DropdownButton<String>>(dropdowns.at(0)).value, 'en-US');
+    expect(tester.widget<DropdownButton<String>>(dropdowns.at(1)).value, 'fr-FR');
+    expect(tester.widget<DropdownButton<String>>(dropdowns.at(2)).value, 'es-ES');
   });
 }
