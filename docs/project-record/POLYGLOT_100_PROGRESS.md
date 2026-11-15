@@ -25,7 +25,8 @@ CI/merge) · **IN PROGRESS** · **BLOCKED** (with the real blocker) · **QUEUED*
 | 4 | History-preserving import of the content factory under `content-factory/` (877 files, two-parent merge) + provenance record | merged to `main` as `ab207624e` via PR #1181 | MERGED |
 | 5 | Regenerate the secondary catalogs (`master_100_languages_spec.json`, `assets/lang_data/catalog.json`, `lib/core/i18n/language_registry.dart`) from the canonical registry | merged to `main` as `7d0de7dd0` via PR #1183 | MERGED |
 | 3b | Absorb content-factory `standards/` (directed_pairs, lexical, morphology) + `tools/factory_extensions/directed_translation_scale/` byte-identical | merged to `main` as `aefd1b989` via PR #1184 (base `main` @ `7d0de7dd0`; progress-log conflict resolved by merge, no force-push) | MERGED |
-| 6 | T40: machine-readable readiness report (`assets/registry/readiness_report.json`) separating registration from content-complete and production-ready status; content-complete reported as not-derivable, never inferred from registration; `--check` now fail-closed on report drift | PR #1185 `chore/registry-readiness-report` (this branch; merge of `main` @ `aefd1b989`, tracked `.pyc`/`__pycache__` artifacts purged + `.gitignore`d) | OPEN — awaiting CI/merge |
+| 6 | T40: machine-readable readiness report (`assets/registry/readiness_report.json`) separating registration from content-complete and production-ready status; content-complete reported as not-derivable, never inferred from registration; `--check` now fail-closed on report drift | merged to `main` as `588bb7dd6` via PR #1185 | MERGED |
+| 7 | T66/T67: pack admission bounds — 256 MiB file-size ceiling, per-table (1,000,000) and total (5,000,000) row-count bounds on the compile-time allowlist, `PRAGMA busy_timeout = 5000` on the admission connection, decompression-ratio ceiling constant; fail-closed with quarantine at every bound | PR `feat/pack-admission-bounds` | OPEN |
 
 ## Verified facts (not claims)
 
