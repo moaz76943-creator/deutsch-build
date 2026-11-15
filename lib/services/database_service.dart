@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart' as ffi;
 
@@ -274,9 +275,18 @@ class DatabaseService {
     await batch.commit(noResult: true);
   }
 
+  /// Shared content-pack storage root (T70): content packs live under the
+  /// app support directory, physically separate from the databases directory
+  /// that holds private learner state (user_progress_v2.db).
+  static Future<Directory> _contentPackStorageRoot() async {
+    final support = await getApplicationSupportDirectory();
+    return Directory(path.join(support.path, 'packs'));
+  }
+
   Future<String> _ensureGermanDatabase() async {
-    final dbRoot = await getDatabasesPath();
-    final target = File(path.join(dbRoot, _germanDatabaseFileName));
+    final packsDir = await _contentPackStorageRoot();
+    await packsDir.create(recursive: true);
+    final target = File(path.join(packsDir.path, _germanDatabaseFileName));
 
     if (await target.exists()) {
       final installedHash = await _sha256File(target);
@@ -307,7 +317,7 @@ class DatabaseService {
       );
     }
 
-    await Directory(dbRoot).create(recursive: true);
+    await Directory(packsDir.path).create(recursive: true);
     final staged = File('${target.path}.installing');
     if (await staged.exists()) {
       await staged.delete();
@@ -315,6 +325,18 @@ class DatabaseService {
     await staged.writeAsBytes(assetBytes, flush: true);
     await _verifySqliteHeader(staged);
     await _replaceAtomically(staged, target);
+    // Retire the pre-T70 legacy copy in the private databases directory.
+    // A byte-identical legacy file is provably the shared content pack, so it
+    // is safe to delete; a non-matching copy is never trusted and never used.
+    final legacy = File(
+      path.join(await getDatabasesPath(), _germanDatabaseFileName),
+    );
+    if (await legacy.exists()) {
+      final legacyHash = await _sha256File(legacy);
+      if (_constantTimeHexEquals(legacyHash, germanGoldenSha256)) {
+        await legacy.delete();
+      }
+    }
     return target.path;
   }
 

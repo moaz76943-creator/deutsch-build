@@ -33,6 +33,7 @@ CI/merge) · **IN PROGRESS** · **BLOCKED** (with the real blocker) · **QUEUED*
 | 12 | T71: measured, provenance-backed content inventory (708 files, 5002 units, 27 languages with content; 73 measure zero — factory harvest pending) | PR #1193 merged @ e87f0f90c | MERGED |
 | 13 | T71-adjacent: Language Registry Guard CI now runs `content-inventory --check`, failing the gate on measured-content drift | PR #1195 merged @ 825a366b2 | MERGED |
 | 9 | T69: transactional, idempotent, recoverable migrations — `SafeLearnerMigration.applySafeMigrations` runs DDL + journal write in one transaction with pragma-guarded ALTERs and ConflictAlgorithm.ignore journaling; fixed `MigrationJournal` recording the timestamp as the migration id (dedupe never worked); `PairProgressDatabase.attach` now runs full bootstrap in one transaction | PR `feat/transactional-migrations-t69` | merged to `main` as `09630f748` via PR #1189 | MERGED |
+| 14 | T70: content packs separated from private learner state — bundled golden German pack now installs to the shared pack storage root (`getApplicationSupportDirectory()/packs/polyglot_content_v2.db`) instead of the private `getDatabasesPath()` directory that holds `user_progress_v2.db`; legacy hash-matching copies in the databases dir are retired after the canonical install; content packs are regenerable from bundled assets, learner state is never touched | PR `feat/storage-separation-t70` | MERGED |
 
 ## Verified facts (not claims)
 
