@@ -17,6 +17,8 @@ TRANSFORMATIONS = {
 }
 
 class RepairPlanner:
+    """A real automated repair-planning engine that classifies known failures and generates safe remediation plans."""
+
     def __init__(self):
         self._history = {}
 
