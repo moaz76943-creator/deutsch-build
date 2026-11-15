@@ -1,0 +1,293 @@
+{
+  "checksum": {
+    "algorithm": "sha256",
+    "scope": "payload-without-checksum",
+    "value": "f43b3b5983aabd32af5b2620e636af53169628be7aac81048a4e2814f63667a8"
+  },
+  "derivedFrom": [
+    "assets/lexicon/100_languages",
+    "assets/lexicon/languages_corpus",
+    "assets/lexicon/languages_corpus",
+    "assets/lexicon/languages_corpus",
+    "assets/lexicon/languages_corpus",
+    "assets/lexicon/languages_corpus",
+    "assets/lexicon/languages_corpus",
+    "assets/lexicon/languages_corpus",
+    "assets/lexicon/languages_corpus",
+    "assets/lexicon/offline_dictionaries",
+    "assets/lexicon/authentic_verbs",
+    "lib/src/content"
+  ],
+  "excludedProductLanguages": [
+    "he",
+    "iw",
+    "syc",
+    "ber",
+    "zgh"
+  ],
+  "languages": {
+    "az": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "cs": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "da": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "de": {
+      "entries": 4220,
+      "sources": {
+        "authentic_verbs": 20,
+        "bitext_albanian": 3,
+        "bitext_bosnian": 3,
+        "bitext_kurdish": 3,
+        "bitext_maltese": 3,
+        "bitext_persian": 3,
+        "bitext_syriac": 3,
+        "bitext_turkish": 3,
+        "bitext_urdu": 3,
+        "german_sentences": 166,
+        "german_verbs": 249,
+        "offline_dictionaries": 3760,
+        "verified_corridors": 1
+      }
+    },
+    "en": {
+      "entries": 255,
+      "sources": {
+        "english_sentences": 83,
+        "english_verbs": 166,
+        "offline_dictionaries": 5,
+        "verified_corridors": 1
+      }
+    },
+    "es": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "fa": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "fr": {
+      "entries": 254,
+      "sources": {
+        "french_sentences": 83,
+        "french_verbs": 166,
+        "offline_dictionaries": 4,
+        "verified_corridors": 1
+      }
+    },
+    "hi": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "id": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "it": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "ja": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "kk": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "ko": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "ms": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "nl": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "no": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "pl": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "pt": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "ro": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "ru": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "sv": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "tr": {
+      "entries": 250,
+      "sources": {
+        "turkish_sentences": 83,
+        "turkish_verbs": 166,
+        "verified_corridors": 1
+      }
+    },
+    "uk": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "ur": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "uz": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    },
+    "zh": {
+      "entries": 1,
+      "sources": {
+        "verified_corridors": 1
+      }
+    }
+  },
+  "note": "Measured count of provenance-backed content units bundled in this repository. NOT a production-readiness or content-completeness certification; excluded product languages (he/iw/syc/ber/zgh) are not reported. The readiness report remains the authority for readiness states.",
+  "reportId": "polyglot-content-inventory",
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "count": 27,
+      "files": 27,
+      "name": "verified_corridors",
+      "path": "assets/lexicon/100_languages"
+    },
+    {
+      "count": 83,
+      "files": 83,
+      "name": "english_sentences",
+      "path": "assets/lexicon/languages_corpus"
+    },
+    {
+      "count": 166,
+      "files": 83,
+      "name": "english_verbs",
+      "path": "assets/lexicon/languages_corpus"
+    },
+    {
+      "count": 83,
+      "files": 83,
+      "name": "french_sentences",
+      "path": "assets/lexicon/languages_corpus"
+    },
+    {
+      "count": 166,
+      "files": 83,
+      "name": "french_verbs",
+      "path": "assets/lexicon/languages_corpus"
+    },
+    {
+      "count": 166,
+      "files": 83,
+      "name": "german_sentences",
+      "path": "assets/lexicon/languages_corpus"
+    },
+    {
+      "count": 249,
+      "files": 83,
+      "name": "german_verbs",
+      "path": "assets/lexicon/languages_corpus"
+    },
+    {
+      "count": 83,
+      "files": 83,
+      "name": "turkish_sentences",
+      "path": "assets/lexicon/languages_corpus"
+    },
+    {
+      "count": 166,
+      "files": 83,
+      "name": "turkish_verbs",
+      "path": "assets/lexicon/languages_corpus"
+    },
+    {
+      "count": 3769,
+      "files": 7,
+      "name": "offline_dictionaries",
+      "path": "assets/lexicon/offline_dictionaries"
+    },
+    {
+      "count": 20,
+      "files": 2,
+      "name": "authentic_verbs",
+      "path": "assets/lexicon/authentic_verbs"
+    },
+    {
+      "count": 24,
+      "files": 8,
+      "name": "german_bitext_corpora",
+      "path": "lib/src/content"
+    }
+  ],
+  "totals": {
+    "entries": 5002,
+    "files": 708
+  }
+}
