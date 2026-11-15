@@ -90,57 +90,63 @@ class _SmartErrorReviewScreenState extends State<SmartErrorReviewScreen> {
                 const SizedBox(height: 12),
                 Expanded(
                   child: ListView.builder(
+                    // Performance: bound pre-build area beyond viewport (default ~250 px).
+                    // Moderate value balances smoothness vs memory on glass cards.
+                    cacheExtent: 300,
+                    addAutomaticKeepAlives: false,
                     itemCount: _errorItems.length,
                     itemBuilder: (context, index) {
                       final item = _errorItems[index];
 
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: AppBaseGlassCard(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: <Widget>[
-                                  Text(
-                                    item['word']!,
-                                    style: AppTypography.display.copyWith(
-                                        color: const Color(0xFF38BDF8),
-                                        fontSize: 20),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          Colors.white.withValues(alpha: 0.08),
-                                      borderRadius: BorderRadius.circular(6),
+                      return RepaintBoundary(
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          child: AppBaseGlassCard(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: <Widget>[
+                                    Text(
+                                      item['word']!,
+                                      style: AppTypography.display.copyWith(
+                                          color: const Color(0xFF38BDF8),
+                                          fontSize: 20),
                                     ),
-                                    child: Text(
-                                      item['language']!,
-                                      style: const TextStyle(
-                                          color: Colors.white70, fontSize: 11),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            Colors.white.withValues(alpha: 0.08),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        item['language']!,
+                                        style: const TextStyle(
+                                            color: Colors.white70, fontSize: 11),
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'المعنى: ${item['translation']}',
-                                style: AppTypography.body.copyWith(
-                                    color: Colors.white, fontSize: 14),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                ' القاعدة: ${item['rule']}',
-                                style: AppTypography.body.copyWith(
-                                    color: const Color(0xFF34D399),
-                                    fontSize: 12),
-                              ),
-                            ],
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'المعنى: ${item['translation']}',
+                                  style: AppTypography.body.copyWith(
+                                      color: Colors.white, fontSize: 14),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'القاعدة: ${item['rule']}',
+                                  style: AppTypography.body.copyWith(
+                                      color: const Color(0xFF34D399),
+                                      fontSize: 12),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );
