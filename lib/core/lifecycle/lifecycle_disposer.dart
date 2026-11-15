@@ -42,28 +42,63 @@ class LifecycleDisposer {
     _teardownCallbacks.add(callback);
   }
 
+  /// Guards a callback so it doesn't execute if already disposed.
+  T? guard<T>(T Function() callback) {
+    if (_isDisposed) return null;
+    return callback();
+  }
+
+  /// Guards a future so it returns null if disposed before it completes.
+  Future<T?> guardFuture<T>(Future<T> future) async {
+    final result = await future;
+    if (_isDisposed) return null;
+    return result;
+  }
+
   /// Idempotently disposes all managed resources. Never throws if called multiple times.
-  void dispose() {
+  Future<void> dispose() async {
     if (_isDisposed) return;
     _isDisposed = true;
 
-    for (final sub in _subscriptions) {
-      sub.cancel();
-    }
+    final futures = <Future<dynamic>>[];
+
+    final subs = _subscriptions.reversed.toList();
     _subscriptions.clear();
-
-    for (final timer in _timers) {
-      timer.cancel();
-    }
-    _timers.clear();
-
-    for (final teardown in _teardownCallbacks) {
+    for (final sub in subs) {
       try {
-        teardown();
+        final f = sub.cancel();
+        futures.add(f);
+      } catch (_) {}
+    }
+
+    final tmrs = _timers.reversed.toList();
+    _timers.clear();
+    for (final timer in tmrs) {
+      try {
+        timer.cancel();
+      } catch (_) {}
+    }
+
+    final teardowns = _teardownCallbacks.reversed.toList();
+    _teardownCallbacks.clear();
+    for (final teardown in teardowns) {
+      try {
+        // Run teardown
+        final dynamic result = (teardown as dynamic)();
+        if (result is Future) {
+          futures.add(result);
+        }
       } catch (_) {
         // Suppress teardown exceptions during batch disposal
       }
     }
-    _teardownCallbacks.clear();
+
+    if (futures.isNotEmpty) {
+      try {
+        await Future.wait(futures).timeout(const Duration(seconds: 5));
+      } catch (_) {
+        // Ignore timeout or other errors during disposal
+      }
+    }
   }
 }
