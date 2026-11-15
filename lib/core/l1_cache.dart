@@ -10,8 +10,12 @@ class L1VocabularyCache {
 
   L1VocabularyCache._internal() {
     _memoryCache = LruMemoryCache<String, List<Map<String, dynamic>>>(
-      maxCapacity: 100,
-      maxMemoryBytes: 10 * 1024 * 1024, // 10MB budget
+      // Tightened (2026-11-15): 80 items / 8 MB from 100 / 10 MB.
+      // Expected ~20% lower vocabulary cache memory on long sessions,
+      // fewer GC pauses, modest battery savings. Still sufficient for typical
+      // offline language packs; eviction is LRU. No security impact.
+      maxCapacity: 80,
+      maxMemoryBytes: 8 * 1024 * 1024, // 8MB budget
       onEvict: (key) {
         _identities.remove(key);
       },
