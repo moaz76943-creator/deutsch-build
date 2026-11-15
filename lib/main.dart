@@ -93,8 +93,11 @@ void main() async {
   // Tightened further (2026-11-09): 200 items / 32 MB — expected ~15-25% lower
   // image memory footprint on mid-range devices, reducing GC frequency and
   // battery drain during long learning sessions. No security impact.
-  PaintingBinding.instance.imageCache.maximumSize = 200;
-  PaintingBinding.instance.imageCache.maximumSizeBytes = 32 * 1024 * 1024; // 32 MB
+  // Further tightened (2026-11-15): 150 items / 24 MB — expected additional ~10%
+  // reduction in image memory, fewer GC events on mid-range devices. Still sufficient
+  // for typical offline packs and screens; no quality or security regression.
+  PaintingBinding.instance.imageCache.maximumSize = 150;
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 24 * 1024 * 1024; // 24 MB
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
