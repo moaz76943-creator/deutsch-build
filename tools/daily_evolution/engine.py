@@ -22,7 +22,7 @@ from typing import Any, Mapping
 try:
     from tools.automation.scope_guard import ScopeGuard as BaseScopeGuard
 except ImportError:
-    class BaseScopeGuard:
+    class BaseScopeGuard: # type: ignore
         def __init__(self, owner, repo_root=None, ledger_path=None):
             self.owner = owner
             self.allowed_paths = []
@@ -153,7 +153,7 @@ class EvolutionEngine:
                 sys.path.insert(0, tools_dir)
                 sys_path_added = True
 
-            import generate_100_language_factory
+            import generate_100_language_factory  # type: ignore
             codes = [lang.code for lang in generate_100_language_factory.LANGUAGES]
 
             if sys_path_added:
@@ -179,8 +179,6 @@ class EvolutionEngine:
         sg = ScopeGuard([
             'content/multilingual/sources/',
             'packs/',
-            'tools/polyglot_v2/',
-            'tools/automation/',
             'assets/content/packs/'
         ])
 
@@ -214,9 +212,7 @@ class EvolutionEngine:
             "allowed_paths": [
                 f"assets/content/packs/{task.language_id}/",
                 "content/multilingual/sources/",
-                "packs/",
-                "tools/polyglot_v2/",
-                "tools/automation/"
+                "packs/"
             ]
         }
 
@@ -237,7 +233,7 @@ class EvolutionEngine:
                     t.status = TaskStatus.RUNNING
                     t.retries += 1
 
-        dispatches = []
+        dispatches: list[dict[str, Any]] = []
         # Gather currently RUNNING for dispatch
         for t in self.tasks:
             if t.status == TaskStatus.RUNNING:
