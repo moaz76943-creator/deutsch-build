@@ -532,4 +532,314 @@ export const vocabExtra = [
     example: 'Das Haus ist schön.',
     exampleAr: 'البيت جميل.'
   }
+,
+{
+    id: 'v-extra-480',
+    type: 'verb',
+    infinitive: 'lernen',
+    arabic: 'يتعلم',
+    conjugation: {
+      ich: 'lerne',
+      du: 'lernst',
+      er: 'lernt',
+      wir: 'lernen',
+      ihr: 'lernt',
+      sie_pl: 'lernen',
+      präteritum: 'lernte',
+      perfekt: 'hat gelernt',
+      aux: 'haben'
+    },
+    example: 'Ich lerne Deutsch.',
+    exampleAr: 'أنا أتعلم الألمانية.'
+  },
+  {
+    id: 'v-extra-481',
+    type: 'verb',
+    infinitive: 'arbeiten',
+    arabic: 'يعمل',
+    conjugation: {
+      ich: 'arbeite',
+      du: 'arbeitest',
+      er: 'arbeitet',
+      wir: 'arbeiten',
+      ihr: 'arbeitet',
+      sie_pl: 'arbeiten',
+      präteritum: 'arbeitete',
+      perfekt: 'hat gearbeitet',
+      aux: 'haben'
+    },
+    example: 'Er arbeitet in einem Büro.',
+    exampleAr: 'هو يعمل في مكتب.'
+  },
+  {
+    id: 'v-extra-482',
+    type: 'verb',
+    infinitive: 'sprechen',
+    arabic: 'يتكلم',
+    conjugation: {
+      ich: 'spreche',
+      du: 'sprichst',
+      er: 'spricht',
+      wir: 'sprechen',
+      ihr: 'sprecht',
+      sie_pl: 'sprechen',
+      präteritum: 'sprach',
+      perfekt: 'hat gesprochen',
+      aux: 'haben'
+    },
+    example: 'Wir sprechen Arabisch.',
+    exampleAr: 'نحن نتكلم العربية.'
+  },
+  {
+    id: 'v-extra-483',
+    type: 'verb',
+    infinitive: 'gehen',
+    arabic: 'يذهب',
+    conjugation: {
+      ich: 'gehe',
+      du: 'gehst',
+      er: 'geht',
+      wir: 'gehen',
+      ihr: 'geht',
+      sie_pl: 'gehen',
+      präteritum: 'ging',
+      perfekt: 'ist gegangen',
+      aux: 'sein'
+    },
+    example: 'Ich gehe zur Schule.',
+    exampleAr: 'أذهب إلى المدرسة.'
+  },
+  {
+    id: 'v-extra-484',
+    type: 'verb',
+    infinitive: 'sehen',
+    arabic: 'يرى',
+    conjugation: {
+      ich: 'sehe',
+      du: 'siehst',
+      er: 'sieht',
+      wir: 'sehen',
+      ihr: 'seht',
+      sie_pl: 'sehen',
+      präteritum: 'sah',
+      perfekt: 'hat gesehen',
+      aux: 'haben'
+    },
+    example: 'Ich sehe den Film.',
+    exampleAr: 'أرى الفيلم.'
+  },
+  {
+    id: 'v-extra-485',
+    type: 'verb',
+    infinitive: 'hören',
+    arabic: 'يسمع',
+    conjugation: {
+      ich: 'höre',
+      du: 'hörst',
+      er: 'hört',
+      wir: 'hören',
+      ihr: 'hört',
+      sie_pl: 'hören',
+      präteritum: 'hörte',
+      perfekt: 'hat gehört',
+      aux: 'haben'
+    },
+    example: 'Hörst du die Musik?',
+    exampleAr: 'هل تسمع الموسيقى؟'
+  },
+  {
+    id: 'v-extra-486',
+    type: 'verb',
+    infinitive: 'schreiben',
+    arabic: 'يكتب',
+    conjugation: {
+      ich: 'schreibe',
+      du: 'schreibst',
+      er: 'schreibt',
+      wir: 'schreiben',
+      ihr: 'schreibt',
+      sie_pl: 'schreiben',
+      präteritum: 'schrieb',
+      perfekt: 'hat geschrieben',
+      aux: 'haben'
+    },
+    example: 'Sie schreibt einen Brief.',
+    exampleAr: 'هي تكتب رسالة.'
+  },
+  {
+    id: 'v-extra-487',
+    type: 'verb',
+    infinitive: 'lesen',
+    arabic: 'يقرأ',
+    conjugation: {
+      ich: 'lese',
+      du: 'liest',
+      er: 'liest',
+      wir: 'lesen',
+      ihr: 'lest',
+      sie_pl: 'lesen',
+      präteritum: 'las',
+      perfekt: 'hat gelesen',
+      aux: 'haben'
+    },
+    example: 'Ich lese ein Buch.',
+    exampleAr: 'أقرأ كتاباً.'
+  },
+  {
+    id: 'v-extra-488',
+    type: 'verb',
+    infinitive: 'essen',
+    arabic: 'يأكل',
+    conjugation: {
+      ich: 'esse',
+      du: 'isst',
+      er: 'isst',
+      wir: 'essen',
+      ihr: 'esst',
+      sie_pl: 'essen',
+      präteritum: 'aß',
+      perfekt: 'hat gegessen',
+      aux: 'haben'
+    },
+    example: 'Wir essen zusammen.',
+    exampleAr: 'نحن نأكل معاً.'
+  },
+  {
+    id: 'v-extra-489',
+    type: 'verb',
+    infinitive: 'trinken',
+    arabic: 'يشرب',
+    conjugation: {
+      ich: 'trinke',
+      du: 'trinkst',
+      er: 'trinkt',
+      wir: 'trinken',
+      ihr: 'trinkt',
+      sie_pl: 'trinken',
+      präteritum: 'trank',
+      perfekt: 'hat getrunken',
+      aux: 'haben'
+    },
+    example: 'Ich trinke Wasser.',
+    exampleAr: 'أشرب ماءً.'
+  },
+  {
+    id: 'v-extra-490',
+    type: 'noun',
+    german: 'Apfel',
+    article: 'der',
+    plural: 'Äpfel',
+    arabic: 'تفاحة',
+    example: 'Der Apfel ist rot.',
+    exampleAr: 'التفاحة حمراء.'
+  },
+  {
+    id: 'v-extra-491',
+    type: 'noun',
+    german: 'Buch',
+    article: 'das',
+    plural: 'Bücher',
+    arabic: 'كتاب',
+    example: 'Das Buch ist interessant.',
+    exampleAr: 'الكتاب ممتع.'
+  },
+  {
+    id: 'v-extra-492',
+    type: 'noun',
+    german: 'Schule',
+    article: 'die',
+    plural: 'Schulen',
+    arabic: 'مدرسة',
+    example: 'Die Schule beginnt um acht.',
+    exampleAr: 'المدرسة تبدأ في الثامنة.'
+  },
+  {
+    id: 'v-extra-493',
+    type: 'noun',
+    german: 'Freund',
+    article: 'der',
+    plural: 'Freunde',
+    arabic: 'صديق',
+    example: 'Mein Freund kommt heute.',
+    exampleAr: 'صديقي يأتي اليوم.'
+  },
+  {
+    id: 'v-extra-494',
+    type: 'noun',
+    german: 'Freundin',
+    article: 'die',
+    plural: 'Freundinnen',
+    arabic: 'صديقة',
+    example: 'Die Freundin ist nett.',
+    exampleAr: 'الصديقة لطيفة.'
+  },
+  {
+    id: 'v-extra-495',
+    type: 'noun',
+    german: 'Wasser',
+    article: 'das',
+    plural: 'Wasser',
+    arabic: 'ماء',
+    example: 'Das Wasser ist kalt.',
+    exampleAr: 'الماء بارد.'
+  },
+  {
+    id: 'v-extra-496',
+    type: 'noun',
+    german: 'Auto',
+    article: 'das',
+    plural: 'Autos',
+    arabic: 'سيارة',
+    example: 'Das Auto ist neu.',
+    exampleAr: 'السيارة جديدة.'
+  },
+  {
+    id: 'v-extra-497',
+    type: 'noun',
+    german: 'Stadt',
+    article: 'die',
+    plural: 'Städte',
+    arabic: 'مدينة',
+    example: 'Die Stadt ist groß.',
+    exampleAr: 'المدينة كبيرة.'
+  },
+  {
+    id: 'v-extra-498',
+    type: 'noun',
+    german: 'Kind',
+    article: 'das',
+    plural: 'Kinder',
+    arabic: 'طفل',
+    example: 'Das Kind spielt im Garten.',
+    exampleAr: 'الطفل يلعب في الحديقة.'
+  },
+  {
+    id: 'v-extra-499',
+    type: 'noun',
+    german: 'Lehrer',
+    article: 'der',
+    plural: 'Lehrer',
+    arabic: 'معلم',
+    example: 'Der Lehrer erklärt die Grammatik.',
+    exampleAr: 'المعلم يشرح القواعد.'
+  },
+  {
+    id: 'v-extra-500',
+    type: 'verb',
+    infinitive: 'kaufen',
+    arabic: 'يشتري',
+    conjugation: {
+      ich: 'kaufe',
+      du: 'kaufst',
+      er: 'kauft',
+      wir: 'kaufen',
+      ihr: 'kauft',
+      sie_pl: 'kaufen',
+      präteritum: 'kaufte',
+      perfekt: 'hat gekauft',
+      aux: 'haben'
+    },
+    example: 'Ich kaufe Brot.',
+    exampleAr: 'أشتري خبزاً.'
+  }
 ];

@@ -24,3 +24,21 @@
 ### Session constraints (unchanged)
 - Auth/DB remain OFF; offline content only; directed pair rules respected.
 - Priority: stability (no PLACEHOLDER / tests green) > content correctness > learning system.
+
+## 2026-11-15 00:15 UTC — Scheduled Grok Build session: +21 A1/A2 items
+
+### Actions
+1. Read AGENTS.md + SESSION_OPERATING_CONTRACT.md + PROJECT_INTENT.md. Auth/DB remain OFF.
+2. `npm test` (test-vocab-extra.js): PASS (35 unique IDs before addition).
+3. Added 21 new unique A1/A2 items (v-extra-480 .. v-extra-500) to `src/lib/deutsch/content/vocab-extra.ts`:
+   - Verbs with full conjugation (ich/du/er/wir/ihr/sie_pl + Präteritum + Perfekt + aux): lernen, arbeiten, sprechen, gehen, sehen, hören, schreiben, lesen, essen, trinken, kaufen.
+   - Nouns with article (der/die/das) + plural + natural DE example + AR translation: Apfel, Buch, Schule, Freund, Freundin, Wasser, Auto, Stadt, Kind, Lehrer.
+4. No ID collisions; existing items untouched. No automatic deduplication.
+5. Re-ran `npm test`: **PASS** (56 unique IDs, präteritum + article:'der' present).
+
+### Notes
+- Content is offline-only, directed pair DE→AR preserved.
+- Historical full set (up to ~v-extra-459) remains recoverable from git (e.g. 7bb9b78) if needed in future sessions.
+- Preview / runtime server not modified (content-only change). No crashes introduced.
+
+Priority order respected: stability > content correctness > learning system.
