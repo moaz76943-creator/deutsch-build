@@ -108,11 +108,16 @@ def test_verify_fails_closed_on_malformed_digest_shape() -> None:
 
 def test_write_then_check_roundtrip_is_stable() -> None:
     before = ARTIFACT.read_text(encoding="utf-8")
-    assert _run("--write").returncode == 0
-    after = ARTIFACT.read_text(encoding="utf-8")
-    b, a = json.loads(before), json.loads(after)
-    # pinned + version sections are deterministic; volatile is timestamped.
-    assert a["pinned"] == b["pinned"]
-    assert a["version"] == b["version"]
-    assert a["volatile"]["sourceCommit"] == b["volatile"]["sourceCommit"]
+    try:
+        assert _run("--write").returncode == 0
+        after = ARTIFACT.read_text(encoding="utf-8")
+        b, a = json.loads(before), json.loads(after)
+        # pinned + version sections are deterministic; volatile (timestamp,
+        # sourceCommit, environment) is descriptive only and moves with HEAD.
+        assert a["pinned"] == b["pinned"]
+        assert a["version"] == b["version"]
+        assert a["volatile"]["buildEnvironment"]
+        assert _run("--check").returncode == 0
+    finally:
+        ARTIFACT.write_text(before, encoding="utf-8")
     assert _run("--check").returncode == 0
