@@ -55,6 +55,11 @@ def test_inventory_matches_file_level_counts() -> None:
         (ROOT / "assets/lexicon/100_languages/en_arabic_verified.json")
         .read_text(encoding="utf-8")
     ))
+    en += len(json.loads(
+        (ROOT / "assets/lexicon/offline_dictionaries"
+         "/english_arabic_professional_lexicon.json")
+        .read_text(encoding="utf-8")
+    ))
     assert payload["languages"]["en"]["entries"] == en
 
 
