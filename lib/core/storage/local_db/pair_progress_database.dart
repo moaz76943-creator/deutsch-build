@@ -16,54 +16,59 @@ final class PairProgressDatabase {
   static Future<PairProgressDatabase> attach(
     Database database,
   ) async {
-    await database.execute('''
-      CREATE TABLE IF NOT EXISTS $pairTable (
-        source_language_id TEXT NOT NULL,
-        target_language_id TEXT NOT NULL,
-        level INTEGER NOT NULL DEFAULT 0,
-        achievement_points INTEGER NOT NULL DEFAULT 0,
-        updated_at_utc TEXT NOT NULL,
-        PRIMARY KEY (source_language_id, target_language_id)
-      )
-    ''');
-    await database.execute('''
-      CREATE TABLE IF NOT EXISTS $cardTable (
-        source_language_id TEXT NOT NULL,
-        target_language_id TEXT NOT NULL,
-        card_id TEXT NOT NULL,
-        learned INTEGER NOT NULL DEFAULT 0,
-        correct_count INTEGER NOT NULL DEFAULT 0,
-        incorrect_count INTEGER NOT NULL DEFAULT 0,
-        facet_type TEXT NOT NULL DEFAULT 'meaning_recall',
-        variant_key TEXT NOT NULL DEFAULT '',
-        repetitions INTEGER NOT NULL DEFAULT 0,
-        interval_days INTEGER NOT NULL DEFAULT 0,
-        lapses INTEGER NOT NULL DEFAULT 0,
-        successes INTEGER NOT NULL DEFAULT 0,
-        failures INTEGER NOT NULL DEFAULT 0,
-        difficulty REAL NOT NULL DEFAULT 1.3,
-        stability_days REAL NOT NULL DEFAULT 0,
-        due_at_utc TEXT NOT NULL DEFAULT '',
-        last_reviewed_at_utc TEXT NOT NULL,
-        PRIMARY KEY (
-          source_language_id,
-          target_language_id,
-          card_id
+    // T69: whole schema bootstrap + column migration run in ONE transaction
+    // so a process death cannot leave a half-migrated schema behind.
+    // All statements are idempotent, so a rolled-back attach simply re-runs.
+    await database.transaction((txn) async {
+      await txn.execute('''
+        CREATE TABLE IF NOT EXISTS $pairTable (
+          source_language_id TEXT NOT NULL,
+          target_language_id TEXT NOT NULL,
+          level INTEGER NOT NULL DEFAULT 0,
+          achievement_points INTEGER NOT NULL DEFAULT 0,
+          updated_at_utc TEXT NOT NULL,
+          PRIMARY KEY (source_language_id, target_language_id)
         )
-      )
-    ''');
-    await _ensurePhase16bColumns(database);
-    await database.execute(
-      'CREATE INDEX IF NOT EXISTS idx_pair_card_progress_context '
-      'ON $cardTable(source_language_id, target_language_id)',
-    );
+      ''');
+      await txn.execute('''
+        CREATE TABLE IF NOT EXISTS $cardTable (
+          source_language_id TEXT NOT NULL,
+          target_language_id TEXT NOT NULL,
+          card_id TEXT NOT NULL,
+          learned INTEGER NOT NULL DEFAULT 0,
+          correct_count INTEGER NOT NULL DEFAULT 0,
+          incorrect_count INTEGER NOT NULL DEFAULT 0,
+          facet_type TEXT NOT NULL DEFAULT 'meaning_recall',
+          variant_key TEXT NOT NULL DEFAULT '',
+          repetitions INTEGER NOT NULL DEFAULT 0,
+          interval_days INTEGER NOT NULL DEFAULT 0,
+          lapses INTEGER NOT NULL DEFAULT 0,
+          successes INTEGER NOT NULL DEFAULT 0,
+          failures INTEGER NOT NULL DEFAULT 0,
+          difficulty REAL NOT NULL DEFAULT 1.3,
+          stability_days REAL NOT NULL DEFAULT 0,
+          due_at_utc TEXT NOT NULL DEFAULT '',
+          last_reviewed_at_utc TEXT NOT NULL,
+          PRIMARY KEY (
+            source_language_id,
+            target_language_id,
+            card_id
+          )
+        )
+      ''');
+      await _ensurePhase16bColumns(txn);
+      await txn.execute(
+        'CREATE INDEX IF NOT EXISTS idx_pair_card_progress_context '
+        'ON $cardTable(source_language_id, target_language_id)',
+      );
+    });
     return PairProgressDatabase._(database);
   }
 
   static Future<void> _ensurePhase16bColumns(
-    Database database,
+    DatabaseExecutor executor,
   ) async {
-    final rows = await database.rawQuery(
+    final rows = await executor.rawQuery(
       'PRAGMA table_info($cardTable)',
     );
     final columns = rows
@@ -85,7 +90,7 @@ final class PairProgressDatabase {
     };
     for (final entry in required.entries) {
       if (columns.contains(entry.key)) continue;
-      await database.execute(
+      await executor.execute(
         'ALTER TABLE $cardTable ADD COLUMN '
         '${entry.key} ${entry.value}',
       );
