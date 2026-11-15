@@ -21,12 +21,15 @@ CI/merge) · **IN PROGRESS** · **BLOCKED** (with the real blocker) · **QUEUED*
 
 | # | Increment | Branch / PR | State |
 |---|---|---|---|
-| 3 | Make the whole Dart suite compilable: 511 files imported the undeclared `package:test`. Swapped to the SDK-provided `package:flutter_test` (0 remaining occurrences) | `fix/test-sdk-imports` / PR #1180 | OPEN — waiting on CI |
-| 4 | History-preserving import of the content factory under `content-factory/` (877 files, two-parent merge) + provenance record | `consolidate/content-factory` | IN PROGRESS |
+| 3 | Make the whole Dart suite compilable: 511 files imported the undeclared `package:test`. Swapped to the SDK-provided `package:flutter_test` (0 remaining occurrences) | merged to `main` as `a8dfd7788` via PR #1180 | MERGED |
+| 4 | History-preserving import of the content factory under `content-factory/` (877 files, two-parent merge) + provenance record | merged to `main` as `ab207624e` via PR #1181 | MERGED |
+| 5 | Regenerate the secondary catalogs (`master_100_languages_spec.json`, `assets/lang_data/catalog.json`, `lib/core/i18n/language_registry.dart`) from the canonical registry | PR #1183 `chore/regenerate-secondary-catalogs` @ `4754fba83` (base `main` @ `2b77cc218`) | OPEN — CI rollup: 2 SUCCESS / 12 path-filtered SKIPPED / 0 FAILURE; merge awaits exact-head required checks + owner authorization |
 
 ## Verified facts (not claims)
 
 - `main` HEAD before this work: `c5389fe6d9890d765b1220b2dbd362fee50c40c5`.
+- Live `origin/main` at this record (2026-11-15): `2b77cc218` (includes
+  increments 1–4 via PRs #1178–#1181 plus content/compliance increments).
 - `deutsch-build@main` was **not** branch-protected; there were no required
   checks, which is why a permanently failing workflow did not block merges.
 - `Polyglot Unified CI & Security Gate` failed on `c5389fe` with
@@ -48,29 +51,31 @@ CI/merge) · **IN PROGRESS** · **BLOCKED** (with the real blocker) · **QUEUED*
   GitHub Actions runs.
 - 455 draft PRs have not been triaged for unique content yet; several may hold
   work that must be absorbed before they are closed.
-- `assets/database/master_100_languages_spec.json` still declares
-  `supported_languages_count: 100` while listing 10 languages; it is a
-  subset/factory view, not the registry, and must be regenerated from
-  `assets/registry/languages_100.json` (task queued).
+- Increment-5 PR #1183 evidence: `registry_sync.py --check` exit 0; 24 local
+  structural assertions pass; `PYTHONPATH=. pytest` on the three registry-adjacent
+  suites = 11 passed; GitHub CI rollup = 2 SUCCESS (Offline-First Security
+  Audit, verify), 12 path-filtered SKIPPED, 0 FAILURE. Dart/Flutter still
+  cannot be run locally; Dart side verified statically only.
 
 ## Next queued increments
 
-1. Regenerate the secondary catalogs (`master_100_languages_spec.json`,
-   `assets/lang_data/catalog.json`, `lib/core/i18n/language_registry.dart`) from
-   the canonical registry so no divergent language count survives.
-2. Machine-readable PR triage: classify all 787 open PRs (empty diff / unique
-   content / stale base / duplicate) and absorb unique content before closing
-   anything.
+1. DONE 2026-11-15 — regenerated via PR #1183 (`chore/regenerate-secondary-catalogs`,
+   cherry-picked `64c1c4e52` @ `4754fba83` onto `main` @ `2b77cc218`).
+   `master_100_languages_spec.json` = 100 languages, `catalog.json` = 100/9900,
+   `language_registry.dart` = 100 entries; he/iw excluded throughout.
+2. DONE 2026-11-15 — machine-readable triage of all 787 open PRs completed
+   (state/PR_TRIAGE_2026-11-15.md, state/pr_unique_content.json; tasks 11–12);
+   no PR closed/merged at triage time. Absorption decisions pending.
 3. DONE 2026-11-15 — absorbed `standards/` (directed_pairs, lexical,
    morphology) + `tools/factory_extensions/directed_translation_scale/`
    byte-identical from the content-factory import onto
    `chore/absorb-factory-standards` (see
    docs/project-record/INCREMENT3_ABSORPTION_2026-11-15.md; directed_pairs/lexical/
    morphology unittests OK; registry_sync --check exit 0) via PR #1184 @
-   `f232fdd7e` (base `main` @ `2b77cc218`); merge awaits owner authorization.
+   `f46af1abd` (base `main` @ `3273e013d`); merge authorized by owner mandate.
    packs/ BLOCKED by the rights/provenance gate; proficiency standard BLOCKED
    pending an owner decision on canonical-registry proficiency metadata (must
    not import the factory's stale catalog registry); legal ledger kept (app
    copy better); factory catalog superseded by the canonical registry.
-4. Security/trust tasks 21–30 (audit exit codes, secret scanning, path and
-   archive hardening, bounded downloads).
+4. DONE 2026-11-15 — security/trust tasks 21–30 landed on `agent/security-hardening`
+   (commits `599c28ac8`, `be7435f67`; 60 tests passed) — see state/TASK_LOG.md.

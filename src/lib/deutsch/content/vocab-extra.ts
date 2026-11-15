@@ -841,5 +841,295 @@ export const vocabExtra = [
     },
     example: 'Ich kaufe Brot.',
     exampleAr: 'أشتري خبزاً.'
+  },
+{
+    id: 'v-extra-501',
+    type: 'verb',
+    infinitive: 'schlafen',
+    arabic: 'ينام',
+    conjugation: {
+      ich: 'schlafe',
+      du: 'schläfst',
+      er: 'schläft',
+      wir: 'schlafen',
+      ihr: 'schlaft',
+      sie_pl: 'schlafen',
+      präteritum: 'schlief',
+      perfekt: 'hat geschlafen',
+      aux: 'haben'
+    },
+    example: 'Ich schlafe acht Stunden.',
+    exampleAr: 'أنام ثماني ساعات.'
+  },
+  {
+    id: 'v-extra-502',
+    type: 'verb',
+    infinitive: 'laufen',
+    arabic: 'يركض',
+    conjugation: {
+      ich: 'laufe',
+      du: 'läufst',
+      er: 'läuft',
+      wir: 'laufen',
+      ihr: 'lauft',
+      sie_pl: 'laufen',
+      präteritum: 'lief',
+      perfekt: 'ist gelaufen',
+      aux: 'sein'
+    },
+    example: 'Wir laufen im Park.',
+    exampleAr: 'نركض في الحديقة.'
+  },
+  {
+    id: 'v-extra-503',
+    type: 'verb',
+    infinitive: 'fahren',
+    arabic: 'يقود / يسافر',
+    conjugation: {
+      ich: 'fahre',
+      du: 'fährst',
+      er: 'fährt',
+      wir: 'fahren',
+      ihr: 'fahrt',
+      sie_pl: 'fahren',
+      präteritum: 'fuhr',
+      perfekt: 'ist gefahren',
+      aux: 'sein'
+    },
+    example: 'Ich fahre mit dem Bus.',
+    exampleAr: 'أسافر بالحافلة.'
+  },
+  {
+    id: 'v-extra-504',
+    type: 'verb',
+    infinitive: 'spielen',
+    arabic: 'يلعب',
+    conjugation: {
+      ich: 'spiele',
+      du: 'spielst',
+      er: 'spielt',
+      wir: 'spielen',
+      ihr: 'spielt',
+      sie_pl: 'spielen',
+      präteritum: 'spielte',
+      perfekt: 'hat gespielt',
+      aux: 'haben'
+    },
+    example: 'Die Kinder spielen Fußball.',
+    exampleAr: 'الأطفال يلعبون كرة القدم.'
+  },
+  {
+    id: 'v-extra-505',
+    type: 'verb',
+    infinitive: 'wohnen',
+    arabic: 'يسكن',
+    conjugation: {
+      ich: 'wohne',
+      du: 'wohnst',
+      er: 'wohnt',
+      wir: 'wohnen',
+      ihr: 'wohnt',
+      sie_pl: 'wohnen',
+      präteritum: 'wohnte',
+      perfekt: 'hat gewohnt',
+      aux: 'haben'
+    },
+    example: 'Ich wohne in Berlin.',
+    exampleAr: 'أسكن في برلين.'
+  },
+  {
+    id: 'v-extra-506',
+    type: 'verb',
+    infinitive: 'kochen',
+    arabic: 'يطبخ',
+    conjugation: {
+      ich: 'koche',
+      du: 'kochst',
+      er: 'kocht',
+      wir: 'kochen',
+      ihr: 'kocht',
+      sie_pl: 'kochen',
+      präteritum: 'kochte',
+      perfekt: 'hat gekocht',
+      aux: 'haben'
+    },
+    example: 'Meine Mutter kocht Suppe.',
+    exampleAr: 'أمي تطبخ الحساء.'
+  },
+  {
+    id: 'v-extra-507',
+    type: 'verb',
+    infinitive: 'putzen',
+    arabic: 'ينظف',
+    conjugation: {
+      ich: 'putze',
+      du: 'putzt',
+      er: 'putzt',
+      wir: 'putzen',
+      ihr: 'putzt',
+      sie_pl: 'putzen',
+      präteritum: 'putzte',
+      perfekt: 'hat geputzt',
+      aux: 'haben'
+    },
+    example: 'Wir putzen das Zimmer.',
+    exampleAr: 'ننظف الغرفة.'
+  },
+  {
+    id: 'v-extra-508',
+    type: 'verb',
+    infinitive: 'waschen',
+    arabic: 'يغسل',
+    conjugation: {
+      ich: 'wasche',
+      du: 'wäschst',
+      er: 'wäscht',
+      wir: 'waschen',
+      ihr: 'wascht',
+      sie_pl: 'waschen',
+      präteritum: 'wusch',
+      perfekt: 'hat gewaschen',
+      aux: 'haben'
+    },
+    example: 'Ich wasche die Hände.',
+    exampleAr: 'أغسل اليدين.'
+  },
+  {
+    id: 'v-extra-509',
+    type: 'verb',
+    infinitive: 'stehen',
+    arabic: 'يقف',
+    conjugation: {
+      ich: 'stehe',
+      du: 'stehst',
+      er: 'steht',
+      wir: 'stehen',
+      ihr: 'steht',
+      sie_pl: 'stehen',
+      präteritum: 'stand',
+      perfekt: 'hat gestanden',
+      aux: 'haben'
+    },
+    example: 'Der Bus steht vor der Schule.',
+    exampleAr: 'الحافلة تقف أمام المدرسة.'
+  },
+  {
+    id: 'v-extra-510',
+    type: 'verb',
+    infinitive: 'öffnen',
+    arabic: 'يفتح',
+    conjugation: {
+      ich: 'öffne',
+      du: 'öffnest',
+      er: 'öffnet',
+      wir: 'öffnen',
+      ihr: 'öffnet',
+      sie_pl: 'öffnen',
+      präteritum: 'öffnete',
+      perfekt: 'hat geöffnet',
+      aux: 'haben'
+    },
+    example: 'Bitte öffne die Tür.',
+    exampleAr: 'من فضلك افتح الباب.'
+  },
+  {
+    id: 'v-extra-511',
+    type: 'noun',
+    german: 'Brot',
+    article: 'das',
+    plural: 'Brote',
+    arabic: 'خبز',
+    example: 'Das Brot ist frisch.',
+    exampleAr: 'الخبز طازج.'
+  },
+  {
+    id: 'v-extra-512',
+    type: 'noun',
+    german: 'Milch',
+    article: 'die',
+    plural: '—',
+    arabic: 'حليب',
+    example: 'Ich trinke Milch.',
+    exampleAr: 'أشرب الحليب.'
+  },
+  {
+    id: 'v-extra-513',
+    type: 'noun',
+    german: 'Kaffee',
+    article: 'der',
+    plural: '—',
+    arabic: 'قهوة',
+    example: 'Der Kaffee ist heiß.',
+    exampleAr: 'القهوة ساخنة.'
+  },
+  {
+    id: 'v-extra-514',
+    type: 'noun',
+    german: 'Zimmer',
+    article: 'das',
+    plural: 'Zimmer',
+    arabic: 'غرفة',
+    example: 'Das Zimmer ist klein.',
+    exampleAr: 'الغرفة صغيرة.'
+  },
+  {
+    id: 'v-extra-515',
+    type: 'noun',
+    german: 'Küche',
+    article: 'die',
+    plural: 'Küchen',
+    arabic: 'مطبخ',
+    example: 'In der Küche koche ich.',
+    exampleAr: 'في المطبخ أطبخ.'
+  },
+  {
+    id: 'v-extra-516',
+    type: 'noun',
+    german: 'Straße',
+    article: 'die',
+    plural: 'Straßen',
+    arabic: 'شارع',
+    example: 'Die Straße ist lang.',
+    exampleAr: 'الشارع طويل.'
+  },
+  {
+    id: 'v-extra-517',
+    type: 'noun',
+    german: 'Park',
+    article: 'der',
+    plural: 'Parks',
+    arabic: 'حديقة عامة',
+    example: 'Wir gehen in den Park.',
+    exampleAr: 'نذهب إلى الحديقة العامة.'
+  },
+  {
+    id: 'v-extra-518',
+    type: 'noun',
+    german: 'Bus',
+    article: 'der',
+    plural: 'Busse',
+    arabic: 'حافلة',
+    example: 'Der Bus kommt um acht.',
+    exampleAr: 'الحافلة تأتي في الثامنة.'
+  },
+  {
+    id: 'v-extra-519',
+    type: 'noun',
+    german: 'Uhr',
+    article: 'die',
+    plural: 'Uhren',
+    arabic: 'ساعة',
+    example: 'Wie viel Uhr ist es?',
+    exampleAr: 'كم الساعة؟'
+  },
+  {
+    id: 'v-extra-520',
+    type: 'noun',
+    german: 'Geld',
+    article: 'das',
+    plural: '—',
+    arabic: 'مال',
+    example: 'Ich habe kein Geld.',
+    exampleAr: 'ليس لدي مال.'
   }
 ];
