@@ -35,6 +35,7 @@ CI/merge) · **IN PROGRESS** · **BLOCKED** (with the real blocker) · **QUEUED*
 | 9 | T69: transactional, idempotent, recoverable migrations — `SafeLearnerMigration.applySafeMigrations` runs DDL + journal write in one transaction with pragma-guarded ALTERs and ConflictAlgorithm.ignore journaling; fixed `MigrationJournal` recording the timestamp as the migration id (dedupe never worked); `PairProgressDatabase.attach` now runs full bootstrap in one transaction | PR `feat/transactional-migrations-t69` | merged to `main` as `09630f748` via PR #1189 | MERGED |
 | 14 | T70: content packs separated from private learner state — bundled golden German pack now installs to the shared pack storage root (`getApplicationSupportDirectory()/packs/polyglot_content_v2.db`) instead of the private `getDatabasesPath()` directory that holds `user_progress_v2.db`; legacy hash-matching copies in the databases dir are retired after the canonical install; content packs are regenerable from bundled assets, learner state is never touched | PR `feat/storage-separation-t70` | MERGED |
 | 15 | Factory lineage anchor: #1181 (`ab207624e`) landed the `content-factory/` import as a single-parent commit, flattening history. Merged `consolidate/content-factory` with `-s ours` so the source HEAD `ca821e59ac` and import commit `070b88776` are ancestors of `main` (verified `git merge-base --is-ancestor`, both true); `content-factory/IMPORT_PROVENANCE.md` updated to record the two-step landing; tree otherwise byte-identical (577 tip diffs were stale-base artefacts, 0 content reverts). Duplicate PR #1182 closed as superseded | PR `increment/anchor-factory-lineage` | MERGED-ON-PUSH |
+| 16 | Secrets incident audit (owner red-line): classified all 305 Gitleaks findings from Security Audit run 43681022541 — 1 real-format GitHub PAT in `get-app` history @ `b19dfd490` (2026-10-11, in main, all branches, 21 tags), 2 test-only ED25519 key pairs @ `a040e5b08`, 302 false positives (canonical_key fixtures, SHA-256 digests, RFC test vectors, placeholder constants, plan-doc prose). Current tree verified CLEAN (`scoped_security_audit.py` PASS; no ghp_/PEM in tree; gh session token is a different `gho_` credential). Enabled GitHub secret scanning + push protection on the repo (was off). NO history rewrite performed: irreversible; dangles lineage anchor `ab207624e`, all receipts and 100 open PRs; revocation is owner-only and is the only effective remediation; no force-push without explicit owner authorization. Incident record + checkpoint committed; owner revocation tracked in issue #1198 | commit `d944c53fc` merged to `main` as `45308c1ce` | MERGED |
 
 ## Verified facts (not claims)
 
@@ -60,6 +61,14 @@ CI/merge) · **IN PROGRESS** · **BLOCKED** (with the real blocker) · **QUEUED*
 - No Dart or Flutter SDK exists in the Termux workspace, so `flutter analyze`
   and `flutter test` cannot be run locally. All executable evidence comes from
   GitHub Actions runs.
+- PR #1187 (`agent/security-hardening`) is BLOCKED: merge conflict in
+  `lib/core/storage/atomic_database_installer.dart` and, more fundamentally,
+  its truthful Security Audit fails on (a) the leaked-PAT/test-key findings in
+  history (see increment 16 — owner revocation, not a code fix) and (b)
+  pre-existing offline-policy violations (`http`, `cached_network_image` as
+  direct deps + `package:http`/`dart:io` network capabilities) that conflict
+  with the strict offline-only policy. It must not be merged while it puts
+  `main` red, and the policy-vs-product conflict needs an owner decision.
 - 455 draft PRs have not been triaged for unique content yet; several may hold
   work that must be absorbed before they are closed.
 - Increment-5 PR #1183 evidence: `registry_sync.py --check` exit 0; 24 local
