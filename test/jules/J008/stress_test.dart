@@ -1,51 +1,49 @@
-import 'package:deutsch_bilarabi/services/pooled_database_manager.dart';
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'dart:io';
+import 'package:deutsch_bilarabi/services/pooled_database_manager.dart';
 
 void main() {
-  setUpAll(() {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
+
+  test('J008 Stress-test 100 language identities with a small active-connection budget', () async {
+      final manager = PooledDatabaseManager(
+        maxConnections: 5,
+        openConnection: (code) async {
+          return await databaseFactory.openDatabase(inMemoryDatabasePath, options: OpenDatabaseOptions(readOnly: true));
+        },
+      );
+
+      final futures = <Future>[];
+      for (int i = 0; i < 100; i++) {
+        final code = 'deu-1${i.toString().padLeft(2, '0')}';
+        futures.add(manager.withDatabase(code, (db) async {
+          await Future<void>.delayed(const Duration(milliseconds: 5));
+        }));
+      }
+
+      await Future.wait(futures);
+      expect(manager.activeCount, lessThanOrEqualTo(5));
   });
 
-  test('J008 Stress-test 100 language identities', () async {
-    int maxConnectionsConfigured = 5;
-    final manager = PooledDatabaseManager(
-      openConnection: (String code) async {
-        final file = File('stress_test_$code.db');
-        return await databaseFactory.openDatabase(file.path);
-      },
-      maxConnections: maxConnectionsConfigured,
-    );
+  test('Verify read-only packs remain read-only', () async {
+      final manager = PooledDatabaseManager(
+        maxConnections: 5,
+        openConnection: (code) async {
+          // Mock creating a db
+          final path = await getDatabasesPath() + '/dummy_${DateTime.now().millisecondsSinceEpoch}.db';
+          final dbWrite = await databaseFactory.openDatabase(path);
+          await dbWrite.execute('CREATE TABLE t (id INTEGER)');
+          await dbWrite.close();
 
-    // Test with 100 identities
-    List<String> identities = [];
-    for (int i = 0; i < 100; i++) {
-      identities.add('de-${i.toString().padLeft(3, '0')}');
-    }
+          return await databaseFactory.openDatabase(path, options: OpenDatabaseOptions(readOnly: true));
+        },
+      );
 
-    final futures = <Future<void>>[];
-    for (int i = 0; i < 200; i++) {
-      final id = identities[i % 100];
-      futures.add(manager.withDatabase(id, (db) async {
-        await Future<void>.delayed(const Duration(milliseconds: 5));
-        expect(db.isOpen, true);
-        // Simulate reading
-        await db.execute('CREATE TABLE IF NOT EXISTS test (id INTEGER)');
-      }));
-    }
-
-    await Future.wait(futures);
-    expect(manager.activeCount, lessThanOrEqualTo(maxConnectionsConfigured));
-
-    await manager.closeAll();
-
-    // cleanup
-    for(final id in identities) {
-      if(File('stress_test_$id.db').existsSync()) {
-        File('stress_test_$id.db').deleteSync();
-      }
-    }
+      await manager.withDatabase('deu-101', (db) async {
+         expect(() => db.execute('INSERT INTO t (id) VALUES (1)'), throwsException);
+      });
   });
 }

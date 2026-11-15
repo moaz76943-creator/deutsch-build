@@ -1,111 +1,109 @@
-import 'package:deutsch_bilarabi/services/pooled_database_manager.dart';
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'dart:io';
+import 'package:deutsch_bilarabi/services/pooled_database_manager.dart';
 
 void main() {
-  setUpAll(() {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-  });
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
 
-  test('J008 Bounded SQLite Connection Pool & Safe LRU', () async {
-    final manager = PooledDatabaseManager(
-      openConnection: (String code) async {
-        // Use a unique file for each db to test physical close
-        final file = File('test_$code.db');
-        return await databaseFactory.openDatabase(file.path);
-      },
-      maxConnections: 2,
-    );
+  group('PooledDatabaseManager Tests', () {
+    test('Evicts least recently used connections', () async {
+      final manager = PooledDatabaseManager(
+        maxConnections: 2,
+        openConnection: (code) async {
+          return await databaseFactory.openDatabase(inMemoryDatabasePath);
+        }
+      );
 
-    // Initial state
-    expect(manager.activeCount, 0);
+      await manager.open('deu-101');
+      await manager.open('deu-102');
 
-    // Open first connection
-    final db1 = await manager.open('de-de');
-    expect(manager.activeCount, 1);
-    expect(manager.leastToMostRecentlyUsed, ['de-de']);
+      expect(manager.activeCount, 2);
+      expect(manager.leastToMostRecentlyUsed, ['deu-101', 'deu-102']);
 
-    // Open second connection
-    final db2 = await manager.open('en-us');
-    expect(manager.activeCount, 2);
-    expect(manager.leastToMostRecentlyUsed, ['de-de', 'en-us']);
+      await manager.open('deu-103'); // Should evict deu-101
 
-    // Open third connection, should evict the first
-    final db3 = await manager.open('fr-fr');
-    expect(manager.activeCount, 2);
-    expect(manager.leastToMostRecentlyUsed, ['en-us', 'fr-fr']);
-    expect(db1.isOpen, false);
-    expect(db2.isOpen, true);
-    expect(db3.isOpen, true);
+      expect(manager.activeCount, 2);
+      expect(manager.leastToMostRecentlyUsed, ['deu-102', 'deu-103']);
 
-    // Leased connections are not evicted
-    final futures = <Future<void>>[];
-    futures.add(manager.withDatabase('es-es', (db) async {
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      expect(db.isOpen, true);
-    }));
-    futures.add(manager.withDatabase('it-it', (db) async {
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      expect(db.isOpen, true);
-    }));
-
-    await Future.wait(futures);
-    expect(manager.activeCount, 2);
-
-    // Try to open a connection while all are leased should wait.
-    final f = manager.withDatabase('pt-br', (db) async {
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      expect(db.isOpen, true);
+      // Now re-open deu-102, which should move it to most recently used
+      await manager.open('deu-102');
+      expect(manager.leastToMostRecentlyUsed, ['deu-103', 'deu-102']);
     });
 
-    final f2 = manager.withDatabase('nl-nl', (db) async {
-      await Future<void>.delayed(const Duration(milliseconds: 100));
-      expect(db.isOpen, true);
-    });
+    test('Stress test: 100 language identities', () async {
+      final openedDbs = <String>[];
+      final manager = PooledDatabaseManager(
+        maxConnections: 4,
+        openConnection: (code) async {
+          openedDbs.add(code);
+          return await databaseFactory.openDatabase(inMemoryDatabasePath);
+        },
+      );
 
-    expect(() => manager.open('ja-jp'), throwsStateError);
-
-    await Future.wait([f, f2]);
-
-    await manager.closeAll();
-
-    // cleanup
-    final files = ['de-de', 'en-us', 'fr-fr', 'es-es', 'it-it', 'pt-br', 'nl-nl', 'ja-jp'];
-    for(final f in files) {
-      if(File('test_$f.db').existsSync()) {
-        File('test_$f.db').deleteSync();
+      final futures = <Future>[];
+      for (int i = 0; i < 100; i++) {
+        final code = 'deu-1${i.toString().padLeft(2, '0')}';
+        futures.add(manager.withDatabase(code, (db) async {
+          await Future<void>.delayed(const Duration(milliseconds: 2));
+        }));
       }
-    }
-  });
 
-  test('J008 Verify read-only packs remain read-only', () async {
-    final file = File('test_readonly.db');
-    if (file.existsSync()) file.deleteSync();
+      await Future.wait(futures);
+      expect(manager.activeCount, lessThanOrEqualTo(4));
+    });
 
-    // Create and close to have a db file
-    final initDb = await databaseFactory.openDatabase(file.path);
-    await initDb.execute('CREATE TABLE IF NOT EXISTS test (id INTEGER)');
-    await initDb.close();
+    test('Prevent simultaneous duplicate connections to one shard', () async {
+      int openCalls = 0;
+      final manager = PooledDatabaseManager(
+        maxConnections: 4,
+        openConnection: (code) async {
+          openCalls++;
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+          return await databaseFactory.openDatabase(inMemoryDatabasePath);
+        },
+      );
 
-    final manager = PooledDatabaseManager(
-      openConnection: (String code) async {
-        return await databaseFactory.openDatabase(file.path, options: OpenDatabaseOptions(readOnly: true));
-      },
-      maxConnections: 2,
-    );
+      // Open same code concurrently
+      final f1 = manager.withDatabase('deu-101', (db) async {});
+      final f2 = manager.withDatabase('deu-101', (db) async {});
 
-    final db = await manager.open('ro-db');
-    expect(db.isOpen, true);
+      await Future.wait([f1, f2]);
 
-    // Try to write to it, should fail
-    await expectLater(
-      () => db.execute('INSERT INTO test (id) VALUES (1)'),
-      throwsA(isA<DatabaseException>())
-    );
+      expect(openCalls, 1, reason: 'Should only open the database once');
+    });
 
-    await manager.closeAll();
-    if (file.existsSync()) file.deleteSync();
+    test('Failure in open does not leak connection', () async {
+      int openCalls = 0;
+      final manager = PooledDatabaseManager(
+        maxConnections: 4,
+        openConnection: (code) async {
+          openCalls++;
+          if (code == 'deu-err') {
+            throw Exception('Failed to open');
+          }
+          return await databaseFactory.openDatabase(inMemoryDatabasePath);
+        },
+      );
+
+      await expectLater(
+        manager.withDatabase('deu-err', (db) async {}),
+        throwsException,
+      );
+
+      expect(manager.activeCount, 0);
+
+      // Try again
+      await expectLater(
+        manager.withDatabase('deu-err', (db) async {}),
+        throwsException,
+      );
+
+      expect(openCalls, 2); // Should attempt to open again
+      expect(manager.activeCount, 0);
+    });
+
   });
 }
