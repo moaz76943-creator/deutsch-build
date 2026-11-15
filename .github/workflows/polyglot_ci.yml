@@ -6,24 +6,79 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+
+# T93: cancel redundant runs on the same ref; only the newest commit verifies.
+concurrency:
+  group: polyglot-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   verify:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout Unified Repository
         uses: actions/checkout@v4
+        with:
+          # Full history is required so the change-detection diff can resolve
+          # the PR base / push predecessor.
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
+      # Fast, always-on audit: zero secrets + repository status.
       - name: Run Zero-Secrets & Status Audit
         run: |
           python3 tool/polyglot_cli.py status
           python3 tool/polyglot_cli.py security-scan
 
+      # T93: separate fast targeted checks from expensive full checks.
+      # Docs-only changes skip the Flutter SDK download, analyze, and test
+      # steps entirely; any code, asset, config, or unknown diff keeps them.
+      - name: Detect code changes (fast vs expensive separation)
+        id: changes
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          base=""
+          case "${{ github.event_name }}" in
+            pull_request) base="${{ github.event.pull_request.base.sha }}" ;;
+            push)         base="${{ github.event.before }}" ;;
+          esac
+          # Zero-OID (branch creation) or unsupported event: fall back to the
+          # previous commit so the expensive path stays the safe default.
+          if [[ -z "$base" || "$base" =~ ^0+$ ]]; then
+            base="$(git rev-parse HEAD~1 2>/dev/null || echo HEAD)"
+          fi
+          changed="$(git diff --name-only "${base}...HEAD" 2>/dev/null || true)"
+          if [[ -z "$changed" ]]; then
+            changed="$(git diff --name-only "${base}" 2>/dev/null || true)"
+          fi
+          if [[ -z "$changed" ]]; then
+            changed="(unknown)"
+          fi
+          echo "base=$base"
+          echo "changed files:"
+          printf '  %s\n' "$changed"
+          if printf '%s\n' "$changed" | grep -qvE '^(docs/|reports/|[^/]*\.md$|LICENSE|NOTICE)'; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "decision=full (code or non-docs content changed)"
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
+            echo "decision=fast (docs-only change)"
+          fi
+
+      - name: Notice fast path
+        if: steps.changes.outputs.code != 'true'
+        run: |
+          echo "::notice::Docs-only change; expensive Flutter analyze/test steps skipped (T93)."
+
       - name: Resolve pinned toolchain
+        if: steps.changes.outputs.code == 'true'
         id: toolchain
         shell: bash
         run: |
@@ -32,15 +87,18 @@ jobs:
           printf 'flutter=%s\n' "$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Set up Flutter SDK
+        if: steps.changes.outputs.code == 'true'
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: "${{ steps.toolchain.outputs.flutter }}"
           channel: 'stable'
 
       - name: Install Dependencies & Analyze
+        if: steps.changes.outputs.code == 'true'
         run: |
           flutter pub get
           flutter analyze lib/polyglot_core.dart
 
       - name: Run Unified Polyglot Test Suite
+        if: steps.changes.outputs.code == 'true'
         run: flutter test test/core/polyglot/
