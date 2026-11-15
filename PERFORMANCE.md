@@ -15,20 +15,19 @@ Offline-first German learning app. Strong baseline already in place:
 | Memory | Improved | ImageCache + L1 trim + full ImageCache clear on pressure; further tightened below |
 | Battery | Good | Offline-only, no background network, WorkManager not needed |
 | Network | Excellent | Permissions stripped; zero runtime network |
-| UI jank | Improved | ListView.builder + RepaintBoundary on dashboard, curriculum hub, grammar guide, articles matrix, achievements, vocabulary journal, offline dictionary, language select, emergency phrasebook, phonetics lab, scenario chat, daily challenges, smart error review, theme switcher, contextual news, grammar cheat sheet, and language manager; CI guard against blocking build() |
+| UI jank | Improved | ListView.builder + RepaintBoundary on dashboard, curriculum hub, grammar guide, articles matrix, achievements, vocabulary journal, offline dictionary, language select, emergency phrasebook, phonetics lab, scenario chat, daily challenges, smart error review, theme switcher, contextual news, grammar cheat sheet, language manager, and error diagnostics; CI guard against blocking build() |
 
 ## Concrete Improvement (this run — 2026-11-15)
-**Added RepaintBoundary + cacheExtent: 300 + addAutomaticKeepAlives: false around LanguageManagerScreen ListView.separated items** in `lib/screens/language_manager_screen.dart`:
-- Before: plain `itemBuilder` returning complex DecoratedBox pack cards with status chips, progress indicators, and action buttons (potential overpaint and keep-alive cost during scroll)
+**Added RepaintBoundary + cacheExtent: 300 + addAutomaticKeepAlives: false around ErrorDiagnosticsScreen ListView.builder items** in `lib/screens/error_diagnostics_screen.dart`:
+- Before: plain `itemBuilder` returning AppBaseGlassCard log entries (potential overpaint on scroll)
 - After: each item wrapped in `RepaintBoundary`; cacheExtent: 300; addAutomaticKeepAlives: false
 
 **Expected measurable impact** (device-dependent, mid-range phones):
-- Reduced overpainting / fewer skipped frames when scrolling the language packs list
-- Smoother interactions on lists with nested interactive cards (progress bars, buttons)
+- Reduced overpainting / fewer skipped frames when scrolling the diagnostics logs
 - Modest reduction in GPU work and memory pressure from unnecessary repaints and keep-alives
 - Better consistency with other optimized list screens
 
-Previous runs optimized HomeScreen, CurriculumHubScreen, GrammarGuideScreen, ArticlesMatrixScreen, AchievementsScreen, VocabularyJournalScreen, OfflineDictionaryScreen, LanguageSelectScreen, EmergencyPhrasebookScreen, PhoneticsLabScreen, ScenarioChatScreen, DailyChallengesScreen, SmartErrorReviewScreen, ThemeSwitcherScreen, ContextualNewsScreen, and GrammarCheatSheetScreen ListViews with RepaintBoundary + cacheExtent/addAutomaticKeepAlives, ImageCache limits, and JSON compute isolation.
+Previous runs optimized HomeScreen, CurriculumHubScreen, GrammarGuideScreen, ArticlesMatrixScreen, AchievementsScreen, VocabularyJournalScreen, OfflineDictionaryScreen, LanguageSelectScreen, EmergencyPhrasebookScreen, PhoneticsLabScreen, ScenarioChatScreen, DailyChallengesScreen, SmartErrorReviewScreen, ThemeSwitcherScreen, ContextualNewsScreen, GrammarCheatSheetScreen, and LanguageManagerScreen ListViews with RepaintBoundary + cacheExtent/addAutomaticKeepAlives, ImageCache limits, and JSON compute isolation.
 
 No security regression (no keep-rule changes, offline integrity preserved, no new permissions).
 
@@ -37,7 +36,8 @@ No security regression (no keep-rule changes, offline integrity preserved, no ne
 2. Prefer `ListView.builder` / `Sliver` + `cacheExtent` for any dynamic long lists.
 3. Keep R8 full mode; audit keep rules periodically.
 4. Profile with Android Studio / Perfetto on a low-end device.
-5. Consider wrapping remaining complex card lists (curriculum topic words if lists grow beyond 50, error diagnostics logs if expanded, placement/verb lists) with RepaintBoundary if frame drops are observed.
+5. Consider wrapping remaining complex card lists (curriculum topic words if lists grow beyond 50, placement/verb lists) with RepaintBoundary if frame drops are observed.
 6. Explore feature modularization (packages or feature modules) to improve incremental builds and ease of development as the codebase grows.
+7. Introduce a shared OptimizedListView / list item wrapper widget to enforce these patterns and speed up future development.
 
 Metrics should be captured with `flutter run --profile` + Macrobenchmark or Android Vitals after next release.
