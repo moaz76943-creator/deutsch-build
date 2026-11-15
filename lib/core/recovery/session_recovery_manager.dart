@@ -27,8 +27,8 @@ class SessionState {
     this.targetLocale = '',
     this.semanticVersion,
   }) : committedReviewIds = List.unmodifiable(committedReviewIds) {
-    if (this.committedReviewIds.toSet().length != this.committedReviewIds.length) {
-      throw ArgumentError('Duplicate review IDs are not allowed');
+    if (committedReviewIds.toSet().length != committedReviewIds.length) {
+      throw ArgumentError('committedReviewIds must not contain duplicates');
     }
   }
 
