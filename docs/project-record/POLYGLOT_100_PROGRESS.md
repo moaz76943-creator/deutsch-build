@@ -23,6 +23,7 @@ CI/merge) · **IN PROGRESS** · **BLOCKED** (with the real blocker) · **QUEUED*
 |---|---|---|---|
 | 3 | Make the whole Dart suite compilable: 511 files imported the undeclared `package:test`. Swapped to the SDK-provided `package:flutter_test` (0 remaining occurrences) | `fix/test-sdk-imports` / PR #1180 | OPEN — waiting on CI |
 | 4 | History-preserving import of the content factory under `content-factory/` (877 files, two-parent merge) + provenance record | `consolidate/content-factory` | IN PROGRESS |
+| 5 | T40: machine-readable readiness report (`assets/registry/readiness_report.json`) separating registration from content-complete and production-ready status; content-complete reported as not-derivable, never inferred from registration; `--check` now fail-closed on report drift | `chore/registry-readiness-report` | OPEN — awaiting CI/merge |
 
 ## Verified facts (not claims)
 
