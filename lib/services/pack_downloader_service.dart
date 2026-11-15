@@ -114,8 +114,9 @@ class PackDownloaderService {
   }
 
   /// Maps a caller-supplied pack origin to a validated target. The shared
-  /// HTTPS / public-host / no-credentials policy applies here so that even a
-  /// caller-supplied URL cannot reach a local or plain-HTTP origin.
+  /// HTTPS / public-host / no-credentials policy applies here, and the origin
+  /// must be one of the canonical pack hosts, so even a caller-supplied URL
+  /// cannot reach a local or plain-HTTP origin or an arbitrary public host.
   static Uri? _trustedTarget(String url) {
     final Uri? parsed;
     try {
@@ -124,7 +125,7 @@ class PackDownloaderService {
       return null;
     }
     try {
-      return TrustedNetworkTarget.requireTrusted(parsed);
+      return TrustedNetworkTarget.requireTrusted(parsed, allowedHosts: approvedPackHosts);
     } on UntrustedNetworkTargetException {
       return null;
     }
@@ -380,13 +381,13 @@ class PackDownloaderService {
   }
 
   // ------------------------------------------------------------------
-  // Testing seams required by the pack security contract (tasks 27, 61-70).
-  // These expose fail-closed helpers for offline fixture installs and policy
-  // predicates; they never fabricate a successful install.
+  // Policy constants and testing seams required by the pack security
+  // contract (tasks 27, 61-70). These expose fail-closed helpers for
+  // offline fixture installs and policy predicates; they never fabricate
+  // a successful install.
   // ------------------------------------------------------------------
 
   /// HTTPS origins the shipped product may fetch pack artifacts from.
-  @visibleForTesting
   static const Set<String> approvedPackHosts = <String>{
     'raw.githubusercontent.com',
     'cdn.jsdelivr.net',

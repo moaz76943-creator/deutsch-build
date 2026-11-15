@@ -19,6 +19,17 @@ def test_downloader_rejects_untrusted_targets_before_requesting() -> None:
     assert "return false;" in source
 
 
+def test_downloader_enforces_canonical_host_allowlist() -> None:
+    source = SERVICE.read_text(encoding="utf-8")
+    assert "requireTrusted(parsed, allowedHosts: approvedPackHosts)" in source
+
+    provider = ROOT / "lib/providers/active_language_provider.dart"
+    provider_source = provider.read_text(encoding="utf-8")
+    assert "languagePackManifestUrl" in provider_source
+    # The manifest fetch must pin the same canonical origin as the pack fetch.
+    assert provider_source.count("allowedHosts: const {'raw.githubusercontent.com'}") >= 2
+
+
 def test_downloader_blocks_untrusted_hosts_and_plain_http() -> None:
     source = TARGET_POLICY.read_text(encoding="utf-8")
     assert "only https targets are permitted" in source

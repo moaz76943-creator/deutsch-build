@@ -253,7 +253,10 @@ class LanguagePackStorage {
       ..connectionTimeout = const Duration(seconds: 12);
     try {
       final request = await client
-          .getUrl(TrustedNetworkTarget.requireTrusted(Uri.parse(languagePackManifestUrl)))
+          .getUrl(TrustedNetworkTarget.requireTrusted(
+            Uri.parse(languagePackManifestUrl),
+            allowedHosts: const {'raw.githubusercontent.com'},
+          ))
           .timeout(const Duration(seconds: 15));
       final response =
           await request.close().timeout(const Duration(seconds: 15));
