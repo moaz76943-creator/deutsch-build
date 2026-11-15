@@ -1,0 +1,58 @@
+{
+  "pinned": {
+    "fileCount": 8,
+    "files": {
+      "assets/database/master_100_languages_spec.json": {
+        "bytes": 14332,
+        "sha256": "d96556ce58a945626790abd91ca4e4b43c819547b75356032ec11d799e58c6a5"
+      },
+      "assets/lang_data/catalog.json": {
+        "bytes": 2980999,
+        "sha256": "ce0c88b256f359c6c7d79f80ee77ca3482e57a07d73365fe1ecc626800e429f2"
+      },
+      "assets/registry/content_inventory.json": {
+        "bytes": 6040,
+        "sha256": "749bc5c06443bb020f533da9bd975c895adce9c6013dcfad3291c4c724bf31b8"
+      },
+      "assets/registry/languages_100.json": {
+        "bytes": 40146,
+        "sha256": "d0cf7f7455d4891a9f84d1000531df2d235bb25b3fc4c60f602beaba943edbec"
+      },
+      "assets/registry/readiness_report.json": {
+        "bytes": 2064,
+        "sha256": "d2c5bb26dab3deb9cf02acd09e9ca4ef56c32ec38128045f7a3047fbdc407179"
+      },
+      "lib/core/i18n/canonical_language_catalog.dart": {
+        "bytes": 45996,
+        "sha256": "8e117a30ec17103841778dc47bb85f30b44a20d912742d418ed8690d49174439"
+      },
+      "lib/core/i18n/language_registry.dart": {
+        "bytes": 17935,
+        "sha256": "025ab16d0f8e4c7a4edf1987a8059ae797558ad118e18f3e09f173c891e39a25"
+      },
+      "pubspec.yaml": {
+        "bytes": 1945,
+        "sha256": "ae9850c079d8f2452b22a53b7c28d43aa35a937473b02d409b7a8577061b3476"
+      }
+    }
+  },
+  "reportId": "polyglot-build-provenance",
+  "schemaVersion": 1,
+  "version": {
+    "buildNumber": 1,
+    "name": "deutsch_bilarabi",
+    "version": "1.0.0"
+  },
+  "volatile": {
+    "buildEnvironment": {
+      "machine": "aarch64",
+      "osName": "Linux",
+      "osRelease": "6.17.0-PRoot-Distro",
+      "pythonImplementation": "CPython",
+      "pythonVersion": "3.12.3"
+    },
+    "generatedAt": "2026-11-15T14:14:40+00:00",
+    "sourceCommit": "a26bbc2e4724b7ca85d471e8e66f98a0c43ed272",
+    "sourceCommitSubject": "docs(progress): mark increment 17 MERGED (PR #1199 @ c7913abea)"
+  }
+}
