@@ -17,6 +17,12 @@
           "tense": "past",
           "person": "3s",
           "conjugated_form": "ging"
+        },
+        {
+          "conjugation_id": "de:gehen:part_perf:none",
+          "tense": "PART_PERF",
+          "person": "none",
+          "conjugated_form": "gegangen"
         }
       ]
     },
@@ -31,6 +37,12 @@
           "tense": "present",
           "person": "ich",
           "conjugated_form": "mache"
+        },
+        {
+          "conjugation_id": "de:machen:part_perf:none",
+          "tense": "PART_PERF",
+          "person": "none",
+          "conjugated_form": "gemacht"
         }
       ]
     }
