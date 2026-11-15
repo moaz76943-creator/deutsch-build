@@ -182,6 +182,11 @@ class ProductionAcceptanceGate {
       );
     }
 
+    _lastApprovedConfiguration = FeatureConfiguration(
+      verifiedLanguages: contract.verifiedDictionaries.toList(),
+      availableOptionalFeatures: contract.hasOptionalAudio ? ['audio'] : [],
+    );
+
     if (!contract.hasOptionalAudio) {
       return const J095VerificationResult(
         outcome: GateOutcome.passed,
