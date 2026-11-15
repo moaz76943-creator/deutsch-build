@@ -1,4 +1,5 @@
-import os, sys, json, subprocess
+import os, sys, json
+from safe_process import run as run_allowed
 
 CORE = "lib/src/core/content"
 STORE = "../offline-packs-store/packs"
@@ -17,8 +18,12 @@ LEXICON = [
     ("vollenden", "vollendete", "hat vollendet", "يتم / ينجز", "[fɔlˈʔɛndn̩]", "Akkusativ", "C1", "Er vollendete sein Lebenswerk.", "أنجز عمل حياته بالكامل.")
 ]
 
-def run(c, cwd=None):
-    return subprocess.run(c, shell=True, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True).returncode == 0
+def run(argv, cwd=None):
+    """Allowlisted argument vector; no shell, no destructive git."""
+    try:
+        return run_allowed(argv, cwd=cwd).returncode == 0
+    except (ValueError, OSError):
+        return False
 
 def get_last_task():
     if os.path.exists(CKPT):
@@ -81,17 +86,14 @@ while current < target:
                 json.dump({"taskId": tid, "volume": vol, "items": [{"id": tid, "data": LEXICON[(tid - 1) % len(LEXICON)]}]}, f, indent=2)
 
     save_ckpt(nxt)
-    run("rm -f .git/index.lock")
-    run("git add .")
-    run(f'git commit -m "feat(vol_{vol}): implement substantive linguistic tasks {current + 1}-{nxt}"')
-    run("git push origin staging/v2-full-platform --force")
-    run("git push origin staging/v2-full-platform:main --force")
-    
+    run(["git", "add", "lib/src/core/content/", "assets/index/"])
+    run(["git", "commit", "-m", f"feat(vol_{vol}): implement substantive linguistic tasks {current + 1}-{nxt}"])
+    run(["git", "push", "origin", "staging/v2-full-platform"])
+
     if os.path.exists("../offline-packs-store"):
-        run("rm -f ../offline-packs-store/.git/index.lock")
-        run("git add .", cwd="../offline-packs-store")
-        run(f'git commit -m "feat(vol_{vol}): add public shards tasks {current + 21}-{nxt}"', cwd="../offline-packs-store")
-        run("git push origin main --force", cwd="../offline-packs-store")
+        run(["git", "add", "packs/"], cwd="../offline-packs-store")
+        run(["git", "commit", "-m", f"feat(vol_{vol}): add public shards tasks {current + 21}-{nxt}"], cwd="../offline-packs-store")
+        run(["git", "push", "origin", "HEAD:staging/agent-shards"], cwd="../offline-packs-store")
 
     print(f"[+] Successfully sealed batch: Tasks {current + 1} -> {nxt}")
     current = nxt

@@ -71,8 +71,10 @@ android {
 
     signingConfigs {
         secureRelease {
-            def releaseSigning = project.ext.resolveReleaseSigning()
-            if (releaseSigning != null && releaseSigning.releaseStoreFile) {
+            // Configure signing only when the mandatory, complete signing set is
+            // present; a partial configuration must never reach an artifact.
+            if (hasReleaseSigning) {
+                def releaseSigning = project.ext.resolveReleaseSigning()
                 storeFile file(releaseSigning.releaseStoreFile)
                 storePassword releaseSigning.releaseStorePassword
                 keyAlias releaseSigning.releaseKeyAlias

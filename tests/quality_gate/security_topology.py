@@ -271,6 +271,20 @@ def manifest_permissions(path: Path) -> dict[str, str | None]:
     return result
 
 
+def granted_manifest_permissions(path: Path) -> set[str]:
+    """Effective permissions after manifest-merger processing.
+
+    ``tools:node="remove"`` revokes a permission declared by a library; it is
+    not a grant. The fail-closed offline-first policy therefore keys off the
+    effective set, while the removal directive itself must stay present.
+    """
+    return {
+        name
+        for name, mode in manifest_permissions(path).items()
+        if not mode
+    }
+
+
 def extract_braced_block(source: str, marker: str) -> str:
     start = source.find(marker)
     if start < 0:

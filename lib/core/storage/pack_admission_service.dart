@@ -41,6 +41,9 @@ class PackAdmissionService {
     required this.dbFactory,
   });
 
+  /// A manifest-bound SHA-256 digest is exactly 64 hex characters.
+  static final RegExp _safeDigest = RegExp(r'^[a-fA-F0-9]{64}$');
+
   /// التحقق من سلامة الحزمة قبل اعتمادها (SHA-256) والتحقق من SQLite
   Future<bool> verifyAndAdmitPack({
     required File stagedFile,
@@ -50,6 +53,12 @@ class PackAdmissionService {
     bool allowReplacement = false,
   }) async {
     try {
+      // T64: reject a malformed caller-claimed digest before touching the
+      // staged file; only a manifest-shaped SHA-256 hex digest is admissible.
+      if (!_safeDigest.hasMatch(expectedHash)) {
+        debugPrint("فشل التحقق: بصمة غير صالحة (ليست SHA-256 hex).");
+        return false;
+      }
       if (!RegExp(r'^[a-z]{2,3}$').hasMatch(languageCode)) {
         return false;
       }

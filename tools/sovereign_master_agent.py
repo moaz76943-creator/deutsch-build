@@ -1,10 +1,12 @@
-import os, sys, json, time, subprocess
+import os, sys, json, time
+from safe_process import run as run_allowed
 
 BUILD_DIR = os.path.expanduser("~/projects/.polyglot_merge_workspace/deutsch-build")
 STORE_DIR = os.path.expanduser("~/projects/.polyglot_merge_workspace/offline-packs-store")
 
-def sh(cmd, cwd=BUILD_DIR):
-    return subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True)
+def sh(argv, cwd=BUILD_DIR):
+    """Run an allowlisted argument vector; refuses destructive git operations."""
+    return run_allowed(argv, cwd=cwd)
 
 def get_current_task():
     ckpt = os.path.join(BUILD_DIR, "assets/index/agent_checkpoint.json")
@@ -34,14 +36,16 @@ def run_batch(start_task, count=30):
         for tid in range(priv_end + 1, end_task + 1):
             with open(os.path.join(pub_dir, f"open_shard_{tid}.json"), "w", encoding="utf-8") as fp:
                 json.dump({"task_id": tid, "tier": "A1_TO_C1", "verified": True}, fp, indent=2)
-        sh("git checkout main && git add packs/ && git commit -m 'feat(store): deploy open shards' && git push origin main --force", cwd=STORE_DIR)
+        # Never rewrite the public store history from a generator.
+        sh(["git", "add", "packs/"], cwd=STORE_DIR)
+        sh(["git", "commit", "-m", "feat(store): deploy open shards"], cwd=STORE_DIR)
+        sh(["git", "push", "origin", "HEAD:staging/agent-shards"], cwd=STORE_DIR)
 
     # 3. Commit & Push Private Repo
-    sh("git add lib/src/core/content/ assets/index/", cwd=BUILD_DIR)
-    sh(f"git commit -m 'feat(agent): autonomous batch {start_task + 1} to {end_task}'", cwd=BUILD_DIR)
-    sh("git push origin staging/v2-full-platform --force", cwd=BUILD_DIR)
-    sh("git push origin staging/v2-full-platform:main --force", cwd=BUILD_DIR)
-    sh("bash tools/anti_accumulation_sweep.sh", cwd=BUILD_DIR)
+    sh(["git", "add", "lib/src/core/content/", "assets/index/"], cwd=BUILD_DIR)
+    sh(["git", "commit", "-m", f"feat(agent): autonomous batch {start_task + 1} to {end_task}"], cwd=BUILD_DIR)
+    # Integration-branch push only: protected branches are never written here.
+    sh(["git", "push", "origin", "staging/v2-full-platform"], cwd=BUILD_DIR)
 
     os.makedirs(os.path.join(BUILD_DIR, "assets/index"), exist_ok=True)
     with open(os.path.join(BUILD_DIR, "assets/index/agent_checkpoint.json"), "w", encoding="utf-8") as f:

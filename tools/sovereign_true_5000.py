@@ -1,4 +1,5 @@
-import os, sys, json, subprocess
+import os, sys, json
+from safe_process import run as run_allowed
 
 CORE = "lib/src/core/content"
 STORE = "../offline-packs-store/packs"
@@ -41,8 +42,12 @@ DOMAINS = [
     ("Civil Infrastructure", "الهندسة المدنية", "auf der Projektbaustelle", "في موقع المشروع الهندسي", "B1")
 ]
 
-def run(c, cwd=None):
-    return subprocess.run(c, shell=True, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True).returncode == 0
+def run(argv, cwd=None):
+    """Allowlisted argument vector; no shell, no destructive git."""
+    try:
+        return run_allowed(argv, cwd=cwd).returncode == 0
+    except (ValueError, OSError):
+        return False
 
 def get_unique_item(tid):
     idx = tid - 2151
@@ -88,7 +93,12 @@ class Task{tid}Engine {{
 
 # 1. Clean old repeated files (2151+) and rebuild 100% unique
 for v in range(21, 52):
-    run(f"rm -rf {CORE}/vol_{v} {STORE}/vol_{v}")
+    # Bounded, path-contained cleanup instead of a shell rm -rf.
+    for base in (CORE, STORE):
+        target = os.path.join(base, f"vol_{v}")
+        if os.path.isdir(target) and os.path.realpath(target).startswith(os.path.realpath(base) + os.sep):
+            import shutil
+            shutil.rmtree(target, ignore_errors=True)
 
 current, target = 2150, 5000
 print(f"[*] Rebuilding 2,850 100% UNIQUE Linguistic Modules (Tasks 2151 -> {target})...")
@@ -114,16 +124,13 @@ while current < target:
     current = nxt
 
 print("[*] Syncing all 2,850 unique modules to Git...")
-run("rm -f .git/index.lock")
-run("git add .")
-run('git commit -m "feat(core): build 2850 unique morphological tasks 2151-5000 with audio paths"')
-run("git push origin staging/v2-full-platform --force")
-run("git push origin staging/v2-full-platform:main --force")
+run(["git", "add", "lib/src/core/content/", "assets/index/"])
+run(["git", "commit", "-m", "feat(core): build 2850 unique morphological tasks 2151-5000 with audio paths"])
+run(["git", "push", "origin", "staging/v2-full-platform"])
 
 if os.path.exists("../offline-packs-store"):
-    run("rm -f ../offline-packs-store/.git/index.lock")
-    run("git add .", cwd="../offline-packs-store")
-    run('git commit -m "feat(packs): publish unique open lexicon packs 2151-5000"', cwd="../offline-packs-store")
-    run("git push origin main --force", cwd="../offline-packs-store")
+    run(["git", "add", "packs/"], cwd="../offline-packs-store")
+    run(["git", "commit", "-m", "feat(packs): publish unique open lexicon packs 2151-5000"], cwd="../offline-packs-store")
+    run(["git", "push", "origin", "HEAD:staging/agent-shards"], cwd="../offline-packs-store")
 
 print("[✓] DONE! All 5,000 tasks are 100% unique, verified, and pushed!")

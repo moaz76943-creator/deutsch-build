@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:path/path.dart' as p;
@@ -41,6 +42,10 @@ class SecureArchiveExtractor {
   static const int defaultMaxEntryCount = 10000;
   static const int defaultMaxExpansionRatio = 100;
 
+  /// POSIX file-type mask and symlink type value from st_mode.
+  static const int _fileTypeMask = 0xF000;
+  static const int _symbolicLinkType = 0xA000;
+
   /// فحص مسار الدخول والتأكد من عدم وجود Zip Slip
   static void validateEntryPath(String entryName, Directory destinationDir) {
     if (entryName.isEmpty) {
@@ -70,6 +75,21 @@ class SecureArchiveExtractor {
     if (!p.isWithin(destinationCanonical, targetCanonical) &&
         targetCanonical != destinationCanonical) {
       throw ZipSlipException('Zip Slip breach: $entryName resolves outside $destinationCanonical');
+    }
+  }
+
+  /// فحص نوع الدخول: يرفض الروابط الرمزية والأجهزة والأنواع غير العادية
+  ///
+  /// Even though the current ZIP decoder materialises entries as regular
+  /// files, an archive that declares a symlink can be re-extracted by another
+  /// tool later and escape the sandbox. Reject the type at the boundary.
+  static void validateEntryType(ArchiveEntry entry) {
+    final fileType = entry.mode & _fileTypeMask;
+    if (fileType == _symbolicLinkType) {
+      throw ZipSlipException('Archive entry is an unsafe symbolic link: ${entry.name}');
+    }
+    if (!entry.isFile && !entry.name.endsWith('/')) {
+      throw ZipSlipException('Archive entry is neither a regular file nor a directory: ${entry.name}');
     }
   }
 
@@ -132,16 +152,21 @@ class SecureArchiveExtractor {
     await destinationDir.create(recursive: true);
 
     // استخدام دليل عزل مرحلي (Staging directory) لضمان الذرية وحفظ Last-Known-Good
-    final stagingDirName = '.staging_${DateTime.now().millisecondsSinceEpoch}_${archive.length}';
+    // A unique staging name prevents two concurrent extractions from sharing,
+    // or deleting, each other's partial output.
+    final stagingDirName = '.staging_${DateTime.now().microsecondsSinceEpoch}_'
+        '${archive.length}_${_randomToken()}';
     final stagingDir = Directory(p.join(destinationDir.path, stagingDirName));
     await stagingDir.create(recursive: true);
 
     var totalExtractedBytes = 0;
     final extractedPaths = <String>[];
+    final seenPaths = <String>{};
 
     try {
       for (final entry in archive) {
         validateEntryPath(entry.name, stagingDir);
+        validateEntryType(entry);
 
         if (!entry.isFile) {
           final dirPath = p.join(stagingDir.path, entry.name);
@@ -151,6 +176,13 @@ class SecureArchiveExtractor {
 
         final entryContent = entry.content as List<int>;
         final entrySize = entryContent.length;
+
+        // Duplicate names would silently overwrite earlier content inside the
+        // archive, so the extracted bytes would not match the manifest hash.
+        final normalizedEntry = p.normalize(entry.name);
+        if (!seenPaths.add(normalizedEntry)) {
+          throw ZipSlipException('Archive contains a duplicate entry: $normalizedEntry');
+        }
 
         if (entrySize > maxSingleBytes) {
           throw DecompressionBombException(
@@ -220,5 +252,15 @@ class SecureArchiveExtractor {
         } catch (_) {}
       }
     }
+  }
+
+  /// رمز عشوائي آمن لدليل العزل المرحلي
+  static String _randomToken() {
+    final secure = Random.secure();
+    final buffer = StringBuffer();
+    for (var index = 0; index < 8; index++) {
+      buffer.write(secure.nextInt(256).toRadixString(16).padLeft(2, '0'));
+    }
+    return buffer.toString();
   }
 }

@@ -12,6 +12,7 @@ from security_topology import (
     assert_active_build_delivery_boundaries,
     effective_permissions,
     extract_braced_block,
+    granted_manifest_permissions,
     manifest_permissions,
     manifest_root,
 )
@@ -44,8 +45,10 @@ WORKFLOW_CLASS = {
     "cleanup_old_artifacts.yml": D_AUTOMATIC_OPT_IN,
     "content_expansion_bot.yml": D_AUTOMATIC_OPT_IN,
     "elastic-worker-factory.yml": B_MANUAL_UTILITY,
+    "language_registry_guard.yml": "F",
     "local_release.yml": C_SELF_HOSTED,
     "performance_guard.yml": D_AUTOMATIC_OPT_IN,
+    "polyglot_ci.yml": D_AUTOMATIC_OPT_IN,
     "pr_architectural_guard.yml": D_AUTOMATIC_OPT_IN,
     "privacy_policy_health_check.yml": D_AUTOMATIC_OPT_IN,
     "project-record-engineering-ci.yml": D_AUTOMATIC_OPT_IN,
@@ -134,13 +137,11 @@ def test_android_manifest_and_root_window_are_fail_closed():
     main_permissions = manifest_permissions(MAIN_MANIFEST)
     release_permissions = manifest_permissions(RELEASE_MANIFEST)
 
-    granted = {
-        name for name, mode in main_permissions.items() if mode != "remove"
-    }
+    granted = granted_manifest_permissions(MAIN_MANIFEST)
     assert granted == {"android.permission.RECORD_AUDIO"}
-    assert "android.permission.INTERNET" not in main_permissions
-    assert "android.permission.POST_NOTIFICATIONS" not in main_permissions
-    assert "android.permission.INTERNET" not in release_permissions
+    assert "android.permission.INTERNET" not in granted
+    assert "android.permission.POST_NOTIFICATIONS" not in granted
+    assert "android.permission.INTERNET" not in granted_manifest_permissions(RELEASE_MANIFEST)
 
     notification_node = release_permissions.get("android.permission.POST_NOTIFICATIONS")
     if notification_node is not None:
@@ -321,7 +322,7 @@ def test_all_active_workflows_obey_current_zero_billing_and_supply_chain_policy(
     assert_active_build_delivery_boundaries()
     workflows = active_workflows()
     assert set(workflows) == set(WORKFLOW_CLASS)
-    assert len(workflows) == 32
+    assert len(workflows) == 34
 
     for name, workflow in workflows.items():
         category = WORKFLOW_CLASS[name]
