@@ -65,12 +65,12 @@ CI/merge) · **IN PROGRESS** · **BLOCKED** (with the real blocker) · **QUEUED*
    morphology) + `tools/factory_extensions/directed_translation_scale/`
    byte-identical from the content-factory import onto
    `chore/absorb-factory-standards` (see
-   docs/project-record/INCREMENT3_ABSORPTION_2026-11-15.md; 29/lexical/morphology
-   unittests OK; registry_sync --check exit 0). packs/ BLOCKED by the
-   rights/provenance gate; proficiency standard BLOCKED pending an owner
-   decision on canonical-registry proficiency metadata (must not import the
-   factory's stale catalog registry); legal ledger kept (app copy better);
-   factory catalog superseded by the canonical registry. Merge awaits owner
-   authorization.
+   docs/project-record/INCREMENT3_ABSORPTION_2026-11-15.md; directed_pairs/lexical/
+   morphology unittests OK; registry_sync --check exit 0) via PR #1184 @
+   `f232fdd7e` (base `main` @ `2b77cc218`); merge awaits owner authorization.
+   packs/ BLOCKED by the rights/provenance gate; proficiency standard BLOCKED
+   pending an owner decision on canonical-registry proficiency metadata (must
+   not import the factory's stale catalog registry); legal ledger kept (app
+   copy better); factory catalog superseded by the canonical registry.
 4. Security/trust tasks 21–30 (audit exit codes, secret scanning, path and
    archive hardening, bounded downloads).
