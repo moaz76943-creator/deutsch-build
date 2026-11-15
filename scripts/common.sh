@@ -6,9 +6,19 @@ ROOT="${ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 TOOLCHAIN_FILE="$ROOT/toolchain.lock"
 
 export ERR_ENV=10
-export ERR_DEP=11
-export ERR_COMP=12
-export ERR_SIGN=13
+
+export ERR_COMPILE=11
+export ERR_DEPENDENCY=13
+export ERR_SIGNING=12
+export ERR_ARTIFACT=16
+export ERR_COMP=$ERR_COMPILE
+export ERR_DEP=$ERR_DEPENDENCY
+export ERR_SIGN=$ERR_SIGNING
+export ERR_DEPENDENCY=13
+export ERR_SIGNING=12
+export ERR_DEP=$ERR_DEPENDENCY
+export ERR_SIGN=$ERR_SIGNING
+
 export ERR_VERIFY=14
 
 # Filters credential-shaped text. Callers pipe command output through this
@@ -16,10 +26,10 @@ export ERR_VERIFY=14
 redact_secrets() {
   local keystore_name="RELEASE_KEYSTORE_BASE64"
   sed -E \
-    -e "s/(${keystore_name}=)[^[:space:]]*/\\1[REDACTED]/g" \
-    -e 's/(-----BEGIN (PRIVATE KEY|CERTIFICATE)-----).*(-----END \2-----)/[REDACTED_PEM]/g' \
-    -e 's/([pP]assword=)[^[:space:]]+/\1[REDACTED]/g' \
-    -e 's/(--pass[A-Za-z0-9-]*)(=|[[:space:]]+)[^[:space:]]+/\1\2[REDACTED]/g'
+    -e "s/(${keystore_name}=)[^[:space:]]*/\\1<REDACTED>/g" \
+    -e 's/(-----BEGIN (PRIVATE KEY|CERTIFICATE)-----).*(-----END \2-----)/<REDACTED_PEM>/g' \
+    -e 's/([pP]assword=)[^[:space:]]+/\1<REDACTED>/g' \
+    -e 's/(--pass[A-Za-z0-9-]*)(=|[[:space:]]+)[^[:space:]]+/\1\2<REDACTED>/g'
 }
 
 fatal() {

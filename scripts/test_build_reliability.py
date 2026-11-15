@@ -26,7 +26,7 @@ class BuildReliabilityTests(unittest.TestCase):
             exe.write_text('#!/bin/sh\n[ "$*" = "pub get --enforce-lockfile" ] || exit 17\nexit 0\n')
             exe.chmod(0o700)
             env = {**os.environ, 'PATH': f'{directory}:{os.environ["PATH"]}'}
-            self.assertEqual(self.shell('run_pub_get_with_retry', env=env).returncode, 0)
+            self.assertEqual(self.shell('with_retry flutter pub get --enforce-lockfile', env=env).returncode, 0)
 
     def test_deterministic_failure_is_not_retried_and_secrets_are_hidden(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -35,7 +35,7 @@ class BuildReliabilityTests(unittest.TestCase):
             exe.write_text(f'#!/bin/sh\necho x >> "{counter}"\necho "storePassword=secret-key --pass secret-value" >&2\nexit 25\n')
             exe.chmod(0o700)
             env = {**os.environ, 'PATH': f'{directory}:{os.environ["PATH"]}'}
-            result = self.shell('run_pub_get_with_retry', env=env)
+            result = self.shell('with_retry flutter pub get --enforce-lockfile', env=env)
             self.assertEqual(result.returncode, 25)
             self.assertEqual(counter.read_text().count('x'), 1)
             self.assertNotIn('secret-key', result.stderr + result.stdout)
@@ -50,7 +50,7 @@ class BuildReliabilityTests(unittest.TestCase):
             (Path(directory) / 'sleep').write_text('#!/bin/sh\nexit 0\n')
             (Path(directory) / 'sleep').chmod(0o700)
             env = {**os.environ, 'PATH': f'{directory}:{os.environ["PATH"]}'}
-            result = self.shell('run_pub_get_with_retry', env=env)
+            result = self.shell('with_retry flutter pub get --enforce-lockfile', env=env)
             self.assertEqual(result.returncode, 23)
             self.assertEqual(counter.read_text().count('x'), 3)
             self.assertNotIn('secret-key', result.stdout + result.stderr)
@@ -62,7 +62,7 @@ class BuildReliabilityTests(unittest.TestCase):
             exe.chmod(0o700)
             env = {**os.environ, 'TMPDIR': directory,
                    'PATH': f'{directory}:{os.environ["PATH"]}'}
-            result = self.shell('run_pub_get_with_retry', env=env)
+            result = self.shell('with_retry flutter pub get --enforce-lockfile', env=env)
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual(sorted(p.name for p in Path(directory).iterdir()), ['flutter'])
 
@@ -75,7 +75,7 @@ class BuildReliabilityTests(unittest.TestCase):
             (Path(directory) / 'sleep').write_text('#!/bin/sh\nexit 0\n')
             (Path(directory) / 'sleep').chmod(0o700)
             env = {**os.environ, 'PATH': f'{directory}:{os.environ["PATH"]}'}
-            result = self.shell('run_pub_get_with_retry', env=env)
+            result = self.shell('with_retry flutter pub get --enforce-lockfile', env=env)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(counter.read_text().count('x'), 2)
 

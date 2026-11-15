@@ -53,7 +53,7 @@ source scripts/common.sh
 fatal --code "$ERR_SIGN" "Signing failed"
 """)
             res = subprocess.run(["bash", str(script)], capture_output=True)
-            self.assertEqual(res.returncode, 13, f"Expected 13 (ERR_SIGN), got {res.returncode}. Stderr: {res.stderr.decode()}")
+            self.assertEqual(res.returncode, 12, f"Expected 12 (ERR_SIGN), got {res.returncode}. Stderr: {res.stderr.decode()}")
 
     def test_with_retry(self):
         with tempfile.TemporaryDirectory() as d:
@@ -66,7 +66,7 @@ count=$(cat "{state}")
 count=$((count+1))
 echo $count > "{state}"
 if [ $count -lt 3 ]; then
-  exit 1
+  echo "temporary failure" >&2\n  exit 1
 fi
 exit 0
 """)
