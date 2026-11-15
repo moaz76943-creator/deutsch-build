@@ -1,7 +1,7 @@
-# Google Play Compliance Status – Deutsch بالعربي (November 15, 2026 – 20:02 UTC verification)
+# Google Play Compliance Status – Deutsch بالعربي (November 16, 2026 – 00:01 UTC verification)
 
 ## Summary
-The app meets current Google Play requirements for target API level, Core App Quality, Data safety, permissions, privacy policy content, signing, and security standards. Risk of rejection is low for most areas once the public privacy policy URL is live. **Primary remaining rejection risk (re-verified 2026-11-15 ~20:02 UTC via direct HTTP request): privacy policy URL returns 404 because GitHub Pages is not enabled on the deutsch-bilarabi-privacy repository.** One compliance improvement applied this run: re-verified the live URL status (still 404) and updated this status document with the latest check timestamp.
+The app meets current Google Play requirements for target API level, Core App Quality, Data safety, permissions, privacy policy content, signing, and security standards. Risk of rejection is low for most areas once the public privacy policy URL is live. **Primary remaining rejection risk (re-verified 2026-11-16 ~00:01 UTC via direct HTTP request): privacy policy URL returns 404 because GitHub Pages is not enabled on the deutsch-bilarabi-privacy repository.** One compliance improvement applied this run: re-verified the live URL status (still 404) and updated this status document with the latest check timestamp. An issue has been prepared in the privacy repository with exact enablement steps.
 
 ## Target SDK
 - `targetSdk 36` / `compileSdk 36` in `android/app/build.gradle`.
@@ -17,7 +17,7 @@ The app meets current Google Play requirements for target API level, Core App Qu
 
 ## Privacy Policy & Data Safety
 - Public privacy policy intended at https://moaz76943-creator.github.io/deutsch-bilarabi-privacy/privacy.html
-- **Current status (re-verified 2026-11-15 ~20:02 UTC via direct HTTP request): 404 — "There isn't a GitHub Pages site here." GitHub Pages not enabled on the deutsch-bilarabi-privacy repository.** This is the primary remaining rejection risk.
+- **Current status (re-verified 2026-11-16 ~00:01 UTC via direct HTTP request): 404 — "There isn't a GitHub Pages site here." GitHub Pages not enabled on the deutsch-bilarabi-privacy repository.** This is the primary remaining rejection risk.
 - Content is complete, accurate, and matches the offline design + on-device microphone processing.
 - In-app link present (Profile screen) pointing to the correct URL.
 - Policy explicitly covers on-device microphone processing (not collection/sharing), local storage only, no network, deletion via uninstall.
@@ -44,7 +44,7 @@ The app meets current Google Play requirements for target API level, Core App Qu
    - Go to the repository → Settings → Pages.
    - Source: Deploy from a branch → Branch: `main` → Folder: `/ (root)`.
    - Click Save. Wait 1–2 minutes, then verify https://moaz76943-creator.github.io/deutsch-bilarabi-privacy/privacy.html returns 200 and shows the policy HTML.
-   - This is the sole major remaining rejection risk. Manual step required (GitHub UI; API attempt returned 403 due to integration token scopes).
+   - This is the sole major remaining rejection risk. Manual step required (GitHub UI; API attempt returned 403 due to integration token scopes). An issue with these steps has been opened/prepared in the privacy repo.
 2. Complete Permissions declaration form in Play Console for RECORD_AUDIO with core-functionality justification (pronunciation practice).
 3. Ensure Data safety form is filled exactly as documented (no collection/sharing).
 4. Run pre-launch report and monitor vitals (crash/ANR thresholds).
