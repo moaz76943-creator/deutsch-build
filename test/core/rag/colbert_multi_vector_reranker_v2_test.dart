@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/rag/colbert_multi_vector_reranker_v2.dart';
 
 void main() {

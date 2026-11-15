@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_app/core/routing/navigation_guard.dart';
 
 void main() {

@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../../lib/src/core/content/german_verbal_valence_topography_engine.dart';
 import '../../../lib/src/ui/bridges/vol_116_wave54_ui_bridge.dart';
 

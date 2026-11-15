@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/content/sovereign_sqlite_pack_builder.dart';
 
 void main() {

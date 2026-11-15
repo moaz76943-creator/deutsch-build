@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/release/open_source_sovereignty_deed_v4.dart';
 
 void main() {

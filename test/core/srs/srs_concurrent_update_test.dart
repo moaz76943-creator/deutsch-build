@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 class MockSrsStorage {
   int counter = 0;

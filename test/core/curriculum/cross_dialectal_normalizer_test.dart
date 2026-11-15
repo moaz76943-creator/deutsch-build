@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/core/curriculum/cross_dialectal_normalizer.dart';
 
 void main() {

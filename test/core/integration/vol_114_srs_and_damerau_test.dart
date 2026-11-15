@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/content/damerau_levenshtein_distance_matrix.dart';
 import 'package:deutsch_build/src/core/learning/srs_stability_governor.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_114_wave2_ui_bridge.dart';

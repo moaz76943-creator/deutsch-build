@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/core/voice_cloning/accent_reduction_feedback_matrix.dart';
 
 void main() {

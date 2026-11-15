@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/src/core/cache/bounded_context_lru.dart';
 import 'package:deutsch_bilarabi/src/core/semantic_search/vector_lru_cache_pager.dart';
 import 'package:deutsch_bilarabi/src/core/hardening/database/sqlite_wal_checkpoint_auto_governor.dart';

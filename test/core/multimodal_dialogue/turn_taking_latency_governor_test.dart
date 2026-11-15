@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/core/multimodal_dialogue/turn_taking_latency_governor.dart';
 
 void main() {

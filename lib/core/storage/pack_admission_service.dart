@@ -12,6 +12,30 @@ class PackAdmissionService {
   final StorageQuarantine quarantine;
   final DatabaseFactory dbFactory;
 
+  // T67 bounds: a content pack is a lexical database, never an archive.
+  // These caps reject corrupted or weaponized oversized payloads before they
+  // can displace a last-known-good pack or exhaust device storage.
+  static const int maxPackBytes = 256 * 1024 * 1024; // 256 MiB
+  static const int maxTableRows = 1000000; // per content table
+  static const int maxTotalRows = 5000000; // across all content tables
+  static const int busyTimeoutMs = 5000;
+
+  // Packs are admitted as already-decompressed SQLite; the zstd build-time
+  // compressor enforces this ratio so a bomb cannot reach this gate.
+  static const double maxDecompressionRatio = 100.0;
+
+  // Tables whose row counts are bounded at admission. Names are a compile-time
+  // allowlist, never caller input, so interpolation into SQL is safe here.
+  static const List<String> boundedTables = <String>[
+    'concepts',
+    'lexicon',
+    'senses',
+    'translations',
+    'examples',
+    'lexical_relations',
+    'grammar',
+  ];
+
   PackAdmissionService({
     required this.quarantine,
     required this.dbFactory,
@@ -46,6 +70,15 @@ class PackAdmissionService {
       final length = await stagedFile.length();
       if (length == 0) {
         debugPrint("فشل التحقق: الملف فارغ.");
+        return false;
+      }
+      if (length > maxPackBytes) {
+        debugPrint("فشل التحقق: حجم الحزمة يتجاوز الحد الأقصى.");
+        quarantine.isolateCorruptData(
+          id: stagedFile.path,
+          rawJson: '{"bytes": $length, "max": $maxPackBytes}',
+          reason: 'Pack exceeds maximum size bound',
+        );
         return false;
       }
 
@@ -109,6 +142,10 @@ class PackAdmissionService {
         ),
       );
 
+    // Bound every admission query so a locked or pathological database can
+    // never hold the install path open indefinitely.
+    await db.execute('PRAGMA busy_timeout = $busyTimeoutMs');
+
       final integrityCheck = await db.rawQuery('PRAGMA integrity_check');
       if (integrityCheck.isEmpty ||
           integrityCheck.first.values.first.toString().toLowerCase() != 'ok') {
@@ -157,6 +194,34 @@ class PackAdmissionService {
           id: path,
           rawJson: '{"tablesCount": "0"}',
           reason: 'No data tables found',
+        );
+        return false;
+      }
+
+      // T67 row-count bounds. A valid lexical pack is small; absurd counts
+      // mean a crafted or corrupted database and must not be activated.
+      var totalRows = 0;
+      for (final table in boundedTables) {
+        final countRows =
+            await db.rawQuery('SELECT COUNT(*) AS n FROM $table');
+        final count = Sqflite.firstIntValue(countRows) ?? 0;
+        if (count > maxTableRows) {
+          debugPrint("فشل التحقق: عدد صفوف الجدول $table يتجاوز الحد.");
+          quarantine.isolateCorruptData(
+            id: path,
+            rawJson: '{"table": "$table", "rows": $count}',
+            reason: 'Table exceeds row-count bound',
+          );
+          return false;
+        }
+        totalRows += count;
+      }
+      if (totalRows > maxTotalRows) {
+        debugPrint("فشل التحقق: إجمالي الصفوف يتجاوز الحد.");
+        quarantine.isolateCorruptData(
+          id: path,
+          rawJson: '{"totalRows": $totalRows, "max": $maxTotalRows}',
+          reason: 'Pack exceeds total row-count bound',
         );
         return false;
       }

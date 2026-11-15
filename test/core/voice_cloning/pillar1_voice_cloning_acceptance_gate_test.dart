@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/core/voice_cloning/pillar1_voice_cloning_acceptance_gate.dart';
 
 void main() {

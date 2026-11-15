@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/core/curriculum/pragmatic_register_matrix.dart';
 
 void main() {

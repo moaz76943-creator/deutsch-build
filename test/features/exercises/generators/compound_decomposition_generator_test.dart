@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/features/exercises/generators/compound_decomposition_generator.dart';
 
 void main() {

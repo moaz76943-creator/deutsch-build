@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/dialogue/grammatical_error_correction_engine.dart';
 
 void main() {

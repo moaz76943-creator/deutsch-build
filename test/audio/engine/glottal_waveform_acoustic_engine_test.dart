@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/audio/engine/glottal_waveform_acoustic_engine.dart';
 
 void main() {

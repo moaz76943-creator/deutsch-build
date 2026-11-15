@@ -1,7 +1,7 @@
-# Google Play Compliance Status – Deutsch بالعربي (November 14, 2026 – afternoon verification)
+# Google Play Compliance Status – Deutsch بالعربي (November 15, 2026 – 05:05 UTC verification)
 
 ## Summary
-The app meets current Google Play requirements for target API level, Core App Quality, Data safety, permissions, privacy policy content, signing, and security standards. Risk of rejection is low for most areas once the public privacy policy URL is live. **Primary remaining rejection risk (re-verified 2026-11-14 ~12:01 UTC via direct HTTP request): privacy policy URL returns 404 because GitHub Pages is not enabled on the deutsch-bilarabi-privacy repository.** One compliance improvement applied this run: re-verified the live URL status (still 404) and updated this status document with the latest check timestamp.
+The app meets current Google Play requirements for target API level, Core App Quality, Data safety, permissions, privacy policy content, signing, and security standards. Risk of rejection is low for most areas once the public privacy policy URL is live. **Primary remaining rejection risk (re-verified 2026-11-15 ~05:05 UTC via direct HTTP request): privacy policy URL returns 404 because GitHub Pages is not enabled on the deutsch-bilarabi-privacy repository.** One compliance improvement applied this run: re-verified the live URL status (still 404) and updated this status document with the latest check timestamp.
 
 ## Target SDK
 - `targetSdk 36` / `compileSdk 36` in `android/app/build.gradle`.
@@ -17,7 +17,7 @@ The app meets current Google Play requirements for target API level, Core App Qu
 
 ## Privacy Policy & Data Safety
 - Public privacy policy intended at https://moaz76943-creator.github.io/deutsch-bilarabi-privacy/privacy.html
-- **Current status (re-verified 2026-11-14 ~12:01 UTC via direct HTTP request): 404 — "There isn't a GitHub Pages site here." GitHub Pages not enabled on the deutsch-bilarabi-privacy repository.** This is the primary remaining rejection risk.
+- **Current status (re-verified 2026-11-15 ~05:05 UTC via direct HTTP request): 404 — "There isn't a GitHub Pages site here." GitHub Pages not enabled on the deutsch-bilarabi-privacy repository.** This is the primary remaining rejection risk.
 - Content is complete, accurate, and matches the offline design + on-device microphone processing.
 - In-app link present (Profile screen) pointing to the correct URL.
 - Policy explicitly covers on-device microphone processing (not collection/sharing), local storage only, no network, deletion via uninstall.

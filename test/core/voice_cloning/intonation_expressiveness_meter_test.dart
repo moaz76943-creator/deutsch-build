@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/voice_cloning/intonation_expressiveness_meter.dart';
 
 void main() {

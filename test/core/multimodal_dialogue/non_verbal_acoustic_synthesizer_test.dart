@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/core/multimodal_dialogue/non_verbal_acoustic_synthesizer.dart';
 
 void main() {

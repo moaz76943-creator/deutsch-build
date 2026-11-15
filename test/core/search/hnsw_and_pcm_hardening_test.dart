@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/src/core/semantic_search/hnsw_vector_indexer.dart';
 import 'package:deutsch_bilarabi/src/core/voice/synthesis/streaming_chunked_pcm_synthesis_pipe.dart';
 

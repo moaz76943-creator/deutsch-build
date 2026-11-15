@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_app/core/worker/persistent_cpu_worker.dart';
 
 void main() {

@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/performance/adaptive_thermal_battery_manager.dart';
 
 class MockTelemetrySource implements DeviceTelemetrySource {

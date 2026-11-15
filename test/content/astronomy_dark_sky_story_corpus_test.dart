@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/content/astronomy_dark_sky_story_corpus.dart';
 
 void main() {

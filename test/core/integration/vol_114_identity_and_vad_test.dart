@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/security/peer_identity_pinning_protocol.dart';
 import 'package:deutsch_build/src/core/voice/synthesis/offline_voice_activity_detector.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_114_wave3_ui_bridge.dart';

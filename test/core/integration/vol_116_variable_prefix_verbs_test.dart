@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_app/src/core/content/german_variable_prefix_verbs_engine.dart';
 import 'package:deutsch_app/src/ui/bridges/vol_116_wave58_ui_bridge.dart';
 

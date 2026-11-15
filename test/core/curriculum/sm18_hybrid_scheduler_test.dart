@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/core/curriculum/sm18_hybrid_scheduler.dart';
 
 void main() {

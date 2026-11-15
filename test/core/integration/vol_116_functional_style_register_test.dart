@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_build/src/core/content/german_functional_style_register_engine.dart';
 import 'package:deutsch_build/src/ui/bridges/vol_116_wave14_ui_bridge.dart';
 

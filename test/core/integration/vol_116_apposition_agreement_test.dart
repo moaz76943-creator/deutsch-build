@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../../lib/src/core/content/german_apposition_agreement_engine.dart';
 import '../../../lib/src/ui/bridges/vol_116_wave37_ui_bridge.dart';
 

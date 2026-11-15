@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../lib/src/core/semantic_search/semantic_drift_tracker.dart';
 
 void main() {
