@@ -252,6 +252,35 @@ def _display(path: Path) -> str:
         return str(path)
 
 
+PACK_ASSETS_DIR = REPO_ROOT / "assets/packs"
+
+def _check_pack_assets_are_policy_clean() -> list[str]:
+    """Fail closed if an excluded language ships as a pack asset.
+
+    assets/packs is not covered by the registry-synced stub directory
+    (assets/languages); without this guard an excluded language stub
+    (e.g. the removed he.json) could reappear silently.
+    """
+    problems: list[str] = []
+    if not PACK_ASSETS_DIR.is_dir():
+        return problems
+    for path in sorted(PACK_ASSETS_DIR.glob("*.json")):
+        if path.stem in EXCLUDED_IDS:
+            problems.append(f"excluded language shipped as pack asset: {path.name}")
+            continue
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            problems.append(f"unreadable pack asset: {path.name}")
+            continue
+        code = payload.get("languageCode")
+        if code in EXCLUDED_IDS:
+            problems.append(
+                f"excluded language in pack asset code: {path.name} ({code})"
+            )
+    return problems
+
+
 def _sync_pack_stubs(artifact: dict, write: bool) -> bool:
     """Keep the content-pack stub directory in lockstep with the registry.
 
@@ -324,6 +353,7 @@ def main(argv: list[str]) -> int:
         return 1
 
     problems = validate(profiles)
+    problems += _check_pack_assets_are_policy_clean()
     if problems:
         for problem in problems:
             print(f"FAIL: {problem}")
