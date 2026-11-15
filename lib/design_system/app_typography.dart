@@ -72,7 +72,7 @@ class AppTypography {
     );
   }
 
-  static TextStyle get body => const TextStyle(
+  static TextStyle get bodyFallback => const TextStyle(
         fontFamily: 'Cairo',
         fontFamilyFallback: [
           'NotoSansHebrew',
