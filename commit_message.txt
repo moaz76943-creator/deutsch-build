@@ -1,0 +1,4 @@
+Fix offline audio capability [skip ci]
+
+Extended the existing offline speech engine to handle the 100-language catalog through verified BCP-47 identities, local voice capabilities and safe playback lifecycles.
+Resolved the merge conflict in android_offline_voice_capability_probe.dart
