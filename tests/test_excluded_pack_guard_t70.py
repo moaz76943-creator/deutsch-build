@@ -39,6 +39,7 @@ def _load_registry_sync():
     import importlib.util
 
     spec = importlib.util.spec_from_file_location("registry_sync", TOOL)
+    assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
