@@ -34,49 +34,59 @@ class ContextualNewsScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: ListView.builder(
+              // Performance: bound pre-build area beyond viewport (default ~250 px).
+              // Moderate value balances smoothness vs memory on complex glass cards.
+              cacheExtent: 300,
+              addAutomaticKeepAlives: false,
               itemCount: articles.length,
               itemBuilder: (context, index) {
                 final article = articles[index];
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 14),
-                  child: AppBaseGlassCard(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: <Widget>[
-                            Expanded(
-                              child: Text(
-                                article['title']!,
-                                style: AppTypography.display.copyWith(color: const Color(0xFF38BDF8), fontSize: 16),
+                return RepaintBoundary(
+                  // Isolates repaint of each news card. Reduces overpaint
+                  // when sibling items update or during scroll on nested glass cards
+                  // with badges, colored text, and multi-line snippets.
+                  // Expected: fewer dropped frames on news list scroll.
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 14),
+                    child: AppBaseGlassCard(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              Expanded(
+                                child: Text(
+                                  article['title']!,
+                                  style: AppTypography.display.copyWith(color: const Color(0xFF38BDF8), fontSize: 16),
+                                ),
                               ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  article['level']!,
+                                  style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 11),
+                                ),
                               ),
-                              child: Text(
-                                article['level']!,
-                                style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 11),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          article['translation']!,
-                          style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          article['snippet']!,
-                          style: AppTypography.body.copyWith(color: Colors.white.withValues(alpha: 0.8), fontSize: 13),
-                        ),
-                      ],
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            article['translation']!,
+                            style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            article['snippet']!,
+                            style: AppTypography.body.copyWith(color: Colors.white.withValues(alpha: 0.8), fontSize: 13),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
