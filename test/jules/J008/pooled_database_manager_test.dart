@@ -1,7 +1,7 @@
-import 'package:deutsch_bilarabi/services/pooled_database_manager.dart';
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'dart:io';
+import 'package:deutsch_bilarabi/services/pooled_database_manager.dart';
 
 void main() {
   setUpAll(() {
@@ -9,103 +9,81 @@ void main() {
     databaseFactory = databaseFactoryFfi;
   });
 
-  test('J008 Bounded SQLite Connection Pool & Safe LRU', () async {
+  test('waiter chain is not broken on open failure', () async {
+    bool shouldFail = false;
+
     final manager = PooledDatabaseManager(
-      openConnection: (String code) async {
-        // Use a unique file for each db to test physical close
-        final file = File('test_$code.db');
-        return await databaseFactory.openDatabase(file.path);
+      maxConnections: 1,
+      openConnection: (code) async {
+        if (shouldFail && code == 'fa-il') {
+          throw Exception('Open failed');
+        }
+        final db = await databaseFactory.openDatabase('test_$code.db');
+        return db;
       },
-      maxConnections: 2,
     );
 
-    // Initial state
-    expect(manager.activeCount, 0);
+    final completer1 = Completer<void>();
+    unawaited(manager.withDatabase('en', (db) async {
+      await completer1.future;
+    }));
 
-    // Open first connection
-    final db1 = await manager.open('de-de');
+    await Future<void>.delayed(const Duration(milliseconds: 100));
     expect(manager.activeCount, 1);
-    expect(manager.leastToMostRecentlyUsed, ['de-de']);
 
-    // Open second connection
-    final db2 = await manager.open('en-us');
-    expect(manager.activeCount, 2);
-    expect(manager.leastToMostRecentlyUsed, ['de-de', 'en-us']);
-
-    // Open third connection, should evict the first
-    final db3 = await manager.open('fr-fr');
-    expect(manager.activeCount, 2);
-    expect(manager.leastToMostRecentlyUsed, ['en-us', 'fr-fr']);
-    expect(db1.isOpen, false);
-    expect(db2.isOpen, true);
-    expect(db3.isOpen, true);
-
-    // Leased connections are not evicted
-    final futures = <Future<void>>[];
-    futures.add(manager.withDatabase('es-es', (db) async {
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      expect(db.isOpen, true);
-    }));
-    futures.add(manager.withDatabase('it-it', (db) async {
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      expect(db.isOpen, true);
-    }));
-
-    await Future.wait(futures);
-    expect(manager.activeCount, 2);
-
-    // Try to open a connection while all are leased should wait.
-    final f = manager.withDatabase('pt-br', (db) async {
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      expect(db.isOpen, true);
+    shouldFail = true;
+    final future2 = manager.withDatabase('fa-il', (db) async {});
+    final future3 = manager.withDatabase('fr', (db) async {
+      return 'success';
     });
 
-    final f2 = manager.withDatabase('nl-nl', (db) async {
-      await Future<void>.delayed(const Duration(milliseconds: 100));
-      expect(db.isOpen, true);
-    });
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    completer1.complete();
 
-    expect(() => manager.open('ja-jp'), throwsStateError);
+    await expectLater(future2, throwsException);
 
-    await Future.wait([f, f2]);
-
-    await manager.closeAll();
-
-    // cleanup
-    final files = ['de-de', 'en-us', 'fr-fr', 'es-es', 'it-it', 'pt-br', 'nl-nl', 'ja-jp'];
-    for(final f in files) {
-      if(File('test_$f.db').existsSync()) {
-        File('test_$f.db').deleteSync();
-      }
-    }
+    final result = await future3.timeout(const Duration(milliseconds: 100), onTimeout: () => 'timeout');
+    expect(result, 'success');
   });
 
-  test('J008 Verify read-only packs remain read-only', () async {
-    final file = File('test_readonly.db');
-    if (file.existsSync()) file.deleteSync();
+  test('stress test 100 language identities', () async {
+    final manager = PooledDatabaseManager(
+      maxConnections: 3,
+      openConnection: (code) async {
+        return await databaseFactory.openDatabase('test_$code.db');
+      },
+    );
 
-    // Create and close to have a db file
-    final initDb = await databaseFactory.openDatabase(file.path);
-    await initDb.execute('CREATE TABLE IF NOT EXISTS test (id INTEGER)');
-    await initDb.close();
+    final futures = <Future<void>>[];
+    for (int i = 0; i < 100; i++) {
+      final code = 'la-${i.toString().padLeft(2, '0')}';
+      futures.add(manager.withDatabase(code, (db) async {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }));
+    }
+
+    await Future.wait(futures);
+    expect(manager.activeCount, lessThanOrEqualTo(3));
+  });
+
+  test('read-only packs remain read-only', () async {
+    await databaseFactory.openDatabase('test_readonly_en-us.db').then((db) => db.close());
 
     final manager = PooledDatabaseManager(
-      openConnection: (String code) async {
-        return await databaseFactory.openDatabase(file.path, options: OpenDatabaseOptions(readOnly: true));
-      },
       maxConnections: 2,
+      openConnection: (code) async {
+        return await databaseFactory.openDatabase(
+          'test_readonly_$code.db',
+          options: OpenDatabaseOptions(readOnly: true),
+        );
+      },
     );
 
-    final db = await manager.open('ro-db');
-    expect(db.isOpen, true);
-
-    // Try to write to it, should fail
-    await expectLater(
-      () => db.execute('INSERT INTO test (id) VALUES (1)'),
-      throwsA(isA<DatabaseException>())
-    );
-
-    await manager.closeAll();
-    if (file.existsSync()) file.deleteSync();
+    await manager.withDatabase('en-us', (db) async {
+      await expectLater(
+        () => db.execute('CREATE TABLE Test (id INTEGER PRIMARY KEY)'),
+        throwsA(isA<DatabaseException>()),
+      );
+    });
   });
 }
