@@ -248,8 +248,14 @@ class StorageMaintenanceService {
   static bool _isPartial(String path) {
     final lower = path.toLowerCase();
     return lower.endsWith('.tmp') ||
+        _basename(lower).contains('.tmp.') ||
         lower.endsWith('.part') ||
         lower.endsWith('.downloading');
+  }
+
+  static String _basename(String path) {
+    final slash = path.lastIndexOf('/');
+    return slash < 0 ? path : path.substring(slash + 1);
   }
 
   static Future<bool> _isRegularFile(String path) async {
