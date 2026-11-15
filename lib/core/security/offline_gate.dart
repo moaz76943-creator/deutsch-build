@@ -29,11 +29,14 @@ class OfflineGate {
     }
   }
 
-  static bool authorizeUserDownload(bool explicitConsent) {
+  static DownloadCapability? authorizeUserDownload(bool explicitConsent, [String contentId = 'unknown']) {
     if (explicitConsent) {
-      return true;
+      return DownloadCapability(
+        expiresAt: DateTime.now().millisecondsSinceEpoch + 5 * 60 * 1000,
+        contentId: contentId,
+      );
     }
-    return false;
+    return null;
   }
 
   static bool isTelemetryAllowed() => false;
