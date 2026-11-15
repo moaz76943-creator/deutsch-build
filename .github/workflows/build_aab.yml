@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   build-aab:
-    name: Build signed AAB 3.3.10+133
+    name: Build signed AAB (canonical pubspec version)
     if: github.event.repository.private == true && github.ref_name == 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -30,6 +30,27 @@ jobs:
 
       - name: Validate workflow regression contracts
         run: python3 -m unittest discover -s tests -p 'test_workflow_conflict_recovery.py' -v
+
+      - name: Read canonical app version from pubspec.yaml (T96)
+        id: version
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          VER="$(python3 - <<'PY'
+          import re
+          import sys
+
+          text = open("pubspec.yaml", encoding="utf-8").read()
+          match = re.search(r"^version:\s*(\S+)\s*$", text, re.MULTILINE)
+          if not match:
+              sys.exit("pubspec.yaml has no 'version:' line")
+          print(match.group(1))
+          PY
+          )"
+          NAME="${VER%%+*}"
+          BUILD="${VER##*+}"
+          printf 'name=%s\nnumber=%s\n' "$NAME" "$BUILD" >> "$GITHUB_OUTPUT"
+          echo "canonical version: ${NAME}+${BUILD}"
 
       - name: Validate signing secrets
         shell: bash
@@ -145,7 +166,7 @@ jobs:
           ORG_GRADLE_PROJECT_releaseStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ORG_GRADLE_PROJECT_releaseKeyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
           ORG_GRADLE_PROJECT_releaseKeyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: flutter build appbundle --release --obfuscate --split-debug-info=symbols/ --build-name=3.3.10 --build-number=133
+        run: flutter build appbundle --release --obfuscate --split-debug-info=symbols/ --build-name="${{ steps.version.outputs.name }}" --build-number="${{ steps.version.outputs.number }}"
 
       - name: Verify output and record SHA-256
         id: release
@@ -174,7 +195,7 @@ jobs:
           {
             echo "### Signed Android App Bundle"
             echo
-            echo "- Version: \`3.3.10+133\`"
+            echo "- Version: \`${{ steps.version.outputs.name }}+${{ steps.version.outputs.number }}\`"
             echo "- File: \`app-release.aab\`"
             echo "- Size: \`${AAB_SIZE_BYTES}\` bytes"
             echo "- SHA-256: \`${AAB_SHA256}\`"
@@ -186,13 +207,40 @@ jobs:
           printf 'aab_sha256=%s\n' "$AAB_SHA256" >> "$GITHUB_OUTPUT"
           echo "AAB SHA-256: $AAB_SHA256"
 
+      - name: Record build provenance (T94)
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 tools/polyglot/build_provenance.py --write
+          python3 tools/polyglot/build_provenance.py --check
+
+      - name: Bind release AAB to exact source commit (T96)
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 tools/polyglot/release_traceability.py --write \
+            --artifact build/app/outputs/bundle/release/app-release.aab \
+            --kind aab \
+            --build-name "${{ steps.version.outputs.name }}" \
+            --build-number "${{ steps.version.outputs.number }}" \
+            --output release-metadata/release_traceability.json
+          python3 tools/polyglot/release_traceability.py --check \
+            --artifact build/app/outputs/bundle/release/app-release.aab \
+            --record release-metadata/release_traceability.json
+          {
+            echo "- Source commit: \`$(git rev-parse HEAD)\`"
+            echo "- Traceability record: \`release-metadata/release_traceability.json\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload signed AAB artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: deutsch-bilarabi-3.3.10-133-aab
+          name: deutsch-bilarabi-${{ steps.version.outputs.name }}-${{ steps.version.outputs.number }}-aab
           path: |
             build/app/outputs/bundle/release/app-release.aab
             release-metadata/SHA256SUMS.txt
+            release-metadata/release_traceability.json
+            assets/registry/build_provenance.json
           if-no-files-found: error
           retention-days: 7
           compression-level: 0
@@ -200,7 +248,7 @@ jobs:
       - name: Upload debug symbols artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: deutsch-bilarabi-3.3.10-133-symbols
+          name: deutsch-bilarabi-${{ steps.version.outputs.name }}-${{ steps.version.outputs.number }}-symbols
           path: |
             symbols/
             release-metadata/SHA256SUMS.txt

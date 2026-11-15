@@ -64,10 +64,26 @@ jobs:
           test -s deutsch-app.apk
           sha256sum deutsch-app.apk > deutsch-app.apk.sha256
           sha256sum --check deutsch-app.apk.sha256
+      - name: Record build provenance (T94)
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 tools/polyglot/build_provenance.py --write
+          python3 tools/polyglot/build_provenance.py --check
+      - name: Bind release APK to exact source commit (T96)
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 tools/polyglot/release_traceability.py --write \
+            --artifact deutsch-app.apk --kind apk \
+            --output release-metadata/release_traceability.json
+          python3 tools/polyglot/release_traceability.py --check \
+            --artifact deutsch-app.apk \
+            --record release-metadata/release_traceability.json
       - name: Publish Direct APK Release
         uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1
         with:
-          artifacts: "deutsch-app.apk,deutsch-app.apk.sha256"
+          artifacts: "deutsch-app.apk,deutsch-app.apk.sha256,release-metadata/release_traceability.json,assets/registry/build_provenance.json"
           tag: "latest"
           allowUpdates: true
           makeLatest: true
