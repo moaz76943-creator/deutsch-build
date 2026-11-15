@@ -23,7 +23,9 @@ CI/merge) · **IN PROGRESS** · **BLOCKED** (with the real blocker) · **QUEUED*
 |---|---|---|---|
 | 3 | Make the whole Dart suite compilable: 511 files imported the undeclared `package:test`. Swapped to the SDK-provided `package:flutter_test` (0 remaining occurrences) | merged to `main` as `a8dfd7788` via PR #1180 | MERGED |
 | 4 | History-preserving import of the content factory under `content-factory/` (877 files, two-parent merge) + provenance record | merged to `main` as `ab207624e` via PR #1181 | MERGED |
-| 5 | Regenerate the secondary catalogs (`master_100_languages_spec.json`, `assets/lang_data/catalog.json`, `lib/core/i18n/language_registry.dart`) from the canonical registry | PR #1183 `chore/regenerate-secondary-catalogs` @ `4754fba83` (base `main` @ `2b77cc218`) | OPEN — CI rollup: 2 SUCCESS / 12 path-filtered SKIPPED / 0 FAILURE; merge awaits exact-head required checks + owner authorization |
+| 5 | Regenerate the secondary catalogs (`master_100_languages_spec.json`, `assets/lang_data/catalog.json`, `lib/core/i18n/language_registry.dart`) from the canonical registry | merged to `main` as `7d0de7dd0` via PR #1183 | MERGED |
+| 3b | Absorb content-factory `standards/` (directed_pairs, lexical, morphology) + `tools/factory_extensions/directed_translation_scale/` byte-identical | merged to `main` as `aefd1b989` via PR #1184 (base `main` @ `7d0de7dd0`; progress-log conflict resolved by merge, no force-push) | MERGED |
+| 6 | T40: machine-readable readiness report (`assets/registry/readiness_report.json`) separating registration from content-complete and production-ready status; content-complete reported as not-derivable, never inferred from registration; `--check` now fail-closed on report drift | PR #1185 `chore/registry-readiness-report` (this branch; merge of `main` @ `aefd1b989`, tracked `.pyc`/`__pycache__` artifacts purged + `.gitignore`d) | OPEN — awaiting CI/merge |
 
 ## Verified facts (not claims)
 

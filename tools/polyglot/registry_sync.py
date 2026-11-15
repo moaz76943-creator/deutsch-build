@@ -13,7 +13,13 @@ executable source. This tool mirrors it into a machine-readable JSON artifact
 
 Usage:
     python3 tools/polyglot/registry_sync.py --check   # verify, exit 1 on drift/policy breach
-    python3 tools/polyglot/registry_sync.py --write   # regenerate the JSON artifact
+    python3 tools/polyglot/registry_sync.py --write   # regenerate the JSON artifact + readiness report
+    python3 tools/polyglot/registry_sync.py --report  # print the readiness report summary
+
+The readiness report (assets/registry/readiness_report.json) reports
+registration, content completeness and production readiness as strictly
+separate sections; content completeness is not derivable from the registry
+and is reported as such rather than inferred from registration.
 """
 
 from __future__ import annotations
@@ -28,9 +34,11 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DART_CATALOG = REPO_ROOT / "lib/core/i18n/canonical_language_catalog.dart"
 JSON_REGISTRY = REPO_ROOT / "assets/registry/languages_100.json"
+READINESS_REPORT = REPO_ROOT / "assets/registry/readiness_report.json"
 
 EXPECTED_COUNT = 100
 EXCLUDED_IDS = {"he", "iw"}
+READINESS_STATES = ("registered", "sourceApproved", "productionReady")
 ALLOWED_SCRIPTS = {
     "Latn", "Arab", "Hebr", "Cyrl", "Grek", "Hans", "Hant", "Jpan", "Kore",
     "Deva", "Beng", "Taml", "Telu", "Mlym", "Gujr", "Guru", "Knda", "Sinh",
@@ -127,7 +135,7 @@ def validate(profiles: dict[str, dict]) -> list[str]:
             problems.append(f"{key}: Hebrew script is only accepted for Yiddish (yi)")
         if script == "Arab" and profile.get("nativeName", "").strip() == "עברית":
             problems.append(f"{key}: detected Hebrew text in an Arabic-script slot")
-        if profile.get("readiness") not in {"registered", "sourceApproved", "productionReady"}:
+        if profile.get("readiness") not in READINESS_STATES:
             problems.append(f"{key}: invalid readiness '{profile.get('readiness')}'")
 
     return problems
@@ -180,6 +188,68 @@ def build_artifact(profiles: dict[str, dict]) -> dict:
         "value": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
     }
     return payload
+
+
+def build_readiness_report(artifact: dict) -> dict:
+    """Derive the registration-vs-content-vs-production readiness report.
+
+    Registration, content completeness and production readiness are reported
+    as separate sections and are never inferred from one another:
+
+    * registration reflects presence in the canonical registry;
+    * content completeness is NOT derivable from the registry (it needs
+      pack-level rights/provenance/content evidence), so the report records
+      it as not derivable rather than guessing;
+    * production readiness reflects only an explicit readiness field.
+    """
+    by_state: dict[str, list[str]] = {state: [] for state in READINESS_STATES}
+    for language in artifact["languages"]:
+        by_state[language["readiness"]].append(language["id"])
+    for state in READINESS_STATES:
+        by_state[state] = sorted(by_state[state])
+
+    return {
+        "schemaVersion": 1,
+        "reportId": "polyglot-registry-readiness",
+        "derivedFrom": "lib/core/i18n/canonical_language_catalog.dart",
+        "registration": {
+            "registeredLanguageCount": artifact["languageCount"],
+            "expectedLanguageCount": EXPECTED_COUNT,
+            "excludedLanguageIds": sorted(EXCLUDED_IDS),
+            "languages": sorted(language["id"] for language in artifact["languages"]),
+        },
+        "contentComplete": {
+            "derived": False,
+            "reason": (
+                "content completeness requires pack-level rights/provenance/"
+                "content evidence and is not tracked by the canonical "
+                "registry; it must not be inferred from registration"
+            ),
+            "languages": [],
+        },
+        "productionReady": {
+            "derived": True,
+            "count": len(by_state["productionReady"]),
+            "languages": by_state["productionReady"],
+        },
+        "sourceApproved": {
+            "derived": True,
+            "count": len(by_state["sourceApproved"]),
+            "languages": by_state["sourceApproved"],
+        },
+        "readinessCounts": {state: len(by_state[state]) for state in READINESS_STATES},
+    }
+
+
+def _report_serialized(report: dict) -> str:
+    return json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+
+
+def _display(path: Path) -> str:
+    try:
+        return str(path.relative_to(REPO_ROOT))
+    except ValueError:
+        return str(path)
 
 
 def _sync_pack_stubs(artifact: dict, write: bool) -> bool:
@@ -242,8 +312,9 @@ def _sync_pack_stubs(artifact: dict, write: bool) -> bool:
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--check", action="store_true", help="verify registry + artifact")
-    group.add_argument("--write", action="store_true", help="regenerate the JSON artifact")
+    group.add_argument("--check", action="store_true", help="verify registry + artifact + readiness report")
+    group.add_argument("--write", action="store_true", help="regenerate the JSON artifact + readiness report")
+    group.add_argument("--report", action="store_true", help="print the readiness report summary (no writes)")
     args = parser.parse_args(argv)
 
     try:
@@ -260,20 +331,48 @@ def main(argv: list[str]) -> int:
 
     artifact = build_artifact(profiles)
     serialized = json.dumps(artifact, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    report = build_readiness_report(artifact)
+    report_serialized = _report_serialized(report)
+
+    if args.report:
+        counts = report["readinessCounts"]
+        print(
+            f"registered={report['registration']['registeredLanguageCount']}"
+            f" (expected {report['registration']['expectedLanguageCount']})"
+        )
+        for state in READINESS_STATES:
+            print(f"readiness:{state}={counts[state]}")
+        print("contentComplete=not-derivable (pack-level rights/provenance evidence required)")
+        return 0
 
     if args.write:
         JSON_REGISTRY.parent.mkdir(parents=True, exist_ok=True)
         JSON_REGISTRY.write_text(serialized, encoding="utf-8")
-        print(f"WROTE {JSON_REGISTRY.relative_to(REPO_ROOT)} ({artifact['languageCount']} languages)")
+        READINESS_REPORT.write_text(report_serialized, encoding="utf-8")
+        print(f"WROTE {_display(JSON_REGISTRY)} ({artifact['languageCount']} languages)")
+        print(f"WROTE {_display(READINESS_REPORT)}")
         return 0 if _sync_pack_stubs(artifact, write=True) else 1
 
     if not JSON_REGISTRY.exists():
-        print(f"FAIL: missing generated artifact {JSON_REGISTRY.relative_to(REPO_ROOT)}")
+        print(f"FAIL: missing generated artifact {_display(JSON_REGISTRY)}")
         return 1
     if JSON_REGISTRY.read_text(encoding="utf-8") != serialized:
         print(
             "FAIL: "
-            f"{JSON_REGISTRY.relative_to(REPO_ROOT)} is out of sync with the Dart catalog;"
+            f"{_display(JSON_REGISTRY)} is out of sync with the Dart catalog;"
+            " run python3 tools/polyglot/registry_sync.py --write"
+        )
+        return 1
+    if not READINESS_REPORT.exists():
+        print(
+            f"FAIL: missing readiness report {_display(READINESS_REPORT)};"
+            " run python3 tools/polyglot/registry_sync.py --write"
+        )
+        return 1
+    if READINESS_REPORT.read_text(encoding="utf-8") != report_serialized:
+        print(
+            "FAIL: "
+            f"{_display(READINESS_REPORT)} is out of sync with the Dart catalog;"
             " run python3 tools/polyglot/registry_sync.py --write"
         )
         return 1
