@@ -1,11 +1,4 @@
-import 'package:sqflite/sqflite.dart' as sqflite;
-import 'package:sqflite_common/sqlite_api.dart'
-    show
-        ConflictAlgorithm,
-        Database,
-        DatabaseExecutor,
-        DatabaseFactory,
-        OpenDatabaseOptions;
+import 'package:sqflite/sqflite.dart';
 
 import 'domain/gamification_clock_integrity_source.dart';
 import 'domain/gamification_models.dart';
@@ -28,7 +21,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
         const UnavailableGamificationClockIntegritySource(),
   }) =>
       openWithFactory(
-        sqflite.databaseFactory,
+        databaseFactory,
         databasePath,
         clockIntegritySource: clockIntegritySource,
       );
@@ -127,9 +120,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
     if (safeXp == 0 && safeStreak == 0) return false;
 
     final safeReviewAt = lastReviewAtUtc?.toUtc();
-    final safeOffset = timezoneOffsetMinutes == null
-        ? null
-        : timezoneOffsetMinutes.clamp(-840, 840).toInt();
+    final safeOffset = timezoneOffsetMinutes?.clamp(-840, 840).toInt();
     final localDay = safeReviewAt != null && safeOffset != null
         ? _dayKey(safeReviewAt, safeOffset)
         : null;
@@ -306,7 +297,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
   @override
   Future<GamificationSnapshot> loadSnapshot() async {
     if (_closed) {
-      return GamificationSnapshot(
+      return const GamificationSnapshot(
         profile: GamificationProfile(),
         unlocked: <UnlockedMilestone>[],
         badges: GamificationMilestones.defaults,
@@ -341,7 +332,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
       where: 'id = 1',
       limit: 1,
     );
-    if (rows.isEmpty) return GamificationProfile();
+    if (rows.isEmpty) return const GamificationProfile();
     final row = rows.first;
 
     int safeInt(String key, {int max = 100000000}) {
