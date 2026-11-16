@@ -1,5 +1,23 @@
 # Performance Improvements
 
+## ImageCache Further Tuning (2026-11-16)
+
+**Change:** Reduced Flutter `ImageCache` from 150 items / 24 MB to 120 items / 18 MB in `lib/main.dart`.
+
+**Before:** 150 / 24 MB.
+
+**After:** 120 / 18 MB.
+
+**Expected measurable impact:**
+- Additional ~20% lower peak image memory footprint on mid-range devices during extended vocabulary/image sessions.
+- Fewer GC pauses and modest battery savings (complements prior L1 and ImageCache tunings).
+- Still sufficient for typical offline packs and screen densities; no perceived quality impact.
+- No security regression (identity checks, persistence, R8, offline policy, baseline profiles unchanged).
+
+**Best practices applied:** Caching limits with size awareness, memory pressure handling (`didHaveMemoryPressure` clears cache + L1), efficient UI (ListView.builder + RepaintBoundary + cacheExtent already present), baseline profiles, R8.
+
+**Verification:** Monitor via Android Studio Profiler or Flutter DevTools Memory view during extended sessions. Startup time unaffected.
+
 ## L1 Vocabulary Cache Further Tuning (2026-11-15)
 
 **Change:** Reduced `L1VocabularyCache` maxCapacity from 80 to 60 and maxMemoryBytes from 8 MB to 6 MB in `lib/core/l1_cache.dart`.
