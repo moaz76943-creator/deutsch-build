@@ -13,7 +13,73 @@ class UniversalPolyglotHubScreen extends StatefulWidget {
 
 class _UniversalPolyglotHubScreenState
     extends State<UniversalPolyglotHubScreen> {
-  final String _activeLocale = 'ar';
+  String _interfaceLang = 'ar';
+  String _sourceLang = 'en';
+  String _targetLang = 'de';
+
+  bool _isTargetReady = false;
+  bool _isResolving = false;
+  int _resolveVersion = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolveCapability();
+  }
+
+  Future<void> _resolveCapability() async {
+    final currentVersion = ++_resolveVersion;
+    setState(() {
+      _isResolving = true;
+      _isTargetReady = false;
+    });
+
+    bool ready = false;
+    try {
+      ready = await LanguagePackManager.verifyAndMountOfflinePack(_targetLang);
+    } catch (_) {
+      ready = false;
+    }
+
+    if (mounted && _resolveVersion == currentVersion) {
+      setState(() {
+        _isResolving = false;
+        _isTargetReady = ready;
+      });
+    }
+  }
+
+  Widget _buildLanguageSelector(String label, String value, ValueChanged<String?> onChanged) {
+    // combine BCP47 locales and raw language codes, making sure they are unique
+    final allSupported = <String>{
+      ...LanguagePackManager.supportedBcp47Locales,
+      ...LanguagePackManager.supportedLanguages,
+    }.toList()..sort();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        DropdownButton<String>(
+          value: allSupported.contains(value) ? value : null,
+          isExpanded: true,
+          items: allSupported.map((code) {
+            return DropdownMenuItem<String>(
+              value: code,
+              child: Directionality(
+                textDirection: LanguagePackManager.isRtlLanguage(code)
+                    ? TextDirection.rtl
+                    : TextDirection.ltr,
+                child: Text(LanguagePackManager.getLanguageName(code)),
+              ),
+            );
+          }).toList(),
+          onChanged: onChanged,
+        ),
+      ],
+    );
+  }
 
   final List<CrossLinguisticCognate> _cognates = const [
     CrossLinguisticCognate(
@@ -70,19 +136,87 @@ class _UniversalPolyglotHubScreenState
   @override
   Widget build(BuildContext context) {
     final double sm2Factor =
-        PolyglotIntelligenceEngine.getMorphologicalMultiplier(_activeLocale);
+        PolyglotIntelligenceEngine.getMorphologicalMultiplier(_interfaceLang);
     final String languageName =
-        LanguagePackManager.getLanguageName(_activeLocale);
+        LanguagePackManager.getLanguageName(_interfaceLang);
+
+    final allSupported = <String>{
+      ...LanguagePackManager.supportedBcp47Locales,
+      ...LanguagePackManager.supportedLanguages,
+    }.toList()..sort();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('المحور اللغوي الشامل (Wave 04)'),
         centerTitle: true,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // 1. رادار الكلمات المتشابهة والأصدقاء المزيفون
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildLanguageSelector('لغة الواجهة:', _interfaceLang, (val) {
+                    if (val != null) {
+                      setState(() => _interfaceLang = val);
+                      _resolveCapability();
+                    }
+                  }),
+                  const SizedBox(height: 16),
+                  _buildLanguageSelector('اللغة المصدر:', _sourceLang, (val) {
+                    if (val != null) {
+                      setState(() => _sourceLang = val);
+                      _resolveCapability();
+                    }
+                  }),
+                  const SizedBox(height: 16),
+                  _buildLanguageSelector('اللغة الهدف:', _targetLang, (val) {
+                    if (val != null) {
+                      setState(() => _targetLang = val);
+                      _resolveCapability();
+                    }
+                  }),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      if (_isResolving)
+                        const CircularProgressIndicator()
+                      else if (_isTargetReady)
+                        const Icon(Icons.check_circle_outline, color: Colors.green)
+                      else
+                        const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(_isResolving
+                            ? 'جاري التحقق...'
+                            : (_isTargetReady ? 'الحزمة جاهزة' : 'الحزمة غير متوفرة')),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _isTargetReady ? () {} : null,
+                    child: const Text('فتح القاموس'),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: _isTargetReady ? () {} : null,
+                    child: const Text('بدء الدروس'),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // 1. رادار الكلمات المتشابهة والأصدقاء المزيفون
           _buildSectionCard(
             title: '1. رادار الكلمات المشتركة (INNOV-W04-01)',
             subtitle:
@@ -176,6 +310,26 @@ class _UniversalPolyglotHubScreenState
                 const Text(
                     '• اللغات الاشتقاقية والسامية (العربية/الألمانية): تباعد زمني موسع لتثبيت القواعد والجذور.'),
               ],
+            ),
+          ),
+                ],
+              ),
+            ),
+          ),
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final code = allSupported[index];
+                return ListTile(
+                  title: Directionality(
+                    textDirection: LanguagePackManager.isRtlLanguage(code)
+                        ? TextDirection.rtl
+                        : TextDirection.ltr,
+                    child: Text(LanguagePackManager.getLanguageName(code)),
+                  ),
+                );
+              },
+              childCount: allSupported.length,
             ),
           ),
         ],
