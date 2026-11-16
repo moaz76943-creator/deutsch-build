@@ -59,7 +59,7 @@ class ResilientMediaPlaceholder extends StatelessWidget implements OptionalConte
                 child: Text(
                   fallbackText,
                   textAlign: TextAlign.center,
-                  style: AppTypography.caption.copyWith(
+                  style: AppTypography.label.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                     height: bcp47LanguageCode != null
                         ? LanguageBiDiHelper.getLineHeight(bcp47LanguageCode!)
