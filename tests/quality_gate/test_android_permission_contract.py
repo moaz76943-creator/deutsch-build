@@ -29,10 +29,13 @@ def _release_manifest_paths() -> tuple[Path, ...]:
 
 
 def _declared_permissions(path: Path) -> set[str]:
+    TOOLS_NS = "http://schemas.android.com/tools"
+    TOOLS_NODE = f"{{{TOOLS_NS}}}node"
     return {
         node.attrib[ANDROID_NAME]
         for node in _manifest_root(path).findall("uses-permission")
         if ANDROID_NAME in node.attrib
+        and node.attrib.get(TOOLS_NODE) != "remove"
     }
 
 

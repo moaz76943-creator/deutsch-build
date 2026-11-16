@@ -138,8 +138,8 @@ def test_android_manifest_and_root_window_are_fail_closed():
         name for name, mode in main_permissions.items() if mode != "remove"
     }
     assert granted == {"android.permission.RECORD_AUDIO"}
-    assert "android.permission.INTERNET" not in main_permissions
-    assert "android.permission.POST_NOTIFICATIONS" not in main_permissions
+    assert main_permissions.get("android.permission.INTERNET") == "remove"
+    assert main_permissions.get("android.permission.POST_NOTIFICATIONS") is None
     assert "android.permission.INTERNET" not in release_permissions
 
     notification_node = release_permissions.get("android.permission.POST_NOTIFICATIONS")
