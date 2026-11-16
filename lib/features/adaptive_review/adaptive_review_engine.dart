@@ -5,12 +5,12 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:deutsch_bilarabi/services/play_integrity_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Adaptive Review Engine for Low-Stress Cognitive Load Sessions.
+/// Adaptive Review Engine – Improved FSRS-inspired scheduler.
 ///
 /// Personalizes spaced review based on error patterns (gender, plurals, pronunciation).
-/// Implements a simplified FSRS-inspired scheduler for better long-term retention.
-/// Advanced modes (detailed analytics, hard packs) are gated by Play Integrity (offline-safe).
-/// Sensitive metrics and card schedules stored encrypted via FlutterSecureStorage.
+/// Uses refined stability/difficulty/retrievability formulas for better long-term retention.
+/// Advanced modes gated by Play Integrity (offline-safe; token requires network which is removed by design).
+/// All sensitive card schedules and metrics stored encrypted via FlutterSecureStorage.
 /// Offline-first; no network required. Client-side gating is best-effort only.
 class AdaptiveReviewEngine {
   static final AdaptiveReviewEngine instance = AdaptiveReviewEngine._();
@@ -22,7 +22,13 @@ class AdaptiveReviewEngine {
 
   static const _errorPatternsKey = 'adaptive_error_patterns_v1';
   static const _sessionMetricsKey = 'adaptive_session_metrics_v1';
-  static const _cardSchedulesKey = 'adaptive_card_schedules_v1';
+  static const _cardSchedulesKey = 'adaptive_card_schedules_v2'; // version bump for new fields
+
+  // FSRS-inspired defaults (desired retention ~0.9)
+  static const double _desiredRetention = 0.9;
+  static const double _maxIntervalDays = 365.0;
+  static const List<double> _learningStepsMinutes = [1.0, 10.0];
+  static const List<double> _relearningStepsMinutes = [10.0];
 
   Map<String, dynamic> _safeJsonDecode(String? raw) {
     if (raw == null || raw.trim().isEmpty) return {};
@@ -38,12 +44,12 @@ class AdaptiveReviewEngine {
   }
 
   /// Check if advanced adaptive features are available.
-  /// Offline-safe: returns false when no integrity token (expected in release).
+  /// Offline-safe: returns false / falls back when no integrity token (expected).
   Future<bool> isAdvancedModeAvailable() async {
     final token = await PlayIntegrityService.requestIntegrityToken();
     if (token == null || token.isEmpty) {
       debugPrint('[AdaptiveReview] Integrity token unavailable – advanced mode gated (offline design).');
-      return PlayIntegrityService.isLikelyGenuineDevice(); // Weak local fallback.
+      return PlayIntegrityService.isLikelyGenuineDevice();
     }
     // Production: send token to backend for verification before enabling advanced.
     debugPrint('[AdaptiveReview] Integrity token obtained (len=${token.length}).');
@@ -75,54 +81,104 @@ class AdaptiveReviewEngine {
     return sorted.take(limit).map((e) => e.key.toString()).toList();
   }
 
-  /// Simplified FSRS-like schedule for a card.
-  /// Stores next review date and stability in encrypted storage.
+  /// Calculate current retrievability (probability of recall).
+  double _retrievability(double stability, double elapsedDays) {
+    if (stability <= 0) return 0.0;
+    // Simplified FSRS retrievability formula
+    final decay = -0.5; // typical FSRS decay parameter
+    final factor = 0.9; // related to desired retention
+    return pow(1 + factor * elapsedDays / stability, decay).toDouble().clamp(0.0, 1.0);
+  }
+
+  /// Improved FSRS-inspired schedule for a card.
+  /// Rating: true = Good/Easy (recalled), false = Again (forgot).
+  /// Stores next review, stability, difficulty, lapses in encrypted storage.
   Future<void> scheduleCard(String cardId, {required bool recalled, double difficulty = 0.5}) async {
     if (cardId.trim().isEmpty) return;
     final raw = await _secureStorage.read(key: _cardSchedulesKey);
     final Map<String, dynamic> schedules = _safeJsonDecode(raw);
 
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final nowMs = DateTime.now().millisecondsSinceEpoch;
     final current = schedules[cardId] as Map<String, dynamic>? ?? {
       'stability': 1.0,
-      'difficulty': difficulty,
-      'lastReview': now,
-      'intervalDays': 1,
+      'difficulty': difficulty.clamp(0.0, 1.0),
+      'lastReview': nowMs,
+      'intervalDays': 0.0,
+      'lapses': 0,
+      'state': 'learning', // learning | review | relearning
     };
 
     double stability = (current['stability'] as num?)?.toDouble() ?? 1.0;
+    double cardDifficulty = (current['difficulty'] as num?)?.toDouble() ?? difficulty;
+    int lapses = (current['lapses'] as int?) ?? 0;
+    String state = current['state'] as String? ?? 'learning';
+    final lastReviewMs = (current['lastReview'] as num?)?.toInt() ?? nowMs;
+    final elapsedDays = (nowMs - lastReviewMs) / 86400000.0;
+
+    // Update difficulty based on performance (simple gradient)
     if (recalled) {
-      stability *= 1.5 + (1 - difficulty); // Increase stability on success
+      cardDifficulty = (cardDifficulty - 0.05).clamp(0.1, 1.0);
     } else {
-      stability = max(0.5, stability * 0.5); // Reset on failure
+      cardDifficulty = (cardDifficulty + 0.15).clamp(0.1, 1.0);
+      lapses++;
     }
 
-    final intervalDays = max(1, (stability * 2).round());
+    // Stability update (simplified FSRS-style)
+    if (recalled) {
+      final retriev = _retrievability(stability, elapsedDays);
+      final growth = 1.0 + (1.0 - cardDifficulty) * (1.0 - retriev) * 2.0;
+      stability = (stability * growth).clamp(0.5, 36500.0);
+      state = 'review';
+    } else {
+      stability = max(0.3, stability * 0.4);
+      state = 'relearning';
+    }
+
+    // Next interval with light fuzzing for natural spacing
+    double intervalDays;
+    if (state == 'learning') {
+      intervalDays = _learningStepsMinutes.first / 1440.0; // minutes to days
+    } else if (state == 'relearning') {
+      intervalDays = _relearningStepsMinutes.first / 1440.0;
+    } else {
+      // Review interval based on stability and desired retention
+      intervalDays = stability * log(_desiredRetention) / log(0.9);
+      intervalDays = intervalDays.clamp(1.0, _maxIntervalDays);
+      // Light fuzz ±5%
+      final fuzz = 1.0 + (Random().nextDouble() - 0.5) * 0.1;
+      intervalDays *= fuzz;
+    }
+
     schedules[cardId] = {
       'stability': stability,
-      'difficulty': difficulty,
-      'lastReview': now,
-      'nextReview': now + (intervalDays * 86400000),
+      'difficulty': cardDifficulty,
+      'lastReview': nowMs,
+      'nextReview': nowMs + (intervalDays * 86400000).round(),
       'intervalDays': intervalDays,
+      'lapses': lapses,
+      'state': state,
+      'retrievability': _retrievability(stability, 0),
     };
 
     await _secureStorage.write(key: _cardSchedulesKey, value: jsonEncode(schedules));
   }
 
-  /// Get cards due for review (basic).
+  /// Get cards due for review, sorted by overdue amount.
   Future<List<String>> getDueCards({int limit = 10}) async {
     final raw = await _secureStorage.read(key: _cardSchedulesKey);
     final Map<String, dynamic> schedules = _safeJsonDecode(raw);
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    final due = <String>[];
+    final due = <MapEntry<String, int>>[];
     schedules.forEach((id, data) {
       if (data is! Map) return;
       final next = (data['nextReview'] as num?)?.toInt() ?? 0;
-      if (next <= now) due.add(id.toString());
+      if (next <= now) {
+        due.add(MapEntry(id.toString(), now - next)); // overdue ms
+      }
     });
-    due.sort();
-    return due.take(limit).toList();
+    due.sort((a, b) => b.value.compareTo(a.value)); // most overdue first
+    return due.take(limit).map((e) => e.key).toList();
   }
 
   /// Start a low-stress session: fewer items, focus on weak areas, calm pacing.
@@ -145,5 +201,17 @@ class AdaptiveReviewEngine {
   Future<void> saveSessionMetrics(Map<String, dynamic> metrics) async {
     final encoded = jsonEncode(metrics);
     await _secureStorage.write(key: _sessionMetricsKey, value: encoded);
+  }
+
+  /// Optional: get current retrievability for a card (for UI analytics).
+  Future<double?> getCardRetrievability(String cardId) async {
+    final raw = await _secureStorage.read(key: _cardSchedulesKey);
+    final schedules = _safeJsonDecode(raw);
+    final data = schedules[cardId];
+    if (data is! Map) return null;
+    final stability = (data['stability'] as num?)?.toDouble() ?? 1.0;
+    final last = (data['lastReview'] as num?)?.toInt() ?? 0;
+    final elapsed = (DateTime.now().millisecondsSinceEpoch - last) / 86400000.0;
+    return _retrievability(stability, elapsed);
   }
 }
