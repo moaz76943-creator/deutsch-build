@@ -3,6 +3,8 @@ import 'dart:convert';
 import '../models/learner.dart';
 import '../models/diagnostic_placement.dart';
 import '../core/srs_facets.dart';
+import '../core/storage/local_db/learner_state_database.dart';
+import 'learner_state_migration.dart';
 import 'preferences_service.dart';
 
 enum LearnerPersistenceFailureCode { payloadTooLarge, writeFailed }
@@ -32,13 +34,74 @@ class LearnerPersistence {
   static const maxMistakeProgress = 5000;
   static const maxPayloadBytes = 4 * 1024 * 1024;
 
+  LearnerStateDatabase? _sqliteAuthority;
+  LearnerStateSnapshot? _hydratedDomains;
+
+  /// Raised when the verified SQLite cutover has been recorded but the
+  /// legacy prefs path is asked to serve a migrated domain again. The legacy
+  /// fallback is valid exclusively before the verified cutover.
+  static const String staleLegacyFallbackForbidden =
+      'stale_legacy_fallback_forbidden';
+
+  /// Binds the verified SQLite learner-state authority. The cutover is only
+  /// bindable after the verified migration marker exists (the legacy
+  /// fallback is already forbidden). Once bound, the four migrated domains
+  /// (attempts, assessment history, placement history, favorite verbs) are
+  /// served from SQLite and hydrated into memory; the legacy prefs copy of
+  /// those domains is never consulted again.
+  Future<void> bindVerifiedSqliteAuthority({
+    required LearnerStateDatabase database,
+    required LearnerStateMigration migration,
+  }) async {
+    if (await migration.canFallbackToLegacy()) {
+      throw StateError(staleLegacyFallbackForbidden);
+    }
+    _sqliteAuthority = database;
+    _hydratedDomains = await database.readSnapshot();
+  }
+
+  bool get isSqliteAuthorityBound => _sqliteAuthority != null;
+
+  Future<void> applyReviewAttemptOnce(Attempt attempt) async {
+    final database = _sqliteAuthority;
+    if (database == null) return; // Legacy prefs path owns the domain.
+    final result = await database.applyAttemptOnce(attempt);
+    if (result.applied) await _refreshHydratedDomains(database);
+  }
+
+  Future<void> recordAssessmentOnce(AssessmentHistory history) async {
+    final database = _sqliteAuthority;
+    if (database == null) return;
+    await database.recordAssessmentOnce(history);
+    await _refreshHydratedDomains(database);
+  }
+
+  Future<void> recordPlacementOnce(PlacementDiagnosticRecord record) async {
+    final database = _sqliteAuthority;
+    if (database == null) return;
+    await database.recordPlacementOnce(record);
+    await _refreshHydratedDomains(database);
+  }
+
+  Future<void> setFavoriteMembership(String verb, bool favorite) async {
+    final database = _sqliteAuthority;
+    if (database == null) return;
+    await database.setFavoriteMembership(verb, favorite);
+    await _refreshHydratedDomains(database);
+  }
+
+  Future<void> _refreshHydratedDomains(LearnerStateDatabase database) async {
+    _hydratedDomains = await database.readSnapshot();
+  }
+
   LearnerState load() {
     try {
       final raw = prefs.getString(storageKey);
       if (raw == null || raw.length > 4 * 1024 * 1024)
-        return LearnerState(updatedAt: DateTime.now());
+        return _withSqliteDomains(LearnerState(updatedAt: DateTime.now()));
       final decoded = jsonDecode(raw);
-      if (decoded is! Map) return LearnerState(updatedAt: DateTime.now());
+      if (decoded is! Map)
+        return _withSqliteDomains(LearnerState(updatedAt: DateTime.now()));
       final j = <String, dynamic>{};
       for (final entry in decoded.entries) {
         if (entry.key is String) j[entry.key as String] = entry.value;
@@ -113,7 +176,7 @@ class LearnerPersistence {
       final migratedCards = {...reviewCards};
       for (final id in legacyReview)
         migratedCards.putIfAbsent(id, () => ReviewCard(itemId: id, dueAt: now));
-      return LearnerState(
+      return _withSqliteDomains(LearnerState(
         xp: _boundedInt(j['xp'], 0, maxXp),
         streak: _boundedInt(j['streak'], 0, maxStreak),
         learned: _boundedStrings(j['learned']),
@@ -124,14 +187,41 @@ class LearnerPersistence {
         assessmentHistory: history,
         placementHistory: placementHistory,
         updatedAt: updatedAt,
-      );
+      ));
     } catch (_) {
-      return LearnerState(updatedAt: DateTime.now());
+      return _withSqliteDomains(LearnerState(updatedAt: DateTime.now()));
     }
   }
 
+  /// Removes the SQLite-owned domains from a state that is about to be
+  /// persisted to legacy prefs, so a stale copy can never be resurrected.
+  LearnerState _stripSqliteOwnedDomains(LearnerState state) =>
+      state.copyWith(
+        attempts: const <Attempt>[],
+        assessmentHistory: const <AssessmentHistory>[],
+        placementHistory: const <PlacementDiagnosticRecord>[],
+        favoriteVerbs: const <String>{},
+      );
+
+  /// Overlays the SQLite-owned domains (attempts, assessment history,
+  /// placement history, favorite verbs) onto a prefs-decoded state. Legacy
+  /// prefs are never consulted for these domains after cutover.
+  LearnerState _withSqliteDomains(LearnerState state) {
+    final hydrated = _hydratedDomains;
+    if (_sqliteAuthority == null || hydrated == null) return state;
+    return state.copyWith(
+      attempts: hydrated.attempts,
+      assessmentHistory: hydrated.assessmentHistory,
+      placementHistory: hydrated.placementHistory,
+      favoriteVerbs: hydrated.favoriteVerbs,
+    );
+  }
+
   Future<void> save(LearnerState s) async {
-    final payload = jsonEncode(_toJson(s));
+    final persisted = _sqliteAuthority == null
+        ? _normalizeForPersistence(s)
+        : _stripSqliteOwnedDomains(_normalizeForPersistence(s));
+    final payload = jsonEncode(_toJson(persisted));
     final encodedPayloadBytes = utf8.encode(payload);
     if (encodedPayloadBytes.length > maxPayloadBytes) {
       throw const LearnerPersistenceFailure(
@@ -146,6 +236,7 @@ class LearnerPersistence {
   }
 
   Future<LearnerState> loadAndMigrateFavoriteVerbs(LearnerState current) async {
+    if (isSqliteAuthorityBound) return current;
     final legacy = prefs.getStringList(legacyFavoriteKey) ?? const <String>[];
     if (legacy.isEmpty) return current;
     final merged = {...current.favoriteVerbs, ..._boundedStrings(legacy)};

@@ -5,8 +5,13 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter/widgets.dart';
 
 import '../features/learning/data/local_learning_recovery_pair_progress_lease.dart';
-import '../services/review_transaction_reconciler.dart';
+import '../services/learner_persistence.dart';
+import '../services/learner_state_migration.dart';
+import '../services/legacy_learner_snapshot_reader.dart';
+import '../services/preferences_service.dart';
 import '../services/repository.dart';
+import '../services/review_transaction_reconciler.dart';
+import '../core/storage/local_db/learner_state_database.dart';
 
 final ProductionRuntimeCoordinator productionRuntimeCoordinator =
     ProductionRuntimeCoordinator();
@@ -87,6 +92,47 @@ Future<void> bootstrapDeutschApp(Widget app) async {
   });
 
   runApp(app);
+}
+
+/// Opens the versioned learner-state SQLite authority, migrates the legacy
+/// prefs snapshot into it (verified, marker recorded LAST), binds it to the
+/// persistence layer and hydrates the repository before it serves state to
+/// the app. The legacy fallback is permanently forbidden after cutover.
+Future<LearnerRepository> bindVerifiedLearnerState({
+  required PreferencesService prefs,
+}) async {
+  final learnerStateDatabase = await LearnerStateDatabase.open();
+  final legacyReader = LegacyLearnerSnapshotReader(
+    prefs,
+    storageKey: LearnerRepository.key,
+  );
+  final learnerMigration = LearnerStateMigration(
+    database: learnerStateDatabase,
+    legacyReader: legacyReader,
+  );
+  await learnerMigration.migrateAndVerify();
+  final legacyFallbackAllowed =
+      await learnerMigration.canFallbackToLegacy();
+  final persistence = LearnerPersistence(
+    prefs,
+    LearnerRepository.key,
+    LearnerRepository.legacyFavoriteKey,
+  );
+  if (legacyFallbackAllowed) {
+    // Unreachable after a verified migration (revision is bumped by the
+    // migration marker); fail closed rather than bind a stale authority.
+    throw StateError(LearnerPersistence.staleLegacyFallbackForbidden);
+  }
+  await persistence.bindVerifiedSqliteAuthority(
+    database: learnerStateDatabase,
+    migration: learnerMigration,
+  );
+  final learnerRepository = LearnerRepository(
+    prefs,
+    persistence: persistence,
+  );
+  final state = learnerRepository.load();
+  return learnerRepository;
 }
 
 /// Binds the canonical pair-progress authority and recovers any pending

@@ -5,6 +5,7 @@ import '../ui_v35/safe_ui.dart';
 import '../models/content.dart';
 import '../models/learner.dart';
 import '../services/repository.dart';
+import '../bootstrap/production_bootstrap.dart';
 import '../services/preferences_service.dart';
 import '../services/learner_persistence.dart';
 import '../services/mastery_dashboard.dart';
@@ -510,14 +511,7 @@ class _VerbPageState extends State<VerbPage> {
     super.initState();
     state = LearnerState(updatedAt: DateTime.now());
     _repoFuture = PreferencesService.instance().then(
-      (prefs) => LearnerRepository(
-        prefs,
-        persistence: LearnerPersistence(
-          prefs,
-          LearnerRepository.key,
-          LearnerRepository.legacyFavoriteKey,
-        ),
-      ),
+      (prefs) => bindVerifiedLearnerState(prefs: prefs),
     );
     _stateFuture = _repoFuture.then((repo) => repo.load());
   }

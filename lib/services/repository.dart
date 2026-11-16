@@ -238,6 +238,7 @@ class LearnerRepository {
           ),
           ...s.assessmentHistory,
         ].take(100).toList();
+        await persistence.recordAssessmentOnce(history.first);
         await _saveNow(s.copyWith(assessmentHistory: history));
       });
 
@@ -257,6 +258,7 @@ class LearnerRepository {
           at: now,
         );
         final attempts = [...s.attempts, attempt];
+        await persistence.applyReviewAttemptOnce(attempt);
         await _saveNow(
           s.copyWith(
             attempts: attempts.length > maxAttempts
@@ -274,6 +276,7 @@ class LearnerRepository {
         if (f.contains(value))
           f.remove(value);
         else if (f.length < maxCollectionItems) f.add(value);
+        await persistence.setFavoriteMembership(value, f.contains(value));
         await _saveNow(s.copyWith(favoriteVerbs: f));
       });
 
@@ -398,6 +401,7 @@ class LearnerRepository {
         final bounded = attempts.length > maxAttempts
             ? attempts.sublist(attempts.length - maxAttempts)
             : attempts;
+        await persistence.applyReviewAttemptOnce(attempt);
         final last =
             state.attempts.isEmpty ? null : state.attempts.last.at;
         final today = now.toUtcMidnight;
@@ -501,6 +505,7 @@ class LearnerRepository {
         final kept = bounded.length > maxAttempts
             ? bounded.sublist(bounded.length - maxAttempts)
             : bounded;
+        await persistence.applyReviewAttemptOnce(attempt);
         await _saveNow(
           s.copyWith(
             xp: (s.xp + (correct ? 10 : 2)).clamp(0, maxXp),
@@ -565,6 +570,7 @@ extension FacetReviewRepository on LearnerRepository {
                   attempts.length - LearnerRepository.maxAttempts,
                 )
               : attempts;
+      await persistence.applyReviewAttemptOnce(attempt);
       final xpReward = unifiedSrsScheduler.xpRewardForReview(
         correct: correct,
         hinted: hinted,
@@ -655,6 +661,7 @@ extension PlacementDiagnosticRepository on LearnerRepository {
             (existing) => existing.id != record.id,
           ),
         ].take(20).toList(growable: false);
+        await persistence.recordPlacementOnce(record);
         await _saveNow(state.copyWith(placementHistory: history));
       });
 }
