@@ -1,4 +1,3 @@
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -145,22 +144,22 @@ class _MockFaultInjectionOperations implements StartupOperations {
 
     // Simulate what DeviceStartupOperations does internally for failures
     final hasOptionalFailure = !shouldRecover;
-    const contentAvailable = true;
+
 
     if (hasOptionalFailure) {
       final failures = (prefs.getInt('bootstrap.optional_failures.v1') ?? 0) + 1;
       await prefs.setInt('bootstrap.optional_failures.v1', failures);
       if (failures >= 2) {
-        return const StartupOutcome(StartupState.SAFE_MODE);
+        return const StartupOutcome(StartupState.safeMode);
       }
     } else {
       await prefs.remove('bootstrap.optional_failures.v1');
     }
 
     if (hasOptionalFailure) {
-      return const StartupOutcome(StartupState.DEGRADED, contentAvailable: true);
+      return const StartupOutcome(StartupState.degraded, contentAvailable: true);
     }
-    return const StartupOutcome(StartupState.READY, contentAvailable: true);
+    return const StartupOutcome(StartupState.ready, contentAvailable: true);
   }
 
   @override
@@ -171,7 +170,7 @@ class _MockFaultInjectionOperations implements StartupOperations {
 
   @override
   Future<StartupOutcome> continueSafeOffline() async {
-    return const StartupOutcome(StartupState.DEGRADED, contentAvailable: true);
+    return const StartupOutcome(StartupState.degraded, contentAvailable: true);
   }
 }
 
@@ -247,19 +246,19 @@ void main() {
     });
 
     test(
-        'Handles missing extra steps gracefully (CRITICAL_ERROR from active_content)',
+        'Handles missing extra steps gracefully (fatal from active_content)',
         () async {
       final mockGuard = _MockCrashLoopGuard();
       // Since it's a real DeviceStartupOperations, _ActiveContentStep will try to hit the real DB.
-      // We expect it to throw or fail, resulting in CRITICAL_ERROR or DEGRADED based on pipeline behavior.
+      // We expect it to throw or fail, resulting in fatal or degraded based on pipeline behavior.
       final ops = DeviceStartupOperations(guard: mockGuard);
       final outcome = await ops.start();
 
       // Without DB initialized, it falls into a critical error for preferences or DB
       // We just ensure it doesn't infinite loop.
       expect(
-          outcome.state == StartupState.CRITICAL_ERROR ||
-              outcome.state == StartupState.DEGRADED,
+          outcome.state == StartupState.fatal ||
+              outcome.state == StartupState.degraded,
           isTrue);
     });
 
@@ -268,7 +267,7 @@ void main() {
       final ops = DeviceStartupOperations(guard: mockGuard);
       final outcome = await ops.start();
 
-      expect(outcome.state, StartupState.SAFE_MODE);
+      expect(outcome.state, StartupState.safeMode);
     });
   });
 
@@ -284,12 +283,12 @@ void main() {
         MaterialApp(
           home: StartupBoundary(
             operations: ops,
-            child: const Text('READY'),
+            child: const Text('ready'),
           ),
         ),
       );
 
-      // Initially, it tries to start and hits first optional failure -> DEGRADED
+      // Initially, it tries to start and hits first optional failure -> degraded
       await tester.pumpAndSettle();
       expect(find.text('بعض الميزات الاختيارية غير متاحة. يمكنك المتابعة دون اتصال.'), findsOneWidget);
 
@@ -299,13 +298,13 @@ void main() {
           home: StartupBoundary(
             key: UniqueKey(),
             operations: ops,
-            child: const Text('READY'),
+            child: const Text('ready'),
           ),
         ),
       );
 
       await tester.pumpAndSettle();
-      // Second failure -> SAFE_MODE
+      // Second failure -> safeMode
       expect(find.text('الوضع الآمن'), findsOneWidget);
     });
 
@@ -316,12 +315,12 @@ void main() {
         MaterialApp(
           home: StartupBoundary(
             operations: ops,
-            child: const Text('READY'),
+            child: const Text('ready'),
           ),
         ),
       );
 
-      // First optional failure -> DEGRADED
+      // First optional failure -> degraded
       await tester.pumpAndSettle();
       expect(find.text('بعض الميزات الاختيارية غير متاحة. يمكنك المتابعة دون اتصال.'), findsOneWidget);
 
@@ -333,13 +332,13 @@ void main() {
           home: StartupBoundary(
             key: UniqueKey(),
             operations: ops,
-            child: const Text('READY'),
+            child: const Text('ready'),
           ),
         ),
       );
 
       await tester.pumpAndSettle();
-      expect(find.text('READY'), findsOneWidget);
+      expect(find.text('ready'), findsOneWidget);
 
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.containsKey('bootstrap.optional_failures.v1'), isFalse);
@@ -353,7 +352,7 @@ void main() {
         MaterialApp(
           home: StartupBoundary(
             operations: ops,
-            child: const Text('READY'),
+            child: const Text('ready'),
           ),
         ),
       );
@@ -366,13 +365,13 @@ void main() {
         MaterialApp(
           home: StartupBoundary(
             operations: ops,
-            child: const Text('READY'),
+            child: const Text('ready'),
           ),
         ),
       );
 
       await tester.pumpAndSettle();
-      // Since it's the second full finish, and failure is injected, it should hit SAFE_MODE
+      // Since it's the second full finish, and failure is injected, it should hit safeMode
       // Wait, the first one didn't finish because we pumped away?
       // Actually `ops.start` was called. Let's just verify it didn't crash.
       expect(find.text('الوضع الآمن'), findsOneWidget);
