@@ -66,6 +66,7 @@ count=$(cat "{state}")
 count=$((count+1))
 echo $count > "{state}"
 if [ $count -lt 3 ]; then
+  echo "network error" >&2
   exit 1
 fi
 exit 0
