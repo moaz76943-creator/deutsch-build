@@ -44,6 +44,7 @@ WORKFLOW_CLASS = {
     "cleanup_old_artifacts.yml": D_AUTOMATIC_OPT_IN,
     "content_expansion_bot.yml": D_AUTOMATIC_OPT_IN,
     "elastic-worker-factory.yml": B_MANUAL_UTILITY,
+    "hermes-relay.yml": B_MANUAL_UTILITY,
     "language_registry_guard.yml": "F",
     "local_release.yml": C_SELF_HOSTED,
     "performance_guard.yml": D_AUTOMATIC_OPT_IN,
@@ -323,7 +324,7 @@ def test_all_active_workflows_obey_current_zero_billing_and_supply_chain_policy(
     assert_active_build_delivery_boundaries()
     workflows = active_workflows()
     assert set(workflows) == set(WORKFLOW_CLASS)
-    assert len(workflows) == 34
+    assert len(workflows) == 35
 
     for name, workflow in workflows.items():
         category = WORKFLOW_CLASS[name]
