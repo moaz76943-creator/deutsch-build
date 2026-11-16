@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-11-16T05:46:06Z",
+  "task_id": "task6b",
+  "state": "COMPLETE",
+  "commit": "f84d823b1",
+  "pr": null,
+  "branch": "main",
+  "evidence": [
+    "Commit f84d823b1 feat(task6b): wire review transactions through durable envelope journal",
+    "lib/core/storage/local_db/pair_progress_database.dart: schema v3, bounded review_transaction_journal (review_event_id PK), recordScheduledReviewEnvelope, loadPendingReviewTransactions, acknowledgeReviewTransaction",
+    "lib/core/progress/offline_pair_progress_engine.dart: loadPendingReviewTransactions, persistReviewEnvelope, applyReviewAttemptOnce",
+    "lib/services/review_transaction_reconciler.dart: bounded reconciler (maxBatchSize=128), restart-tolerant, attempt + gamification sinks",
+    "lib/features/gamification/sqlite_gamification_repository.dart: duplicate event_id with conflicting payload fails closed (gamification_event_payload_mismatch)",
+    "lib/services/repository.dart: persistReviewEnvelope wires ReviewTransactionEnvelope into the review write path",
+    "lib/bootstrap/production_bootstrap.dart: bindLearningState binds pair-progress lease, reconciles pending transactions (limit: 128), then reloadPersisted()",
+    "test_task6b_review_transaction_contract.py: 5/5 passed (was all 5 failing in pre-existing baseline debt)",
+    "GitHub push: origin/main updated from 83b37e21e to f84d823b1",
+    "Full quality_gate: 19 pre-existing failures remain (task6c 6, task6d 10, task7 4); 0 new failures introduced by this change"
+  ],
+  "next_action": "Next unblocked batch: task6c/6d/7 legacy-architecture contract restoration (19 failures).",
+  "blocker": "PR #1187 (security hardening) blocked on owner PAT revocation (issue #1198), owner history-purge decision, and network-capability policy decision."
+}
