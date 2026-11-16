@@ -4,8 +4,9 @@ import 'package:flutter/foundation.dart'
     show FlutterError, FlutterErrorDetails, kReleaseMode;
 import 'package:flutter/widgets.dart';
 
-import '../core/bootstrap/startup_boundary.dart';
-import 'production_runtime.dart';
+import '../features/learning/data/local_learning_recovery_pair_progress_lease.dart';
+import '../services/review_transaction_reconciler.dart';
+import '../services/repository.dart';
 
 final ProductionRuntimeCoordinator productionRuntimeCoordinator =
     ProductionRuntimeCoordinator();
@@ -86,4 +87,36 @@ Future<void> bootstrapDeutschApp(Widget app) async {
   });
 
   runApp(app);
+}
+
+/// Binds the canonical pair-progress authority and recovers any pending
+/// review transactions before the repository serves state to the app.
+Future<LocalLearningRecoveryPairProgressLease> bindLearningState({
+  required LearnerRepository learnerRepository,
+  required OfflinePairProgressEngine engine,
+  required String sourceLanguageId,
+  required String targetLanguageId,
+  required bool sourceIsRtl,
+  required bool targetIsRtl,
+}) async {
+  final lease = await LocalLearningRecoveryPairProgressLease.bind(
+    repository: learnerRepository,
+    sourceLanguageId: sourceLanguageId,
+    targetLanguageId: targetLanguageId,
+    sourceIsRtl: sourceIsRtl,
+    targetIsRtl: targetIsRtl,
+  );
+
+  final reconciler = ReviewTransactionReconciler(
+    engine: engine,
+    gamificationSink: learnerRepository.gamificationReviewSink,
+    applyAttemptOnce: (envelope) async =>
+        engine.applyReviewAttemptOnce(envelope),
+  );
+
+  await reconciler.reconcilePendingReviewTransactions(limit: 128);
+
+  final durableState = await learnerRepository.reloadPersisted();
+  // durableState intentionally unused; it hydrates the repository cache.
+  return lease;
 }

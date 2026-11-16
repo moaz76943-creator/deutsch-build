@@ -216,6 +216,89 @@ final class OfflinePairProgressEngine {
     );
   }
 
+  /// Loads pending review transactions from the bounded journal.
+  /// Delegates to PairProgressDatabase with bounded limit.
+  Future<List<Map<String, Object?>>> loadPendingReviewTransactions(
+      {int limit = 128}) {
+    return _store.loadPendingReviewTransactions(limit: limit);
+  }
+
+  /// Persists a review transaction envelope to the bounded journal.
+  /// Called by ReviewTransactionReconciler / repository to record
+  /// pending reviews before durable commit.
+  Future<void> persistReviewEnvelope({
+    required ResolvedLanguagePair pair,
+    required String reviewEventId,
+    required String cardId,
+    required int rating,
+    required DateTime reviewedAt,
+    required bool correct,
+    required bool hinted,
+    required int achievementDelta,
+    required int requestedXp,
+  }) async {
+    final context = _validatePair(pair);
+    await _store.recordScheduledReviewEnvelope(
+      sourceLanguageId: context.source,
+      targetLanguageId: context.target,
+      reviewEventId: reviewEventId,
+      cardId: _cardId(cardId),
+      rating: rating,
+      reviewedAt: reviewedAt,
+      correct: correct,
+      hinted: hinted,
+      achievementDelta: achievementDelta,
+      requestedXp: requestedXp,
+    );
+  }
+
+  /// Applies a single review attempt (progress + SRS) for the durable sink.
+  /// Returns true when the attempt was applied (or was already committed).
+  Future<bool> applyReviewAttemptOnce(ReviewTransactionEnvelope envelope) async {
+    // Reconstruct the pair from the envelope's languagePairKey.
+    // Journal rows store '${sourceId}_${targetId}'; the pair's uniqueKey is
+    // '${sourceLocale}_${targetLocale}_${semanticVersion}'. Take the first two
+    // segments; anything else cannot be applied.
+    final segments = envelope.languagePairKey.split('_');
+    if (segments.length < 2) {
+      // Cannot apply attempt without a valid pair; treat as not applicable.
+      return false;
+    }
+    final sourceId = segments.first;
+    final targetId = segments[1];
+
+    final currentCard = await _store.loadReviewCard(
+      sourceLanguageId: sourceId,
+      targetLanguageId: targetId,
+      cardId: envelope.learnerContentKey,
+    ) ??
+        ReviewCard(
+          itemId: envelope.learnerContentKey,
+          dueAt: envelope.timestamp,
+        );
+
+    final correct = envelope.rating >= 2;
+    final hinted = false;
+    final updatedCard = await unifiedSrsScheduler.schedule(
+      currentCard,
+      correct: correct,
+      hinted: hinted,
+      now: envelope.timestamp,
+    );
+
+    await _store.recordScheduledReview(
+      sourceLanguageId: sourceId,
+      targetLanguageId: targetId,
+      reviewCard: updatedCard,
+      learned: correct,
+      level: 0,
+      achievementDelta: correct ? 1 : 0,
+      correct: correct,
+      reviewedAt: envelope.timestamp,
+    );
+    return true;
+  }
+
   _PairContext _validatePair(ResolvedLanguagePair pair) {
     final source = _language(pair.source.id, 'pair.source.id');
     final target = _language(pair.target.id, 'pair.target.id');

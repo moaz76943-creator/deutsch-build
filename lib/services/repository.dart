@@ -6,6 +6,7 @@ import '../core/srs_facets.dart';
 import '../core/srs_scheduler.dart';
 import '../core/models/language_catalog_models.dart';
 import '../core/progress/offline_pair_progress_engine.dart';
+import '../core/progress/review_transaction_envelope.dart';
 import '../core/progress/pair_progress_models.dart';
 import '../models/assessment.dart';
 import '../models/diagnostic_placement.dart';
@@ -284,6 +285,45 @@ class LearnerRepository {
     _cachedState = persisted;
   }
 
+  /// Routes a review through the durable envelope journal.
+  /// This wires ReviewTransactionEnvelope -> persistReviewEnvelope ->
+  /// applyReviewAttemptOnce into the repository's write path.
+  Future<void> persistReviewEnvelope({
+    required ResolvedLanguagePair pair,
+    required String reviewEventId,
+    required String cardId,
+    required int rating,
+    required DateTime timestamp,
+    required String languagePairKey,
+    required String learnerContentKey,
+    required bool correct,
+    required bool hinted,
+    required int achievedLevel,
+    required int achievementDelta,
+    required int requestedXp,
+  }) async {
+    final authority = _requirePairProgressAuthority();
+    final envelope = ReviewTransactionEnvelope(
+      reviewEventId: reviewEventId,
+      learnerContentKey: learnerContentKey,
+      rating: rating,
+      timestamp: timestamp,
+      languagePairKey: languagePairKey,
+    );
+    await authority.engine.persistReviewEnvelope(
+      pair: pair,
+      reviewEventId: envelope.reviewEventId,
+      cardId: envelope.learnerContentKey,
+      rating: envelope.rating,
+      reviewedAt: envelope.timestamp,
+      correct: correct,
+      hinted: hinted,
+      achievementDelta: achievementDelta,
+      requestedXp: requestedXp,
+    );
+    await authority.engine.applyReviewAttemptOnce(envelope);
+  }
+
   Future<void> _recordGamificationReview(
     Attempt attempt, {
     required int requestedXp,
@@ -392,14 +432,26 @@ class LearnerRepository {
           hinted: hinted,
           now: now,
         );
-        await authority.engine.persistScheduledReview(
+        final envelope = ReviewTransactionEnvelope(
+          reviewEventId: attempt.id,
+          learnerContentKey: item.id,
+          rating: correct ? 2 : 0,
+          timestamp: now,
+          languagePairKey: pair.uniqueKey,
+        );
+        await persistReviewEnvelope(
           pair: authority.pair,
-          reviewCard: updatedCard,
-          learned: correct,
-          level: pairSnapshot.level,
-          achievementDelta: xpReward,
+          reviewEventId: envelope.reviewEventId,
+          cardId: envelope.learnerContentKey,
+          rating: envelope.rating,
+          timestamp: envelope.timestamp,
+          languagePairKey: envelope.languagePairKey,
+          learnerContentKey: envelope.learnerContentKey,
           correct: correct,
-          reviewedAt: now,
+          hinted: false,
+          achievedLevel: pairSnapshot.level,
+          achievementDelta: xpReward,
+          requestedXp: xpReward,
         );
 
         await _saveNow(
@@ -539,14 +591,26 @@ extension FacetReviewRepository on LearnerRepository {
         hinted: hinted,
         now: now,
       );
-      await authority.engine.persistScheduledReview(
+      final envelope = ReviewTransactionEnvelope(
+        reviewEventId: attempt.id,
+        learnerContentKey: item.id,
+        rating: correct ? 2 : 0,
+        timestamp: now,
+        languagePairKey: pair.uniqueKey,
+      );
+      await persistReviewEnvelope(
         pair: authority.pair,
-        reviewCard: updatedCard,
-        learned: correct,
-        level: pairSnapshot.level,
-        achievementDelta: xpReward,
+        reviewEventId: envelope.reviewEventId,
+        cardId: envelope.learnerContentKey,
+        rating: envelope.rating,
+        timestamp: envelope.timestamp,
+        languagePairKey: envelope.languagePairKey,
+        learnerContentKey: envelope.learnerContentKey,
         correct: correct,
-        reviewedAt: now,
+        hinted: false,
+        achievedLevel: pairSnapshot.level,
+        achievementDelta: xpReward,
+        requestedXp: xpReward,
       );
 
       await _saveNow(

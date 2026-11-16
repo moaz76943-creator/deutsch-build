@@ -7,9 +7,11 @@ import '../../srs_facets.dart';
 final class PairProgressDatabase {
   PairProgressDatabase._(this._database);
 
-  static const int schemaVersion = 2;
+  static const int schemaVersion = 3;
   static const String pairTable = 'pair_progress';
   static const String cardTable = 'pair_card_progress';
+  static const String reviewTransactionJournalTable =
+      'review_transaction_journal';
 
   final Database _database;
 
@@ -57,12 +59,39 @@ final class PairProgressDatabase {
         )
       ''');
       await _ensurePhase16bColumns(txn);
+      await _ensureReviewTransactionJournal(txn);
       await txn.execute(
         'CREATE INDEX IF NOT EXISTS idx_pair_card_progress_context '
         'ON $cardTable(source_language_id, target_language_id)',
       );
+      await txn.execute(
+        'CREATE INDEX IF NOT EXISTS idx_review_transaction_journal_state '
+        'ON $reviewTransactionJournalTable(state, reviewed_at_utc)',
+      );
     });
     return PairProgressDatabase._(database);
+  }
+
+  static Future<void> _ensureReviewTransactionJournal(
+    DatabaseExecutor executor,
+  ) async {
+    await executor.execute('''
+      CREATE TABLE IF NOT EXISTS $reviewTransactionJournalTable (
+        review_event_id TEXT PRIMARY KEY,
+        source_language_id TEXT NOT NULL,
+        target_language_id TEXT NOT NULL,
+        language_pair_key TEXT NOT NULL,
+        card_id TEXT NOT NULL,
+        rating INTEGER NOT NULL,
+        correct INTEGER NOT NULL,
+        hinted INTEGER NOT NULL,
+        achievement_delta INTEGER NOT NULL DEFAULT 0,
+        requested_xp INTEGER NOT NULL DEFAULT 0,
+        reviewed_at_utc TEXT NOT NULL,
+        state TEXT NOT NULL DEFAULT 'pending',
+        acknowledged_at_utc TEXT
+      )
+    ''');
   }
 
   static Future<void> _ensurePhase16bColumns(
@@ -286,6 +315,93 @@ final class PairProgressDatabase {
         reviewedAt: reviewedAt,
         reviewCard: reviewCard,
       );
+
+  /// Records a pending review transaction in the bounded journal.
+  /// Idempotent per review_event_id: duplicates are treated as payload
+  /// mismatches and fail closed (no double-write).
+  static const String _reviewEventPayloadMismatch =
+      'review_event_payload_mismatch';
+
+  Future<void> recordScheduledReviewEnvelope({
+    required String sourceLanguageId,
+    required String targetLanguageId,
+    required String reviewEventId,
+    required String cardId,
+    required int rating,
+    required DateTime reviewedAt,
+    required bool correct,
+    required bool hinted,
+    required int achievementDelta,
+    required int requestedXp,
+  }) async {
+    await _database.transaction((txn) async {
+      final existing = await txn.query(
+        reviewTransactionJournalTable,
+        columns: const <String>['review_event_id', 'state'],
+        where: 'review_event_id = ?',
+        whereArgs: <Object?>[reviewEventId],
+        limit: 1,
+      );
+      if (existing.isNotEmpty) {
+        throw StateError(_reviewEventPayloadMismatch);
+      }
+
+      await txn.insert(
+        reviewTransactionJournalTable,
+        <String, Object?>{
+          'review_event_id': reviewEventId,
+          'source_language_id': sourceLanguageId,
+          'target_language_id': targetLanguageId,
+          'language_pair_key':
+              '${sourceLanguageId}_${targetLanguageId}',
+          'card_id': cardId,
+          'rating': rating,
+          'correct': correct ? 1 : 0,
+          'hinted': hinted ? 1 : 0,
+          'achievement_delta': achievementDelta,
+          'requested_xp': requestedXp,
+          'reviewed_at_utc': reviewedAt.toUtc().toIso8601String(),
+          'state': 'pending',
+        },
+        conflictAlgorithm: ConflictAlgorithm.abort,
+      );
+    });
+  }
+
+  /// Loads pending review transactions bounded by [limit].
+  /// Returns empty list when none are pending (bounded, early exit).
+  Future<List<Map<String, Object?>>> loadPendingReviewTransactions(
+      {int limit = 128}) async {
+    if (limit <= 0) return <Map<String, Object?>>[];
+    final rows = await _database.query(
+      reviewTransactionJournalTable,
+      where: 'state = ?',
+      whereArgs: <Object?>['pending'],
+      orderBy: 'reviewed_at_utc ASC',
+      limit: limit,
+    );
+    return List<Map<String, Object?>>.unmodifiable(
+      rows.map((row) => Map<String, Object?>.from(row)).toList(),
+    );
+  }
+
+  /// Marks a review transaction as acknowledged/committed.
+  /// Bounded by review_event_id.
+  Future<void> acknowledgeReviewTransaction({
+    required String reviewEventId,
+  }) async {
+    await _database.transaction((txn) async {
+      await txn.update(
+        reviewTransactionJournalTable,
+        <String, Object?>{
+          'state': 'committed',
+          'acknowledged_at_utc': DateTime.now().toUtc().toIso8601String(),
+        },
+        where: 'review_event_id = ?',
+        whereArgs: <Object?>[reviewEventId],
+      );
+    });
+  }
 
   Future<void> _recordProgress({
     required String sourceLanguageId,

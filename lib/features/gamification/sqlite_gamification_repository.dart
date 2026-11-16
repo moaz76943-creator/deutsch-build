@@ -14,6 +14,8 @@ import 'gamification_repository.dart';
 
 final class SqliteGamificationRepository implements GamificationRepository {
   static const int schemaVersion = 4;
+  static const String _gamificationEventPayloadMismatch =
+      'gamification_event_payload_mismatch';
   // version.toInt() != SqliteGamificationRepository.schemaVersion
 
   SqliteGamificationRepository._(
@@ -239,7 +241,14 @@ final class SqliteGamificationRepository implements GamificationRepository {
         whereArgs: <Object?>[id],
         limit: 1,
       );
-      if (duplicate.isNotEmpty) return;
+      if (duplicate.isNotEmpty) {
+        // Reject duplicate event IDs with conflicting payloads (fail closed).
+        final stored = duplicate.first;
+        if (!_matchesImmutableReviewPayload(stored, event)) {
+          throw StateError(_gamificationEventPayloadMismatch);
+        }
+        return;
+      }
 
       final current = await _readProfile(txn);
       final unlocked = await _readUnlocked(txn);
@@ -431,6 +440,16 @@ final class SqliteGamificationRepository implements GamificationRepository {
     final value = raw?.toString().trim() ?? '';
     if (!RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(value)) return null;
     return DateTime.tryParse('${value}T00:00:00Z') == null ? null : value;
+  }
+
+  static bool _matchesImmutableReviewPayload(
+    Map<String, Object?> stored,
+    GamificationReviewEvent event,
+  ) {
+    return stored['facet_type'] == event.facetType.wireName &&
+        (stored['correct'] as int? ?? 0) == (event.correct ? 1 : 0) &&
+        (stored['hinted'] as int? ?? 0) == (event.hinted ? 1 : 0) &&
+        (stored['requested_xp'] as int? ?? 0) == event.requestedXp;
   }
 
   @override
