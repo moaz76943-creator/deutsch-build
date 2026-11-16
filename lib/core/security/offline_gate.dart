@@ -21,7 +21,7 @@ enum OperationType {
 class OfflineGate {
   static const bool strictOfflineEnforced = true;
 
-  static bool isNetworkRequestPermitted() => !strictOfflineEnforced;
+  static bool isNetworkRequestPermitted() => false;
 
   static void assertZeroNetworkPolicy() {
     if (strictOfflineEnforced) {
@@ -29,11 +29,14 @@ class OfflineGate {
     }
   }
 
-  static bool authorizeUserDownload(bool explicitConsent) {
+  static DownloadCapability? authorizeUserDownload(bool explicitConsent, String contentId) {
     if (explicitConsent) {
-      return true;
+      return DownloadCapability(
+        expiresAt: DateTime.now().millisecondsSinceEpoch + 15 * 60 * 1000, // 15 mins
+        contentId: contentId,
+      );
     }
-    return false;
+    return null;
   }
 
   static bool isTelemetryAllowed() => false;

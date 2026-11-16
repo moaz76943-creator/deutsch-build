@@ -38,9 +38,24 @@ void main() {
           isTrue);
     });
 
+    test('authorizeUserDownload creates valid capability and network remains denied by default', () {
+      final cap = OfflineGate.authorizeUserDownload(true, 'my-pack');
+      expect(cap, isNotNull);
+      expect(cap!.contentId, 'my-pack');
+      expect(cap.isExpired, isFalse);
+
+      expect(OfflineGate.authorizeUserDownload(false, 'my-pack'), isNull);
+
+      expect(OfflineGate.isNetworkRequestPermitted(), isFalse);
+    });
+
     test('assertOperationPolicy throws on denial', () {
       expect(() => OfflineGate.assertOperationPolicy(OperationType.telemetry),
           throwsA(isA<StateError>()));
+    });
+
+    test('assertZeroNetworkPolicy throws on strictly offline enforced', () {
+      expect(() => OfflineGate.assertZeroNetworkPolicy(), throwsA(isA<StateError>()));
     });
   });
 
@@ -48,6 +63,9 @@ void main() {
     test('Reflects offline gate policy', () {
       expect(StorageGuard.hasPermission(StoragePermission.read), isTrue);
       expect(StorageGuard.hasPermission(StoragePermission.write), isTrue);
+
+      expect(StorageGuard.isLocalReadPermitted(), isTrue);
+      expect(StorageGuard.isLocalWritePermitted(), isTrue);
     });
 
     test('Validates JSON integrity', () {
@@ -70,6 +88,22 @@ void main() {
       };
       expect(StorageGuard.validateManifestStructure(jsonEncode(invalid1)), isFalse);
       expect(StorageGuard.validateManifestStructure('invalid'), isFalse);
+    });
+
+    test('sanitizeWordEntries safely sanitizes entries', () {
+      final rawList = [
+        {'id': 1, 'word': 'test'},
+        'invalid',
+        ['invalid_list'],
+        {'id': 2}
+      ];
+
+      final sanitized = StorageGuard.sanitizeWordEntries(rawList);
+      expect(sanitized.length, 2);
+      expect(sanitized[0]['word'], 'test');
+      expect(sanitized[1]['id'], 2);
+
+      expect(StorageGuard.sanitizeWordEntries('invalid'), isEmpty);
     });
   });
 
@@ -109,6 +143,19 @@ void main() {
         'keyId': 'unknown-key',
       };
       expect(DataIntegritySigner.verifyManifest(badKey, payload), isFalse);
+    });
+
+    test('Rejects missing manifest or payload', () {
+      final payload = 'test payload';
+      final hash = DataIntegritySigner.computeChecksum(payload);
+      final manifest = {
+        'algorithm': 'fnv1a',
+        'hash': hash,
+        'keyId': DataIntegritySigner.approvedTrustedKey,
+      };
+
+      expect(DataIntegritySigner.verifyManifest(null, payload), isFalse);
+      expect(DataIntegritySigner.verifyManifest(manifest, null), isFalse);
     });
 
     test('Rejects expired manifest', () {
