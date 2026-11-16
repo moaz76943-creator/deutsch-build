@@ -1,18 +1,13 @@
-1. **Refactor `build_sqlite_bytes` in `tools/language_pack_sqlite.py`:**
-   - Extract schema creation logic into `_setup_schema(connection: sqlite3.Connection)`.
-   - Extract metadata insertion into `_insert_metadata(connection: sqlite3.Connection, document: Mapping[str, Any], canonical_schema_version: int)`.
-   - Extract localization insertion into `_insert_localization(connection: sqlite3.Connection, document: Mapping[str, Any])`.
-   - Extract lexicon insertion into `_insert_lexicon(connection: sqlite3.Connection, document: Mapping[str, Any])`.
-   - Extract concepts and forms insertion into `_insert_concepts(connection: sqlite3.Connection, document: Mapping[str, Any])`.
-   - Extract word families insertion into `_insert_word_families(connection: sqlite3.Connection, document: Mapping[str, Any])`.
-   - Extract grammar insertion into `_insert_grammar(connection: sqlite3.Connection, document: Mapping[str, Any])`.
-2. **Update `build_sqlite_bytes`:**
-   - Call the extracted functions inside `build_sqlite_bytes` to orchestrate them and simplify the method.
-3. **Verify code:**
-   - Use `read_file` or `cat` to check the updated file.
-   - Run `python3 -m py_compile tools/language_pack_sqlite.py`.
-4. **Run tests:**
-   - Find relevant tests via `grep -rl build_sqlite_bytes tests/ tools/`.
-   - Run the tests to ensure no functionality is broken.
-5. Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.
-6. Submit the change.
+1. **Update `scripts/test_build_pipeline.py`**:
+   - In `test_redact_secrets`, change expected redacted strings from `<REDACTED>` to `[REDACTED]`.
+   - In `test_run_with_retry_transient_error`, change the `run_with_retry` call to `with_retry`.
+2. **Update `scripts/test_build_reliability.py`**:
+   - Change `run_pub_get_with_retry` to `with_retry flutter pub get --enforce-lockfile` across the test methods to match the implementation in `common.sh`.
+3. **Update `scripts/test_build_system.py`**:
+   - Update variable names to match `common.sh` exports (`$ERR_COMP`, `$ERR_SIGN`, `$ERR_DEP`).
+   - Update the expected exit codes (`ERR_COMP` to 12, `ERR_SIGN` to 13, `ERR_DEP` to 11).
+4. **Update `scripts/test_pipeline.py`**:
+   - In `test_with_retry`, add an output like `echo "network error"` to the mock `target.sh` so that it matches the transient error pattern in `common.sh`.
+5. **Run all tests** to ensure they pass with these corrections.
+6. **Pre-commit step**: Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done (by calling `pre_commit_instructions`).
+7. **Submit the change**: Staging files, commit with `[skip ci]`, and push to `staging/v2-full-platform` without creating a PR.
