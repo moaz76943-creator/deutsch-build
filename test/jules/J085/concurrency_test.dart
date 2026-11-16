@@ -231,5 +231,68 @@ void main() {
        }
        expect(taskStarted, isTrue);
     });
+
+    test('Queue saturation', () async {
+      final queue = IsolatedTaskQueue(maxQueueSize: 2, maxConcurrentTasks: 1);
+
+      queue.pause();
+
+      final f1 = queue.enqueue(
+        id: 'task_1',
+        currentEpoch: 1,
+        priority: TaskPriority.normal,
+        action: () async => 1,
+      );
+
+      final f2 = queue.enqueue(
+        id: 'task_2',
+        currentEpoch: 1,
+        priority: TaskPriority.normal,
+        action: () async => 2,
+      );
+
+      final f3 = queue.enqueue(
+        id: 'task_3',
+        currentEpoch: 1,
+        priority: TaskPriority.normal,
+        action: () async => 3,
+      );
+
+      // maxQueueSize is 2. The 3rd task should either cause a low priority task to be dropped,
+      // or if all are normal/high, it should just return null (be dropped itself).
+      final r3 = await f3;
+      expect(r3, isNull);
+
+      queue.resume();
+      await Future.wait([if (f1 != null) f1, if (f2 != null) f2]);
+    });
+
+    test('Disposal prevents new tasks and cancels existing', () async {
+      final queue = IsolatedTaskQueue(maxConcurrentTasks: 1);
+
+      queue.pause();
+
+      final future1 = queue.enqueue(
+        id: 'task_1',
+        currentEpoch: 1,
+        priority: TaskPriority.normal,
+        action: () async => 1,
+      );
+
+      queue.dispose();
+
+      expect(
+        () => queue.enqueue(
+          id: 'task_2',
+          currentEpoch: 1,
+          priority: TaskPriority.normal,
+          action: () async => 2,
+        ),
+        throwsA(isA<StateError>()),
+      );
+
+      final result1 = await future1;
+      expect(result1, isNull);
+    });
   });
 }
