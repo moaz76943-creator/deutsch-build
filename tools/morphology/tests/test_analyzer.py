@@ -74,10 +74,12 @@ class TestAnalyzer(unittest.TestCase):
         self.vdb.execute("INSERT INTO verbs VALUES ('v2', 'gehen', 'go', 2)")
         self.vdb.execute("INSERT INTO verb_conjugations VALUES ('c1', 'v1', 'present', '1s', 'mache')")
         self.vdb.execute("INSERT INTO verb_conjugations VALUES ('c2', 'v2', 'past', '3s', 'ging')")
+        self.vdb.execute("INSERT INTO verb_conjugations VALUES ('c3', 'v1', 'PART_PERF', 'none', 'gemacht')")
         self.vdb.commit()
 
         self.ndb.execute("INSERT INTO nominals VALUES ('n1', 'Kind', 'noun', 'neu', 'sg')")
         self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d1', 'n1', 'nom', 'pl', 'def', 'Kinder')")
+        self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d2', 'n1', 'DAT', 'PL', 'def', 'Kindern')")
         self.ndb.commit()
 
         de = get_profile("de")
@@ -86,12 +88,12 @@ class TestAnalyzer(unittest.TestCase):
         res = analyzer.analyze("gemacht")
         self.assertEqual(len(res), 1)
         self.assertEqual(res[0].lemma, "machen")
-        self.assertEqual(res[0].tags, ["PART_PERF"])
+        self.assertEqual(res[0].tags, ["PART_PERF", "none"])
 
         res = analyzer.analyze("Kindern")
         self.assertEqual(len(res), 1)
         self.assertEqual(res[0].lemma, "Kind")
-        self.assertEqual(res[0].tags, ["DAT", "PL"])
+        self.assertEqual(res[0].tags, ["DAT", "PL", "def"])
 
         res = analyzer.analyze("ging")
         self.assertEqual(len(res), 1)
@@ -104,6 +106,7 @@ class TestAnalyzer(unittest.TestCase):
         self.ndb.execute("INSERT INTO nominals VALUES ('n1', 'Tor', 'noun', 'neu', 'sg')")
         self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d1', 'n1', 'nom', 'sg', 'def', 'Tor')")
         self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d2', 'n1', 'nom', 'pl', 'def', 'Tore')")
+        self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d2a', 'n1', 'DAT', 'PL', 'def', 'Toren')")
 
         self.ndb.execute("INSERT INTO nominals VALUES ('n2', 'Tor', 'noun', 'masc', 'sg')")
         self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d3', 'n2', 'nom', 'sg', 'def', 'Tor')")
@@ -121,20 +124,22 @@ class TestAnalyzer(unittest.TestCase):
     def test_german_dative_plural_false_matches(self):
         self.ndb.execute("INSERT INTO nominals VALUES ('n1', 'Boden', 'noun', 'masc', 'sg')")
         self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d1', 'n1', 'nom', 'sg', 'def', 'Bode')") # mock stem
+        # "Boden" is not in nominal_declensions, so it should not match anything exactly.
 
         self.ndb.execute("INSERT INTO nominals VALUES ('n2', 'Kind', 'noun', 'neu', 'sg')")
         self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d2', 'n2', 'nom', 'pl', 'def', 'Kinder')")
+        self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d3', 'n2', 'DAT', 'PL', 'def', 'Kindern')")
         self.ndb.commit()
 
         de = get_profile("de")
         analyzer = MorphologyAnalyzer([self.noun_db_path], de)
 
         res = analyzer.analyze("Boden")
-        self.assertEqual(len(res), 0) # Should not match DAT PL because n1 is sg
+        self.assertEqual(len(res), 0) # Should not match anything since exact match is required now
 
         res = analyzer.analyze("Kindern")
         self.assertEqual(len(res), 1)
-        self.assertEqual(res[0].tags, ["DAT", "PL"])
+        self.assertEqual(res[0].tags, ["DAT", "PL", "def"])
 
         analyzer.close()
 
