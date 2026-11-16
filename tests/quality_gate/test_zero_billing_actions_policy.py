@@ -35,6 +35,7 @@ WORKFLOW_CLASSIFICATION = {
     "cleanup_old_artifacts.yml": D_AUTOMATIC_OPT_IN,
     "content_expansion_bot.yml": D_AUTOMATIC_OPT_IN,
     "elastic-worker-factory.yml": B_MANUAL_UTILITY,
+    "hermes-relay.yml": B_MANUAL_UTILITY,
     "language_registry_guard.yml": F_BUDGETED_SELF_CHECK,
     "local_release.yml": C_SELF_HOSTED,
     "performance_guard.yml": D_AUTOMATIC_OPT_IN,
