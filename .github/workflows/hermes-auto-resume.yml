@@ -10,9 +10,6 @@ permissions:
 
 jobs:
   resume:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: فحص وتشغيل السيرفرات إذا كانت متوقفة
