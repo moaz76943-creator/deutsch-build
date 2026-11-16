@@ -37,6 +37,7 @@ jobs:
         if: always()
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
           GOOGLE_KEYS_LIST: ${{ secrets.GOOGLE_KEYS_LIST }}
         run: |
           printf '%s\n' "$GOOGLE_KEYS_LIST" > /tmp/keys.list
@@ -48,6 +49,16 @@ jobs:
             if timeout 270m hermes chat --cli --yolo --oneshot -m "openrouter/free" -q "$PROMPT"; then
               DONE=1
             fi
+          fi
+
+          if [ "$DONE" -eq 0 ] && [ -n "${NVIDIA_API_KEY:-}" ]; then
+            for NV_MODEL in "deepseek-ai/deepseek-v4.1-flash" "nvidia/nemotron-3-ultra-550b-a55b"; do
+              echo "Trying NVIDIA NIM ($NV_MODEL)..."
+              if timeout 270m hermes chat --cli --yolo --oneshot --provider nvidia -m "$NV_MODEL" -q "$PROMPT"; then
+                DONE=1
+                break
+              fi
+            done
           fi
 
           if [ "$DONE" -eq 0 ]; then
