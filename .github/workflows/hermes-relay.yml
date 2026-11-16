@@ -33,20 +33,36 @@ jobs:
           curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash -s -- --non-interactive --skip-browser --skip-computer-use
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
-      - name: تشغيل الوكيل بحد زمني آمن
+      - name: تشغيل الوكيل مع التبديل التلقائي بين المزودين
         if: always()
         env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           GOOGLE_KEYS_LIST: ${{ secrets.GOOGLE_KEYS_LIST }}
         run: |
           printf '%s\n' "$GOOGLE_KEYS_LIST" > /tmp/keys.list
           PROMPT="Check git status, AGENTS.md, and open tasks. Execute the highest-priority unblocked task end-to-end, run tests, and leave clean state before exiting."
-          while IFS= read -r K; do
-            [ -n "$K" ] || continue
-            echo "Trying Gemini key: ${K:0:12}..."
-            if GEMINI_API_KEY="$K" GOOGLE_API_KEY="$K" timeout 270m hermes chat --cli --yolo --oneshot --provider gemini -m "gemini-2.5-flash" -q "$PROMPT"; then
-              break
+          DONE=0
+
+          if [ -n "${OPENROUTER_API_KEY:-}" ]; then
+            echo "Trying OpenRouter (free)..."
+            if timeout 270m hermes chat --cli --yolo --oneshot -m "openrouter/free" -q "$PROMPT"; then
+              DONE=1
             fi
-          done < /tmp/keys.list
+          fi
+
+          if [ "$DONE" -eq 0 ]; then
+            for MODEL in "gemini-3.5-flash-lite" "gemini-2.5-flash"; do
+              while IFS= read -r K; do
+                [ -n "$K" ] || continue
+                echo "Trying $MODEL with key ${K:0:12}..."
+                if GEMINI_API_KEY="$K" GOOGLE_API_KEY="$K" timeout 270m hermes chat --cli --yolo --oneshot --provider gemini -m "$MODEL" -q "$PROMPT"; then
+                  DONE=1
+                  break 2
+                fi
+              done < /tmp/keys.list
+            done
+          fi
+
           rm -f /tmp/keys.list
 
       - name: حفظ ورفع التعديلات دائماً
