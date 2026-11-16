@@ -8,12 +8,12 @@ class FlashcardSessionWidget extends StatefulWidget {
   final List<LexicalEntry> initialEntries;
 
   const FlashcardSessionWidget({
-    Key? key,
+    super.key,
     required this.initialEntries,
-  }) : super(key: key);
+  });
 
   @override
-  _FlashcardSessionWidgetState createState() => _FlashcardSessionWidgetState();
+  State<FlashcardSessionWidget> createState() => _FlashcardSessionWidgetState();
 }
 
 class _FlashcardSessionWidgetState extends State<FlashcardSessionWidget> with SingleTickerProviderStateMixin {
