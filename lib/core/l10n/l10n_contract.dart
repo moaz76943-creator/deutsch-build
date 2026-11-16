@@ -77,18 +77,23 @@ Future<void> main() async {
 
   _expect(engine.snapshot.userLocale.languageTag, 'ar-JO', 'initial UI locale');
   _expect(engine.snapshot.isRtl, true, 'Arabic UI resolves RTL');
-  _expect(engine.text('nav.home'), 'الرئيسية', 'exact locale lookup');
+  _expect(engine.uiText('nav.home'), 'الرئيسية', 'exact locale lookup');
   _expect(
-    engine.text('welcome.user', arguments: const <String, Object?>{'name': 'سليم'}),
+    engine.resolveUi('nav.home').value,
+    'الرئيسية',
+    'explicit UI resolution carries the rendered value',
+  );
+  _expect(
+    engine.uiText('welcome.user', arguments: const <String, Object?>{'name': 'سليم'}),
     'مرحباً سليم',
     'placeholder interpolation',
   );
   _expect(
-    engine.text('fallback.only'),
+    engine.uiText('fallback.only'),
     'Fallback value',
     'fallback dictionary lookup',
   );
-  _expect(engine.text('missing.key'), 'missing.key', 'missing key fallback');
+  _expect(engine.uiText('missing.key'), 'missing.key', 'missing key fallback');
 
   final beforePair = engine.snapshot;
   engine.setUserLanguage('de-DE');

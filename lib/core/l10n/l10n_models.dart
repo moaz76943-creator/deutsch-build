@@ -118,8 +118,8 @@ final class L10nDictionary {
   }
 }
 
-final class L10nResolvedText {
-  const L10nResolvedText({
+final class UiL10nResolvedText {
+  const UiL10nResolvedText({
     required this.key,
     required this.value,
     required this.requestedLocale,

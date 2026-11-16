@@ -119,11 +119,11 @@ final class LifeFeatureRuntime extends ChangeNotifier {
     _ensureOpen();
     final text = raw.trim();
     if (text.isEmpty) return raw;
-    final key = _ensureLiteral(
+    final key = _ensureUiLiteral(
       raw: raw,
       primaryLocale: _inferLiteralLocale(raw),
     );
-    return _engine.text(key);
+    return _engine.uiText(key);
   }
 
   String resolveDirectionalLiteral(
@@ -133,16 +133,10 @@ final class LifeFeatureRuntime extends ChangeNotifier {
     _ensureOpen();
     final text = raw.trim();
     if (text.isEmpty) return raw;
-    final locale = AppLocale.parse(languageCode).languageTag;
-    final key = _ensureLiteral(
-      raw: raw,
-      primaryLocale: locale,
-    );
-    return _engine.findMessage(
-          key,
-          languageTag: locale,
-        )?.render() ??
-        raw;
+    // Directional learning literals are authored in the learning language;
+    // validate the tag but bypass the UI dictionary and fallback chain.
+    AppLocale.parse(languageCode);
+    return raw;
   }
 
   bool isTargetLanguage(String languageTag) {
@@ -249,7 +243,7 @@ final class LifeFeatureRuntime extends ChangeNotifier {
     if (changed) notifyListeners();
   }
 
-  String _ensureLiteral({
+  String _ensureUiLiteral({
     required String raw,
     required String primaryLocale,
   }) {

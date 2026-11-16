@@ -163,13 +163,13 @@ final class DynamicL10nEngine {
     return _dictionaries.containsKey(localeTag);
   }
 
-  String text(
+  String uiText(
     String key, {
     Map<String, Object?> arguments = const <String, Object?>{},
   }) =>
-      resolve(key, arguments: arguments).value;
+      resolveUi(key, arguments: arguments).value;
 
-  L10nResolvedText resolve(
+  UiL10nResolvedText resolveUi(
     String key, {
     Map<String, Object?> arguments = const <String, Object?>{},
   }) {
@@ -184,7 +184,7 @@ final class DynamicL10nEngine {
       final dictionary = _dictionaries[localeTag];
       final message = dictionary?.find(normalizedKey);
       if (message == null) continue;
-      return L10nResolvedText(
+      return UiL10nResolvedText(
         key: normalizedKey,
         value: message.render(arguments: arguments),
         requestedLocale: requested.languageTag,
@@ -193,28 +193,13 @@ final class DynamicL10nEngine {
       );
     }
 
-    return L10nResolvedText(
+    return UiL10nResolvedText(
       key: normalizedKey,
       value: normalizedKey,
       requestedLocale: requested.languageTag,
       resolvedLocale: requested.languageTag,
       usedFallback: true,
     );
-  }
-
-  L10nMessage? findMessage(
-    String key, {
-    String? languageTag,
-  }) {
-    _ensureOpen();
-    final locale = languageTag == null
-        ? _state.userLocale
-        : AppLocale.parse(languageTag);
-    for (final candidate in _localeCandidates(locale)) {
-      final message = _dictionaries[candidate]?.find(key);
-      if (message != null) return message;
-    }
-    return null;
   }
 
   Future<void> close() async {
