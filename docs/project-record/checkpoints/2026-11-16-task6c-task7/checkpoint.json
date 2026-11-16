@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-11-16T06:10:00Z",
+  "task_id": "task6c+task7",
+  "state": "COMPLETE",
+  "commit": "a344edfd6",
+  "pr": null,
+  "branch": "main",
+  "evidence": [
+    "Commit a344edfd6 feat(task6c): cut learner state over to verified SQLite authority",
+    "Commit ef9a00125 feat(task7): split UI-only l10n API from learning literals",
+    "test_task6c_sqlite_learner_state_contract.py: 5/5 passed (was 3 failing in pre-existing baseline debt)",
+    "test_task7_localization_boundary_contract.py: passed (was failing in pre-existing baseline debt)",
+    "Full quality_gate: 159 passed / 10 skipped; only remaining failures are the 9 pre-existing task6d gamification contracts; 0 new failures",
+    "LearnerStateDatabase schema v1: learner_attempts/assessment_history/placement_history/favorite_verbs, bounded (2000/100/20/20000), canonicalSnapshotSha256, verified marker written LAST, applyAttemptOnce idempotent",
+    "Legacy fallback permanently forbidden after cutover (stale_legacy_fallback_forbidden); VerbPage now constructs the repository via bindVerifiedLearnerState",
+    "Stale .git/index.lock found with no git process running; removed before committing"
+  ],
+  "next_action": "Next unblocked batch: task6d gamification single-writer contracts (9 failures, tests/quality_gate/test_task6d_gamification_single_writer_contract.py).",
+  "blocker": "PR #1187 (security hardening) blocked on owner PAT revocation (issue #1198), owner history-purge decision, and network-capability policy decision."
+}
