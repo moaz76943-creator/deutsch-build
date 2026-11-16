@@ -92,6 +92,25 @@ void main() {
       expect(decision.reason, isA<StableFlow>());
     });
 
+    test('unavailable CEFR blocks deepen linguistic challenge', () {
+      for (int i = 0; i < 4; i++) {
+        engine.observe(CognitiveMetricRecord(
+          sessionEventId: 'EVT_UNVERIFIED_$i',
+          contentKey: 'CARD_UNVERIFIED_$i',
+          responseLatency: const Duration(milliseconds: 1200),
+          hesitationTaps: 0,
+          isCorrect: true,
+          recordedAt: DateTime.now(),
+          targetLanguageCode: 'de',
+          isCefrVerified: false,
+        ));
+      }
+
+      final decision = engine.evaluateDetailedState(targetLanguageCode: 'de');
+      expect(decision.action, AdaptationAction.maintainFlow);
+      expect(decision.reason, isA<UnverifiedCefrBlocked>());
+    });
+
     test('hysteresis prevents oscillating difficulty', () {
       final now = DateTime.now();
 
