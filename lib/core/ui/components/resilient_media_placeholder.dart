@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../contracts/content_state_contract.dart';
 import '../../language_bidi_helper.dart';
-import '../../../design_system/app_typography.dart';
 import '../tokens/app_spacing.dart';
 
 class ResilientMediaPlaceholder extends StatelessWidget implements OptionalContentContract {
@@ -59,7 +58,7 @@ class ResilientMediaPlaceholder extends StatelessWidget implements OptionalConte
                 child: Text(
                   fallbackText,
                   textAlign: TextAlign.center,
-                  style: AppTypography.caption.copyWith(
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                     height: bcp47LanguageCode != null
                         ? LanguageBiDiHelper.getLineHeight(bcp47LanguageCode!)
