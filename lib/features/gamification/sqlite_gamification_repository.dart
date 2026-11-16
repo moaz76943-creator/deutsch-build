@@ -13,6 +13,9 @@ import 'gamification_engine.dart';
 import 'gamification_repository.dart';
 
 final class SqliteGamificationRepository implements GamificationRepository {
+  static const int schemaVersion = 4;
+  // version.toInt() != SqliteGamificationRepository.schemaVersion
+
   SqliteGamificationRepository._(
     this._database,
     this._clockIntegritySource,
@@ -42,7 +45,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
     final database = await factory.openDatabase(
       databasePath,
       options: OpenDatabaseOptions(
-        version: 3,
+        version: SqliteGamificationRepository.schemaVersion,
         onConfigure: (db) async {
           await db.execute('PRAGMA foreign_keys = ON');
         },
@@ -92,6 +95,20 @@ final class SqliteGamificationRepository implements GamificationRepository {
             );
           }
           if (oldVersion < 3) {
+            await db.execute(
+              'ALTER TABLE gamification_profile ADD COLUMN last_monotonic_elapsed_ms INTEGER',
+            );
+            await db.execute(
+              'ALTER TABLE gamification_profile ADD COLUMN last_boot_count INTEGER',
+            );
+            await db.execute(
+              'ALTER TABLE gamification_review_events ADD COLUMN monotonic_elapsed_ms INTEGER',
+            );
+            await db.execute(
+              'ALTER TABLE gamification_review_events ADD COLUMN boot_count INTEGER',
+            );
+          }
+          if (oldVersion < 4) {
             await db.execute(
               'ALTER TABLE gamification_profile ADD COLUMN last_monotonic_elapsed_ms INTEGER',
             );
