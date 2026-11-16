@@ -1,0 +1,11 @@
+{
+  "task_id": "T25-hermes-relay-policy-classification",
+  "owner": "Hermes Agent session (2026-11-16)",
+  "state": "HANDOFF",
+  "base_sha": "f62c8e6786d29b22400116f3bccd889d2945f865",
+  "local_commit": "a232b6aa6406da515a7f1ae3cd50786ea6d6639c",
+  "branch": "fix/hermes-relay-policy-classification (local, unpushed)",
+  "patch": "docs/project-record/checkpoints/2026-11-16-hermes-relay-policy/hermes-relay-policy.patch",
+  "blocker": "GitHub App token lacks workflows permission; workflow-file hunk cannot be pushed by this session",
+  "acceptance": "tests/quality_gate 3 previously-failing tests pass; no new failures (25F/143P baseline); registry_sync --check exit 0"
+}
