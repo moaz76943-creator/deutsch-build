@@ -1,3 +1,4 @@
+import "package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart";
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:deutsch_bilarabi/screens/dictation_trainer_screen.dart';
@@ -5,6 +6,12 @@ import 'package:deutsch_bilarabi/core/lexical_repository.dart';
 import 'package:flutter/services.dart';
 
 void main() {
+  setUpAll(() {
+    try {
+      SrsCompatBridge.instance.bindCanonicalWriter((_) async {});
+    } catch (_) {}
+  });
+
   setUp(() {
     LexicalRepository.initializeStore([
       const LexicalEntry(
@@ -38,14 +45,14 @@ void main() {
         return [];
       },
     );
-    await tester.pumpWidget(const MaterialApp(home: DictationTrainerScreen()));
+    await tester.pumpWidget(const MaterialApp(home: DictationTrainerScreen(sourceLocale: "ar-SA", targetLocale: "de-DE")));
     await tester.pumpAndSettle();
 
     expect(find.text('الصوت غير متاح حالياً. اقرأ المعنى واكتب الكلمة.'), findsOneWidget);
   });
 
   testWidgets('Correct answer triggers success and prevents duplicates', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: DictationTrainerScreen()));
+    await tester.pumpWidget(const MaterialApp(home: DictationTrainerScreen(sourceLocale: "ar-SA", targetLocale: "de-DE")));
     await tester.pumpAndSettle();
 
     final textField = find.byType(TextField);
@@ -75,7 +82,7 @@ void main() {
       ),
     ]);
 
-    await tester.pumpWidget(const MaterialApp(home: DictationTrainerScreen()));
+    await tester.pumpWidget(const MaterialApp(home: DictationTrainerScreen(sourceLocale: "ar-SA", targetLocale: "de-DE")));
     await tester.pumpAndSettle();
 
     final textField = find.byType(TextField);
@@ -92,9 +99,9 @@ void main() {
       navigatorKey: navKey,
       onGenerateRoute: (settings) {
         if (settings.name == '/') {
-          return MaterialPageRoute(builder: (_) => const Scaffold(body: Text('Home')));
+          return MaterialPageRoute<void>(builder: (_) => const Scaffold(body: Text('Home')));
         }
-        return MaterialPageRoute(builder: (_) => const DictationTrainerScreen());
+        return MaterialPageRoute<void>(builder: (_) => const DictationTrainerScreen(sourceLocale: "ar-SA", targetLocale: "de-DE"));
       },
     ));
     await tester.pumpAndSettle();
