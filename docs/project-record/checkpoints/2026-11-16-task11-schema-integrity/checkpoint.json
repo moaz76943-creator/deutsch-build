@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-11-16T04:27:10Z",
+  "task_id": "task11",
+  "state": "COMPLETE",
+  "commit": "1b12ff6b645ef05636ce06a6a50bc37ca9791a01",
+  "pr": null,
+  "branch": "main",
+  "evidence": [
+    "Commit 1b12ff6b6 feat(task11): restore schema-integrity contracts for release hardening gate",
+    "lib/core/storage/local_db/learner_state_database.dart: added schema v1 with _verifySchema, stored-version guard, migration-payload hashes",
+    "lib/features/gamification/sqlite_gamification_repository.dart: upgraded to schema v4 with full oldVersion migration chain",
+    "tool/task11_release_hardening.py check: PASS (OFFLINE_BOUNDARY, SCHEMA_INTEGRITY, RELEASE_GATES)",
+    "test_task11_release_hardening_contract.py: 5/5 passed (was 1 failing)",
+    "GitHub push: origin/main updated from 003a19e71 to 1b12ff6b6 (sali97m-cpu)",
+    "REGRESSION: Quality gate baseline degraded from 25F/143P/10S (after T25) to 26F/142P/10S (new failure: hermes-auto-resume.yml not in WORKFLOW_CLASSIFICATION, added by parent commit 003a19e71 ci: auto-resume hermes relay on quota reset)",
+    "Polyglot CI skipped (opt-in zero-billing; vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED not true)"
+  ],
+  "next_action": "Resolve hermes-auto-resume.yml classification in WORKFLOW_CLASSIFICATION (likely B_MANUAL_UTILITY or similar) and update test/quality_gate accordingly; then re-run quality gate to restore baseline.",
+  "blocker": "PR #1187 (security hardening T21–30/61–65/91–95) blocked on owner PAT revocation (issue #1198), owner history-purge decision, and network-capability policy decision."
+}
