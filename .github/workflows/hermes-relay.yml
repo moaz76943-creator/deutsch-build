@@ -1,0 +1,78 @@
+name: Hermes Cloud Relay
+
+on:
+  workflow_dispatch:
+    inputs:
+      hop:
+        description: "رقم الجلسة الحالية"
+        default: "1"
+      max_hops:
+        description: "الحد الأقصى للجلسات المتتالية"
+        default: "5"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: hermes-relay-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - name: سحب الكود
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: تثبيت Hermes Agent
+        run: |
+          curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash -s -- --non-interactive --skip-browser --skip-computer-use
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: تشغيل الوكيل بحد زمني آمن
+        if: always()
+        env:
+          GOOGLE_KEYS_LIST: ${{ secrets.GOOGLE_KEYS_LIST }}
+        run: |
+          printf '%s\n' "$GOOGLE_KEYS_LIST" > /tmp/keys.list
+          PROMPT="Check git status, AGENTS.md, and open tasks. Execute the highest-priority unblocked task end-to-end, run tests, and leave clean state before exiting."
+          while IFS= read -r K; do
+            [ -n "$K" ] || continue
+            echo "Trying Gemini key: ${K:0:12}..."
+            if GEMINI_API_KEY="$K" GOOGLE_API_KEY="$K" timeout 270m hermes chat --cli --yolo --oneshot --provider gemini -m "gemini-2.5-flash" -q "$PROMPT"; then
+              break
+            fi
+          done < /tmp/keys.list
+          rm -f /tmp/keys.list
+
+      - name: حفظ ورفع التعديلات دائماً
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "chore(agent): relay checkpoint hop ${{ inputs.hop }}"
+            git push
+          else
+            echo "لا توجد تعديلات جديدة للرفع"
+          fi
+
+      - name: تسليم المهمة للسيرفر التالي تلقائياً
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          HOP="${{ inputs.hop || '1' }}"
+          MAX="${{ inputs.max_hops || '5' }}"
+          if [ "$HOP" -lt "$MAX" ]; then
+            NEXT=$((HOP + 1))
+            echo "تشغيل السيرفر رقم $NEXT من أصل $MAX..."
+            gh workflow run hermes-relay.yml -f hop="$NEXT" -f max_hops="$MAX"
+          else
+            echo "وصلنا للحد الأقصى للجلسات ($MAX). انتهت السلسلة."
+          fi
