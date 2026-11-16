@@ -16,6 +16,22 @@ void main() {
       expect(OfflineGate.isOperationPermitted(OperationType.localWrite), isTrue);
     });
 
+    test('authorizeUserDownload requires unexpired capability', () {
+      expect(OfflineGate.authorizeUserDownload(true), isFalse);
+
+      final expired = DownloadCapability(
+        expiresAt: DateTime.now().millisecondsSinceEpoch - 1000,
+        contentId: 'test',
+      );
+      expect(OfflineGate.authorizeUserDownload(true, capability: expired), isFalse);
+
+      final valid = DownloadCapability(
+        expiresAt: DateTime.now().millisecondsSinceEpoch + 10000,
+        contentId: 'test',
+      );
+      expect(OfflineGate.authorizeUserDownload(true, capability: valid), isTrue);
+    });
+
     test('Requires unexpired capability for download', () {
       expect(OfflineGate.isOperationPermitted(OperationType.userRequestedDownload), isFalse);
 
@@ -71,6 +87,15 @@ void main() {
       expect(StorageGuard.validateManifestStructure(jsonEncode(invalid1)), isFalse);
       expect(StorageGuard.validateManifestStructure('invalid'), isFalse);
     });
+
+    test('validateManifestStructure rejects invalid types', () {
+      final invalidTypes = {
+        'algorithm': 123,
+        'hash': 'not-an-int',
+        'keyId': 456,
+      };
+      expect(StorageGuard.validateManifestStructure(jsonEncode(invalidTypes)), isFalse);
+    });
   });
 
   group('DataIntegritySigner', () {
@@ -121,6 +146,51 @@ void main() {
         'expiresAt': DateTime.now().millisecondsSinceEpoch - 1000,
       };
       expect(DataIntegritySigner.verifyManifest(manifest, payload), isFalse);
+    });
+
+    test('verifyManifest rejects altered content', () {
+      final payload = 'test payload';
+      final hash = DataIntegritySigner.computeChecksum(payload);
+      final manifest = {
+        'algorithm': 'fnv1a',
+        'hash': hash,
+        'keyId': DataIntegritySigner.approvedTrustedKey,
+      };
+      expect(DataIntegritySigner.verifyManifest(manifest, 'altered payload'), isFalse);
+    });
+
+    test('verifyManifest rejects unsupported signing metadata types', () {
+      final payload = 'test payload';
+      final hash = DataIntegritySigner.computeChecksum(payload);
+
+      final badAlgorithmType = {
+        'algorithm': 123,
+        'hash': hash,
+        'keyId': DataIntegritySigner.approvedTrustedKey,
+      };
+      expect(DataIntegritySigner.verifyManifest(badAlgorithmType, payload), isFalse);
+
+      final badKeyType = {
+        'algorithm': 'fnv1a',
+        'hash': hash,
+        'keyId': 123,
+      };
+      expect(DataIntegritySigner.verifyManifest(badKeyType, payload), isFalse);
+
+      final badHashType = {
+        'algorithm': 'fnv1a',
+        'hash': 'not-a-hash',
+        'keyId': DataIntegritySigner.approvedTrustedKey,
+      };
+      expect(DataIntegritySigner.verifyManifest(badHashType, payload), isFalse);
+
+      final badExpiresAtType = {
+        'algorithm': 'fnv1a',
+        'hash': hash,
+        'keyId': DataIntegritySigner.approvedTrustedKey,
+        'expiresAt': 'not-an-int',
+      };
+      expect(DataIntegritySigner.verifyManifest(badExpiresAtType, payload), isFalse);
     });
   });
 }
