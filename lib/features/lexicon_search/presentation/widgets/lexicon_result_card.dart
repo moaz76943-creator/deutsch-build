@@ -47,7 +47,7 @@ class LexiconResultCard extends StatelessWidget {
                               fontWeight: FontWeight.w900,
                             ),
                           ),
-                          const SizedBox(width: 7),
+                          const SizedBox(width: AppDesignTokens.spaceS),
                         ],
                         Expanded(
                           child: AppDirectionalText(
@@ -60,7 +60,7 @@ class LexiconResultCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: AppDesignTokens.spaceS),
                     AppDirectionalText(
                       item.arabicMeaning,
                       languageCode: 'ar',
@@ -70,19 +70,20 @@ class LexiconResultCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppDesignTokens.spaceS),
               Column(
                 children: <Widget>[
-                  if (item.cefrLevel != '—')
+                  if (item.hasCefrLevel)
                     DecoratedBox(
                       decoration: BoxDecoration(
                         color: AppColors.secondary.withAlpha(22),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius:
+                            BorderRadius.circular(AppDesignTokens.radiusM),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                          horizontal: AppDesignTokens.spaceS,
+                          vertical: AppDesignTokens.spaceS / 2,
                         ),
                         child: Text(
                           item.cefrLevel,
@@ -112,9 +113,9 @@ class LexiconResultCard extends StatelessWidget {
           ),
           if (note != null &&
               (note!.note.isNotEmpty || note!.examples.isNotEmpty)) ...<Widget>[
-            const SizedBox(height: 8),
+            const SizedBox(height: AppDesignTokens.spaceS),
             Divider(color: AppColors.primary.withAlpha(35), height: 1),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppDesignTokens.spaceS),
             if (note!.note.isNotEmpty)
               AppDirectionalText(
                 note!.note,
@@ -123,7 +124,7 @@ class LexiconResultCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             if (note!.examples.isNotEmpty) ...<Widget>[
-              const SizedBox(height: 4),
+              const SizedBox(height: AppDesignTokens.spaceS / 2),
               AppDirectionalText(
                 note!.examples.first,
                 languageCode: 'de',

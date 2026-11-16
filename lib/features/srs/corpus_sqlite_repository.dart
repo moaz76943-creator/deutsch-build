@@ -11,6 +11,7 @@ final class SrsCorpusItem {
     required this.sentenceAr,
     required this.topic,
     required this.skill,
+    required this.cefr,
     required this.article,
     required this.plural,
     required this.accepted,
@@ -23,6 +24,7 @@ final class SrsCorpusItem {
   final String sentenceAr;
   final String topic;
   final String skill;
+  final String cefr;
   final String article;
   final String plural;
   final List<String> accepted;
@@ -205,6 +207,7 @@ final class IndexedSrsCorpusRepository {
         'sentence_ar',
         'topic',
         'skill',
+        'cefr',
         'article',
         'plural',
       ],
@@ -235,7 +238,7 @@ final class IndexedSrsCorpusRepository {
         List<String>.filled(normalized.length, '?').join(',');
     final rows = await _database.rawQuery(
       '''
-SELECT id, german, arabic, sentence, sentence_ar, topic, skill, article, plural
+SELECT id, german, arabic, sentence, sentence_ar, topic, skill, cefr, article, plural
 FROM ${SrsCorpusContract.contentTable}
 WHERE id IN ($placeholders)
 ''',
@@ -252,6 +255,77 @@ WHERE id IN ($placeholders)
         .toList(growable: false);
   }
 
+  Future<List<SrsCorpusItem>> searchContent({
+    Iterable<String> terms = const <String>[],
+    Set<String> cefrLevels = const <String>{},
+    Set<String> articles = const <String>{},
+    int limit = 80,
+  }) async {
+    final safeLimit = limit.clamp(1, 200).toInt();
+    final normalizedTerms = terms
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty && value.length <= 200)
+        .toSet()
+        .take(6)
+        .toList(growable: false);
+    final normalizedLevels = cefrLevels
+        .map((value) => value.trim().toUpperCase())
+        .where(
+          (value) => const <String>{'A1', 'A2', 'B1', 'B2'}.contains(value),
+        )
+        .toSet()
+        .toList(growable: false);
+    final normalizedArticles = articles
+        .map((value) => value.trim().toLowerCase())
+        .where((value) => const <String>{'der', 'die', 'das'}.contains(value))
+        .toSet()
+        .toList(growable: false);
+
+    final clauses = <String>[];
+    final args = <Object?>[];
+
+    if (normalizedTerms.isNotEmpty) {
+      final textClauses = <String>[];
+      for (final term in normalizedTerms) {
+        textClauses.add(
+          '(german LIKE ? COLLATE NOCASE OR arabic LIKE ? '
+          'OR EXISTS (SELECT 1 FROM ${SrsCorpusContract.acceptedTable} a '
+          'WHERE a.content_id = ${SrsCorpusContract.contentTable}.id '
+          'AND a.form LIKE ? COLLATE NOCASE))',
+        );
+        final pattern = '%$term%';
+        args.addAll(<Object?>[pattern, pattern, pattern]);
+      }
+      clauses.add('(${textClauses.join(' OR ')})');
+    }
+
+    if (normalizedLevels.isNotEmpty) {
+      final placeholders =
+          List<String>.filled(normalizedLevels.length, '?').join(',');
+      clauses.add('cefr IN ($placeholders)');
+      args.addAll(normalizedLevels);
+    }
+
+    if (normalizedArticles.isNotEmpty) {
+      final placeholders =
+          List<String>.filled(normalizedArticles.length, '?').join(',');
+      clauses.add('article IN ($placeholders)');
+      args.addAll(normalizedArticles);
+    }
+
+    final where = clauses.isEmpty ? '' : 'WHERE ${clauses.join(' AND ')}';
+    final rows = await _database.rawQuery(
+      '''
+SELECT id, german, arabic, sentence, sentence_ar, topic, skill, cefr, article, plural
+FROM ${SrsCorpusContract.contentTable}
+$where
+ORDER BY german COLLATE NOCASE ASC, id ASC
+LIMIT ?
+''',
+      <Object?>[...args, safeLimit],
+    );
+    return _hydrate(rows);
+  }
   Future<List<SrsVerbRow>> fetchVerbRows({
     required String infinitive,
     int limit = 32,
@@ -304,6 +378,7 @@ ORDER BY content_id ASC, ordinal ASC
             sentenceAr: row['sentence_ar']!.toString(),
             topic: row['topic']!.toString(),
             skill: row['skill']!.toString(),
+            cefr: row['cefr']!.toString(),
             article: row['article']!.toString(),
             plural: row['plural']!.toString(),
             accepted: List<String>.unmodifiable(

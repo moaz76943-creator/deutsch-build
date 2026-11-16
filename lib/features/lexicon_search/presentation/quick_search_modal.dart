@@ -40,22 +40,18 @@ class _QuickSearchModalState extends State<QuickSearchModal> {
       animation: widget.notifier,
       builder: (context, _) {
         final state = widget.notifier.state;
-        final dark = Theme.of(context).brightness == Brightness.dark;
         return SafeArea(
           child: Padding(
             padding: EdgeInsets.fromLTRB(
-              12,
-              12,
-              12,
-              12 + MediaQuery.viewInsetsOf(context).bottom,
+              AppDesignTokens.spaceM,
+              AppDesignTokens.spaceM,
+              AppDesignTokens.spaceM,
+              AppDesignTokens.spaceM +
+                  MediaQuery.viewInsetsOf(context).bottom,
             ),
             child: AppGlassCard(
-              blur: 24,
-              opacity: dark ? .22 : .86,
               borderColor: AppColors.primary.withAlpha(70),
               glowColor: AppColors.primary,
-              backgroundColor:
-                  dark ? AppColors.darkSurface : AppColors.lightSurface,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxHeight: 650),
                 child: Column(
@@ -76,7 +72,7 @@ class _QuickSearchModalState extends State<QuickSearchModal> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: AppDesignTokens.spaceS),
                     TextField(
                       controller: _controller,
                       autofocus: true,
@@ -87,9 +83,9 @@ class _QuickSearchModalState extends State<QuickSearchModal> {
                         prefixIcon: const Icon(Icons.search_rounded),
                         suffixIcon: state.isSearching
                             ? const Padding(
-                                padding: EdgeInsets.all(13),
+                                padding: EdgeInsets.all(AppDesignTokens.spaceM),
                                 child: SizedBox.square(
-                                  dimension: 18,
+                                  dimension: AppDesignTokens.spaceM,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
                                   ),
@@ -99,19 +95,22 @@ class _QuickSearchModalState extends State<QuickSearchModal> {
                         filled: true,
                         fillColor: AppColors.primary.withAlpha(10),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(18),
+                          borderRadius:
+                              BorderRadius.circular(AppDesignTokens.radiusM),
                           borderSide: BorderSide(
                             color: AppColors.primary.withAlpha(55),
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: AppDesignTokens.spaceS),
                     _Filters(notifier: widget.notifier),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: AppDesignTokens.spaceS),
                     if (state.errorMessage != null)
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.only(
+                          bottom: AppDesignTokens.spaceS,
+                        ),
                         child: AppDirectionalText(
                           'تعذر تنفيذ البحث المحلي.',
                           languageCode: 'ar',
@@ -122,7 +121,9 @@ class _QuickSearchModalState extends State<QuickSearchModal> {
                       child: state.results.isEmpty && !state.isSearching
                           ? Center(
                               child: Padding(
-                                padding: const EdgeInsets.all(24),
+                                padding: const EdgeInsets.all(
+                                  AppDesignTokens.spaceL,
+                                ),
                                 child: Text(
                                   'لا توجد نتائج مطابقة.',
                                   style: AppTypography.body,
@@ -133,7 +134,9 @@ class _QuickSearchModalState extends State<QuickSearchModal> {
                               shrinkWrap: true,
                               itemCount: state.results.length,
                               separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 9),
+                                  const SizedBox(
+                                    height: AppDesignTokens.spaceS,
+                                  ),
                               itemBuilder: (context, index) {
                                 final item = state.results[index];
                                 return LexiconResultCard(
@@ -169,14 +172,13 @@ class _Filters extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: Wrap(
-        spacing: 7,
-        runSpacing: 7,
+        spacing: AppDesignTokens.spaceS,
+        runSpacing: AppDesignTokens.spaceS,
         children: <Widget>[
           _articleChip('der', LexiconArticle.der, AppColors.articleDer, filters),
           _articleChip('die', LexiconArticle.die, AppColors.articleDie, filters),
           _articleChip('das', LexiconArticle.das, AppColors.articleDas, filters),
-          for (final level
-              in const <String>['A1', 'A2', 'B1', 'B2', 'C1', 'C2'])
+          for (final level in LexiconSearchFilters.supportedCefrLevels)
             FilterChip(
               label: Text(level, style: AppTypography.label),
               selected: filters.cefrLevels.contains(level),

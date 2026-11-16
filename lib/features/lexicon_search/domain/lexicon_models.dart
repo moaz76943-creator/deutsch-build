@@ -1,6 +1,13 @@
 enum LexiconArticle { der, die, das, none }
 
 final class LexiconSearchFilters {
+  static const List<String> supportedCefrLevels = <String>[
+    'A1',
+    'A2',
+    'B1',
+    'B2',
+  ];
+
   const LexiconSearchFilters({
     this.cefrLevels = const <String>{},
     this.articles = const <LexiconArticle>{},
@@ -62,6 +69,9 @@ final class SearchResultItem {
   final String cefrLevel;
 
   bool get hasArticle => article != LexiconArticle.none;
+
+  bool get hasCefrLevel =>
+      LexiconSearchFilters.supportedCefrLevels.contains(cefrLevel);
 
   String get articleLabel => switch (article) {
         LexiconArticle.der => 'der',

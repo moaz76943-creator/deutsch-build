@@ -128,7 +128,9 @@ final class LexiconSearchNotifier extends ChangeNotifier {
   void toggleCefrLevel(String level) {
     _ensureActive();
     final normalized = level.trim().toUpperCase();
-    if (normalized.isEmpty) return;
+    if (!LexiconSearchFilters.supportedCefrLevels.contains(normalized)) {
+      return;
+    }
     final levels = <String>{..._state.query.filters.cefrLevels};
     if (!levels.add(normalized)) levels.remove(normalized);
     _setFilters(_state.query.filters.copyWith(
