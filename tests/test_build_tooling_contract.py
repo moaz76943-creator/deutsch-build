@@ -4,6 +4,7 @@ from __future__ import annotations
 import re
 import unittest
 from pathlib import Path
+import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -76,6 +77,25 @@ class BuildToolingContractTests(unittest.TestCase):
         )
         self.assertIn(f"gradle-{lock['GRADLE_VERSION']}-all.zip", wrapper)
         self.assertIn(lock["GRADLE_DISTRIBUTION_SHA256"], wrapper)
+
+    def test_network_permissions_are_removed_by_manifest_merger_not_just_mentioned(self):
+        manifest = ET.parse(
+            ROOT / "android" / "app" / "src" / "main" / "AndroidManifest.xml"
+        ).getroot()
+        android_ns = "{http://schemas.android.com/apk/res/android}"
+        tools_ns = "{http://schemas.android.com/tools}"
+        declarations = manifest.findall("uses-permission")
+        for permission in ("android.permission.INTERNET", "android.permission.POST_NOTIFICATIONS"):
+            with self.subTest(permission=permission):
+                active = [
+                    node for node in declarations
+                    if node.get(android_ns + "name") == permission
+                    and node.get(tools_ns + "node") != "remove"
+                ]
+                self.assertFalse(
+                    active,
+                    f"{permission} must not survive the merged Android manifest",
+                )
 
     def test_kotlin_gradle_plugin_is_supported_with_the_locked_agp(self):
         lock = lock_values()
