@@ -40,6 +40,37 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set up Java 17
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-disabled: false
+
+      - name: Install locked Android SDK packages
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          test -n "$SDK_ROOT"
+          SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$SDKMANAGER"
+          source toolchain.lock
+          "$SDKMANAGER" --install \
+            "platform-tools" \
+            "platforms;android-$ANDROID_COMPILE_SDK" \
+            "build-tools;$ANDROID_BUILD_TOOLS_VERSION" \
+            "ndk;$ANDROID_NDK_VERSION"
+
+      - name: Verify Gradle wrapper and locked distribution
+        run: |
+          python3 tool/gradle_wrapper_bootstrap.py
+          python3 tool/gradle_wrapper_integrity.py
+
       - name: Play compliance
         shell: bash
         run: |
@@ -97,6 +128,30 @@ jobs:
           test/jules/J049/trie_search_engine_test.dart
           test/jules/WS16/
           test/offline_gate_test.dart
+
+      - name: Build installable ARM64 Debug APK
+        run: flutter build apk --debug --target-platform android-arm64
+
+      - name: Verify Debug APK and record SHA-256
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          APK="build/app/outputs/flutter-apk/app-debug.apk"
+          test -s "$APK"
+          mkdir -p build-receipts
+          sha256sum "$APK" | tee build-receipts/debug-apk.sha256
+          stat --printf='APK_SIZE_BYTES=%s\\n' "$APK" | tee build-receipts/debug-apk-size.txt
+
+      - name: Upload verified ARM64 Debug APK
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: deutsch-bilarabi-staging-arm64-debug
+          path: |
+            build/app/outputs/flutter-apk/app-debug.apk
+            build-receipts/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
 
       - name: Merge into staging when this check is green
         if: github.event.pull_request.draft == false
