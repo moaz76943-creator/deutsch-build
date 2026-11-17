@@ -33,6 +33,20 @@ class MainActivity : FlutterActivity() {
         MethodChannel(messenger, AndroidGamificationClockIntegritySource.CHANNEL_NAME)
             .setMethodCallHandler(AndroidGamificationClockIntegritySource(this))
 
+        // Enhanced integrity channel for Play Integrity / local SecurityGuard
+        MethodChannel(messenger, "com.deutschbilarabi.app/integrity")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "isCompromised" -> result.success(SecurityGuard.isCompromised(this))
+                    "requestIntegrityToken" -> {
+                        // TODO: Integrate real Play Integrity API when network is enabled.
+                        // Requires google-play-integrity and backend verification.
+                        result.success(null)
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+
         pronunciationSignalProbe = AndroidPronunciationSignalProbe(this)
         MethodChannel(messenger, AndroidPronunciationSignalProbe.CHANNEL_NAME)
             .setMethodCallHandler(pronunciationSignalProbe)
