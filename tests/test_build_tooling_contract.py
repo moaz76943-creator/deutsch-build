@@ -41,14 +41,25 @@ class BuildToolingContractTests(unittest.TestCase):
         self.assertNotIn("|| :", recipe)
 
     def test_dependency_lock_refresh_is_explicit_and_separate(self):
-        source = (ROOT / "Makefile").read_text(encoding="utf-8")
-        deps = re.search(r"(?ms)^deps:\n((?:\\t.*\\n|\\n)*)", source)
-        refresh = re.search(r"(?ms)^deps-refresh:\n((?:\\t.*\\n|\\n)*)", source)
-        self.assertIsNotNone(deps)
-        self.assertIsNotNone(refresh)
-        self.assertIn("--enforce-lockfile", deps.group(1))
-        self.assertIn("flutter pub get", refresh.group(1))
-        self.assertNotIn("--enforce-lockfile", refresh.group(1))
+        lines = (ROOT / "Makefile").read_text(encoding="utf-8").splitlines()
+
+        def recipe(target: str) -> str:
+            index = lines.index(f"{target}:")
+            commands = []
+            for line in lines[index + 1:]:
+                if line.startswith("\t"):
+                    commands.append(line[1:])
+                elif not line or line.startswith("#"):
+                    continue
+                else:
+                    break
+            return "\n".join(commands)
+
+        deps = recipe("deps")
+        refresh = recipe("deps-refresh")
+        self.assertIn("--enforce-lockfile", deps)
+        self.assertIn("flutter pub get", refresh)
+        self.assertNotIn("--enforce-lockfile", refresh)
 
     def test_makefile_has_no_automatic_git_push_or_commit_target(self):
         source = (ROOT / "Makefile").read_text(encoding="utf-8")
