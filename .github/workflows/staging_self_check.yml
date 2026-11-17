@@ -82,24 +82,58 @@ jobs:
           set -Eeuo pipefail
           python3 - << 'PY'
           from pathlib import Path
-          manifest = Path("android/app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
+          import xml.etree.ElementTree as ET
+
+          manifest_path = Path("android/app/src/main/AndroidManifest.xml")
+          manifest = ET.parse(manifest_path).getroot()
           gradle = Path("android/app/build.gradle").read_text(encoding="utf-8")
-          required = [
-              'android:allowBackup="false"',
-              'android:usesCleartextTraffic="false"',
-              "android.permission.RECORD_AUDIO",
-              "targetSdk 36",
-              "compileSdk 36",
-          ]
-          forbidden = [
+
+          android_ns = "{http://schemas.android.com/apk/res/android}"
+          tools_ns = "{http://schemas.android.com/tools}"
+          required_attributes = {
+              "allowBackup": "false",
+              "usesCleartextTraffic": "false",
+          }
+          application = manifest.find("application")
+          missing = []
+          if application is None:
+              missing.append("application")
+          else:
+              for attribute, expected in required_attributes.items():
+                  if application.get(android_ns + attribute) != expected:
+                      missing.append(f"android:{attribute}={expected}")
+
+          permissions = manifest.findall("uses-permission")
+          record_audio = any(
+              node.get(android_ns + "name") == "android.permission.RECORD_AUDIO"
+              and node.get(tools_ns + "node") != "remove"
+              for node in permissions
+          )
+          if not record_audio:
+              missing.append("android.permission.RECORD_AUDIO")
+
+          forbidden = {
               "android.permission.INTERNET",
               "android.permission.POST_NOTIFICATIONS",
-          ]
-          missing = [item for item in required if item not in manifest and item not in gradle]
-          present = [item for item in forbidden if item in manifest]
-          if missing or present:
-              raise SystemExit(f"Play compliance failed missing={missing} forbidden={present}")
-          print("Play compliance ok")
+          }
+          active_forbidden = sorted({
+              node.get(android_ns + "name")
+              for node in permissions
+              if node.get(android_ns + "name") in forbidden
+              and node.get(tools_ns + "node") != "remove"
+          })
+
+          if "targetSdk 36" not in gradle:
+              missing.append("targetSdk 36")
+          if "compileSdk 36" not in gradle:
+              missing.append("compileSdk 36")
+
+          if missing or active_forbidden:
+              raise SystemExit(
+                  f"Play compliance failed missing={missing} "
+                  f"active_forbidden={active_forbidden}"
+              )
+          print("Play compliance ok: forbidden permissions are absent or explicitly removed")
           PY
 
       - name: Read locked Flutter version
