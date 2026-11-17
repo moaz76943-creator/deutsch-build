@@ -1,4 +1,4 @@
-.PHONY: all analyze test clean deps build-apk build-debug-apk
+.PHONY: all analyze test clean deps deps-refresh build-apk build-debug-apk
 
 # The default path validates the source and produces a locally installable
 # ARM64 debug APK. It never commits, pushes, or changes Git branches.
@@ -9,6 +9,10 @@ clean:
 
 deps:
 	flutter pub get --enforce-lockfile
+
+# Intentional dependency refresh; review and commit the resulting pubspec.lock.
+deps-refresh:
+	flutter pub get
 
 analyze:
 	dart analyze lib/
