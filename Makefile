@@ -1,21 +1,25 @@
-.PHONY: all analyze test clean sync build-apk
+.PHONY: all analyze test clean deps build-apk build-debug-apk
 
-all: clean analyze test sync
+# The default path validates the source and produces a locally installable
+# ARM64 debug APK. It never commits, pushes, or changes Git branches.
+all: analyze test build-debug-apk
 
 clean:
 	flutter clean
-	flutter pub get
+
+deps:
+	flutter pub get --enforce-lockfile
 
 analyze:
-	dart analyze
+	dart analyze lib/
 
 test:
-	flutter test || true
+	flutter test --reporter expanded
 
-sync:
-	git add .
-	git commit -m "refactor(core): remove all restrictive gates for absolute developer freedom"
-	git push origin main
-
+# Release builds require the separately configured secure signing material.
 build-apk:
-    flutter build apk --release
+	flutter build apk --release --split-per-abi
+
+# Safe local/CI build; no release keystore or production credentials required.
+build-debug-apk:
+	flutter build apk --debug --target-platform android-arm64
