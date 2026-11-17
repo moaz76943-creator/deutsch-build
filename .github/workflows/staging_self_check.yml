@@ -151,8 +151,17 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Resolve dependencies
-        run: flutter pub get --enforce-lockfile
+      - name: Resolve dependencies and refresh lockfile once
+        run: flutter pub get
+
+      - name: Upload resolved pubspec.lock for canonical update
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: deutsch-bilarabi-resolved-pubspec-lock
+          path: pubspec.lock
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
 
       - name: Analyze
         run: dart analyze lib/
