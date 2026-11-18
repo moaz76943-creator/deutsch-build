@@ -43,7 +43,7 @@
     {
       "task_id": "MATRIX_A1_CORE",
       "domain": "DataMatrix",
-      "status": "IN_PROGRESS",
+      "status": "COMPLETED",
       "branch": "tools/language-matrix-builder",
       "prerequisites": [],
       "external_prerequisites": [],

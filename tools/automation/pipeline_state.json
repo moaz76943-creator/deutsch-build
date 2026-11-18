@@ -18,13 +18,13 @@
       "dependent_tasks": []
     },
     {
-      "task_id": "MATRIX_A1_CORE",
-      "status": "IN_PROGRESS",
-      "branch": "tools/language-matrix-builder",
-      "commit_sha": "",
-      "test_count": 0,
-      "dependent_tasks": []
-    },
+        "task_id": "MATRIX_A1_CORE",
+        "status": "COMPLETED",
+        "branch": "tools/language-matrix-builder",
+        "commit_sha": "a7516adcd",
+        "test_count": 32,
+        "dependent_tasks": []
+      },
     {
       "task_id": "LOCAL_PERSISTENCE_DRIFT",
       "status": "PENDING",
