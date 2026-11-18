@@ -38,3 +38,16 @@ Placeholder fix in progress.
 - Re-ran tests: PASS (71 unique items, contains präteritum and article: 'der').
 - No bugs/crashes found. Content correctness prioritized. Preview remains on approved workspace port.
 - Next: continue expanding content or integrate into learning system if needed.
+
+## 2026-11-18 Hourly Session 2 (Grok Build)
+
+- Read AGENTS.md. Auth/DB remain OFF.
+- Ran `npm test` (test-vocab-extra.js): PASS (71 unique items).
+- Added 20 new high-quality A1/A2 items to `src/lib/deutsch/content/vocab-extra.ts` (ids v-extra-571 to v-extra-590):
+  - Verbs with full conjugation (ich/du/er/wir/ihr/sie_pl + Präteritum + Perfekt + aux haben/sein): hören, verstehen, fragen, antworten, öffnen, schließen, helfen, brauchen, warten, fahren.
+  - Nouns with correct article (der/die/das), plural, natural German example sentences + Arabic translations: Musik, Frage, Lehrer, Antwort, Tür, Fenster, Freund, Zeit, Bus, Auto.
+  - No ID repeats. Existing content preserved. No auto-deletion of similar items.
+- Re-ran tests: PASS (91 unique items, contains präteritum and article: 'der').
+- No bugs/crashes found. Content correctness prioritized. Preview remains on approved workspace port.
+- Next: continue expanding content or integrate into learning system if needed.
+

@@ -1041,4 +1041,296 @@ export const vocabExtra = [
     example: 'Die Zeitung liegt auf dem Tisch.',
     exampleAr: 'الجريدة على الطاولة.'
   },
+  // New A1/A2 items v-extra-571 to v-extra-590 (20 items)
+  {
+    id: 'v-extra-571',
+    type: 'verb',
+    infinitive: 'hören',
+    arabic: 'يسمع',
+    conjugation: {
+      ich: 'höre',
+      du: 'hörst',
+      er: 'hört',
+      wir: 'hören',
+      ihr: 'hört',
+      sie_pl: 'hören',
+      präteritum: 'hörte',
+      perfekt: 'hat gehört',
+      aux: 'haben'
+    },
+    example: 'Ich höre Musik.',
+    exampleAr: 'أسمع موسيقى.'
+  },
+  {
+    id: 'v-extra-572',
+    type: 'noun',
+    german: 'Musik',
+    article: 'die',
+    plural: 'Musiken',
+    arabic: 'موسيقى',
+    example: 'Die Musik ist schön.',
+    exampleAr: 'الموسيقى جميلة.'
+  },
+  {
+    id: 'v-extra-573',
+    type: 'verb',
+    infinitive: 'verstehen',
+    arabic: 'يفهم',
+    conjugation: {
+      ich: 'verstehe',
+      du: 'verstehst',
+      er: 'versteht',
+      wir: 'verstehen',
+      ihr: 'versteht',
+      sie_pl: 'verstehen',
+      präteritum: 'verstand',
+      perfekt: 'hat verstanden',
+      aux: 'haben'
+    },
+    example: 'Verstehst du mich?',
+    exampleAr: 'هل تفهمني؟'
+  },
+  {
+    id: 'v-extra-574',
+    type: 'noun',
+    german: 'Frage',
+    article: 'die',
+    plural: 'Fragen',
+    arabic: 'سؤال',
+    example: 'Die Frage ist einfach.',
+    exampleAr: 'السؤال سهل.'
+  },
+  {
+    id: 'v-extra-575',
+    type: 'verb',
+    infinitive: 'fragen',
+    arabic: 'يسأل',
+    conjugation: {
+      ich: 'frage',
+      du: 'fragst',
+      er: 'fragt',
+      wir: 'fragen',
+      ihr: 'fragt',
+      sie_pl: 'fragen',
+      präteritum: 'fragte',
+      perfekt: 'hat gefragt',
+      aux: 'haben'
+    },
+    example: 'Ich frage den Lehrer.',
+    exampleAr: 'أسأل المعلم.'
+  },
+  {
+    id: 'v-extra-576',
+    type: 'noun',
+    german: 'Lehrer',
+    article: 'der',
+    plural: 'Lehrer',
+    arabic: 'معلم',
+    example: 'Der Lehrer erklärt die Grammatik.',
+    exampleAr: 'المعلم يشرح القواعد.'
+  },
+  {
+    id: 'v-extra-577',
+    type: 'verb',
+    infinitive: 'antworten',
+    arabic: 'يجيب',
+    conjugation: {
+      ich: 'antworte',
+      du: 'antwortest',
+      er: 'antwortet',
+      wir: 'antworten',
+      ihr: 'antwortet',
+      sie_pl: 'antworten',
+      präteritum: 'antwortete',
+      perfekt: 'hat geantwortet',
+      aux: 'haben'
+    },
+    example: 'Sie antwortet richtig.',
+    exampleAr: 'هي تجيب بشكل صحيح.'
+  },
+  {
+    id: 'v-extra-578',
+    type: 'noun',
+    german: 'Antwort',
+    article: 'die',
+    plural: 'Antworten',
+    arabic: 'إجابة',
+    example: 'Die Antwort ist korrekt.',
+    exampleAr: 'الإجابة صحيحة.'
+  },
+  {
+    id: 'v-extra-579',
+    type: 'verb',
+    infinitive: 'öffnen',
+    arabic: 'يفتح',
+    conjugation: {
+      ich: 'öffne',
+      du: 'öffnest',
+      er: 'öffnet',
+      wir: 'öffnen',
+      ihr: 'öffnet',
+      sie_pl: 'öffnen',
+      präteritum: 'öffnete',
+      perfekt: 'hat geöffnet',
+      aux: 'haben'
+    },
+    example: 'Bitte öffne die Tür.',
+    exampleAr: 'من فضلك افتح الباب.'
+  },
+  {
+    id: 'v-extra-580',
+    type: 'noun',
+    german: 'Tür',
+    article: 'die',
+    plural: 'Türen',
+    arabic: 'باب',
+    example: 'Die Tür ist offen.',
+    exampleAr: 'الباب مفتوح.'
+  },
+  {
+    id: 'v-extra-581',
+    type: 'verb',
+    infinitive: 'schließen',
+    arabic: 'يغلق',
+    conjugation: {
+      ich: 'schließe',
+      du: 'schließt',
+      er: 'schließt',
+      wir: 'schließen',
+      ihr: 'schließt',
+      sie_pl: 'schließen',
+      präteritum: 'schloss',
+      perfekt: 'hat geschlossen',
+      aux: 'haben'
+    },
+    example: 'Er schließt das Fenster.',
+    exampleAr: 'هو يغلق النافذة.'
+  },
+  {
+    id: 'v-extra-582',
+    type: 'noun',
+    german: 'Fenster',
+    article: 'das',
+    plural: 'Fenster',
+    arabic: 'نافذة',
+    example: 'Das Fenster ist groß.',
+    exampleAr: 'النافذة كبيرة.'
+  },
+  {
+    id: 'v-extra-583',
+    type: 'verb',
+    infinitive: 'helfen',
+    arabic: 'يساعد',
+    conjugation: {
+      ich: 'helfe',
+      du: 'hilfst',
+      er: 'hilft',
+      wir: 'helfen',
+      ihr: 'helft',
+      sie_pl: 'helfen',
+      präteritum: 'half',
+      perfekt: 'hat geholfen',
+      aux: 'haben'
+    },
+    example: 'Kannst du mir helfen?',
+    exampleAr: 'هل يمكنك مساعدتي؟'
+  },
+  {
+    id: 'v-extra-584',
+    type: 'noun',
+    german: 'Freund',
+    article: 'der',
+    plural: 'Freunde',
+    arabic: 'صديق',
+    example: 'Mein Freund hilft mir.',
+    exampleAr: 'صديقي يساعدني.'
+  },
+  {
+    id: 'v-extra-585',
+    type: 'verb',
+    infinitive: 'brauchen',
+    arabic: 'يحتاج',
+    conjugation: {
+      ich: 'brauche',
+      du: 'brauchst',
+      er: 'braucht',
+      wir: 'brauchen',
+      ihr: 'braucht',
+      sie_pl: 'brauchen',
+      präteritum: 'brauchte',
+      perfekt: 'hat gebraucht',
+      aux: 'haben'
+    },
+    example: 'Wir brauchen mehr Zeit.',
+    exampleAr: 'نحتاج المزيد من الوقت.'
+  },
+  {
+    id: 'v-extra-586',
+    type: 'noun',
+    german: 'Zeit',
+    article: 'die',
+    plural: 'Zeiten',
+    arabic: 'وقت',
+    example: 'Die Zeit ist knapp.',
+    exampleAr: 'الوقت ضيق.'
+  },
+  {
+    id: 'v-extra-587',
+    type: 'verb',
+    infinitive: 'warten',
+    arabic: 'ينتظر',
+    conjugation: {
+      ich: 'warte',
+      du: 'wartest',
+      er: 'wartet',
+      wir: 'warten',
+      ihr: 'wartet',
+      sie_pl: 'warten',
+      präteritum: 'wartete',
+      perfekt: 'hat gewartet',
+      aux: 'haben'
+    },
+    example: 'Ich warte auf den Bus.',
+    exampleAr: 'أنتظر الحافلة.'
+  },
+  {
+    id: 'v-extra-588',
+    type: 'noun',
+    german: 'Bus',
+    article: 'der',
+    plural: 'Busse',
+    arabic: 'حافلة',
+    example: 'Der Bus kommt spät.',
+    exampleAr: 'الحافلة تأتي متأخرة.'
+  },
+  {
+    id: 'v-extra-589',
+    type: 'verb',
+    infinitive: 'fahren',
+    arabic: 'يقود / يسافر',
+    conjugation: {
+      ich: 'fahre',
+      du: 'fährst',
+      er: 'fährt',
+      wir: 'fahren',
+      ihr: 'fahrt',
+      sie_pl: 'fahren',
+      präteritum: 'fuhr',
+      perfekt: 'ist gefahren',
+      aux: 'sein'
+    },
+    example: 'Wir fahren nach Berlin.',
+    exampleAr: 'نسافر إلى برلين.'
+  },
+  {
+    id: 'v-extra-590',
+    type: 'noun',
+    german: 'Auto',
+    article: 'das',
+    plural: 'Autos',
+    arabic: 'سيارة',
+    example: 'Das Auto ist schnell.',
+    exampleAr: 'السيارة سريعة.'
+  },
 ];
+
