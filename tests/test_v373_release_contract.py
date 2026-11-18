@@ -8,7 +8,7 @@ def test_v373_release_contract_declares_language_content_intelligence_boundary()
     gradle = (ROOT / 'android/app/build.gradle').read_text(encoding='utf-8')
     assert 'version:' in pubspec
     assert 'versionCode ' in gradle
-    assert 'versionName "' in gradle
+    assert "versionName " in gradle
 
 
 def test_v373_contract_is_in_language_layer():

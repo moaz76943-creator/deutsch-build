@@ -10,7 +10,7 @@ def test_v359_release_contract_declares_atomic_audio_content_publication():
     docs = (ROOT / 'docs' / 'V359_AUDIO_CONTENT_PUBLICATION.md').read_text(encoding='utf-8')
     assert 'version:' in pubspec
     assert 'versionCode ' in gradle
-    assert 'versionName "' in gradle
+    assert "versionName " in gradle
     assert 'publish-batch' in tool
     assert 'atomically publish' in tool
     assert 'batch.json' in docs

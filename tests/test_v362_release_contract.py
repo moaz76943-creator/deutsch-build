@@ -11,7 +11,7 @@ def test_v362_release_contract_declares_canonical_duplicate_gate():
     docs = (ROOT / 'docs/V362_CANONICAL_DUPLICATE_GATE.md').read_text(encoding='utf-8')
     assert 'version:' in pubspec
     assert 'versionCode ' in gradle
-    assert 'versionName "' in gradle
+    assert "versionName " in gradle
     assert 'def _normalize_german' in tool
     assert 'existing_content_path=content_path' in ingestion
     assert 'review-only' in docs

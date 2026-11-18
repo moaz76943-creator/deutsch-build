@@ -11,13 +11,15 @@ def _row(i: int) -> str:
 def test_incremental_compile_rewrites_only_changed_content_chunk(tmp_path):
     content = tmp_path / 'content.json'
     verbs = tmp_path / 'verbs.json'
+    editorial = tmp_path / 'editorial_corrections.jsonl'
+    editorial.write_text('')
     rows = [_row(i) for i in range(CHUNK_SIZE + 2)]
     content.write_text('[' + ','.join(rows) + ']')
     verbs.write_text('[]')
     out = tmp_path / 'out'
     cache = tmp_path / 'cache.json'
 
-    compile_to(out, content, verbs, cache_path=cache)
+    compile_to(out, content, verbs, cache_path=cache, editorial_corrections_path=editorial)
     first = out / 'content_items_chunk_000.dart'
     second = out / 'content_items_chunk_001.dart'
     first_before, second_before = first.stat().st_mtime_ns, second.stat().st_mtime_ns
@@ -25,7 +27,7 @@ def test_incremental_compile_rewrites_only_changed_content_chunk(tmp_path):
     time.sleep(0.01)
     rows[10] = _row(10).replace('g10', 'changed')
     content.write_text('[' + ','.join(rows) + ']')
-    compile_to(out, content, verbs, cache_path=cache)
+    compile_to(out, content, verbs, cache_path=cache, editorial_corrections_path=editorial)
 
     assert first.stat().st_mtime_ns > first_before
     assert second.stat().st_mtime_ns == second_before
@@ -36,16 +38,18 @@ def test_incremental_compile_rewrites_only_changed_content_chunk(tmp_path):
 def test_incremental_compile_does_not_rewrite_aggregators_when_only_chunk_changes(tmp_path):
     content = tmp_path / 'content.json'
     verbs = tmp_path / 'verbs.json'
+    editorial = tmp_path / 'editorial_corrections.jsonl'
+    editorial.write_text('')
     rows = [_row(i) for i in range(CHUNK_SIZE + 2)]
     content.write_text('[' + ','.join(rows) + ']')
     verbs.write_text('[]')
     out = tmp_path / 'out'
     cache = tmp_path / 'cache.json'
-    compile_to(out, content, verbs, cache_path=cache)
+    compile_to(out, content, verbs, cache_path=cache, editorial_corrections_path=editorial)
     aggregate = out / 'content_items_generated.dart'
     before = aggregate.stat().st_mtime_ns
     time.sleep(0.01)
     rows[10] = _row(10).replace('g10', 'changed-again')
     content.write_text('[' + ','.join(rows) + ']')
-    compile_to(out, content, verbs, cache_path=cache)
+    compile_to(out, content, verbs, cache_path=cache, editorial_corrections_path=editorial)
     assert aggregate.stat().st_mtime_ns == before

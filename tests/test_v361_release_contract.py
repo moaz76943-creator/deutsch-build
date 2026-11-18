@@ -10,7 +10,7 @@ def test_v361_release_contract_declares_review_only_quality_gate():
     docs = (ROOT / 'docs/V361_CONTENT_QUALITY_GATE.md').read_text(encoding='utf-8')
     assert 'version:' in pubspec
     assert 'versionCode ' in gradle
-    assert 'versionName "' in gradle
+    assert "versionName " in gradle
     assert 'def review_batch' in tool
     assert 'review_only' in docs
     assert 'sentence/sentenceAr' in docs

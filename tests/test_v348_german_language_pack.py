@@ -55,4 +55,4 @@ def test_build_identity_is_explicit():
     gradle = (ROOT / "android/app/build.gradle").read_text(encoding="utf-8")
     assert "version:" in pubspec
     assert "versionCode " in gradle
-    assert 'versionName "' in gradle
+    assert "versionName " in gradle

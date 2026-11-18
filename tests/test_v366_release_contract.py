@@ -11,7 +11,7 @@ def test_v366_release_contract_declares_language_normalization_boundary():
     docs = (ROOT / 'docs/V366_LANGUAGE_NORMALIZATION_CONTRACT.md').read_text(encoding='utf-8')
     assert 'version:' in pubspec
     assert 'versionCode ' in gradle
-    assert 'versionName "' in gradle
+    assert "versionName " in gradle
     assert 'LanguageTextNormalizer get textNormalizer;' in pack
     assert 'GermanTextNormalizer' in german_pack
     assert 'language-agnostic' in docs

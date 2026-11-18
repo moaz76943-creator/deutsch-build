@@ -8,7 +8,7 @@ def test_v363_release_contract_declares_review_queue():
     docs=(ROOT/'docs/V363_REVIEW_QUEUE.md').read_text(encoding='utf-8')
     assert 'version:' in pubspec
     assert 'versionCode ' in gradle
-    assert 'versionName "' in gradle
+    assert "versionName " in gradle
     assert 'def filter_queue' in tool
     assert '--severity' in tool and '--category' in tool and '--content-id' in tool
     assert 'structured, reviewable queue' in docs

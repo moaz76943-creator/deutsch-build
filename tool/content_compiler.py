@@ -77,8 +77,8 @@ def _load_editorial_corrections(path: Path = EDITORIAL_CORRECTIONS) -> list[dict
     return corrections
 
 
-def _apply_editorial_corrections(rows: list[dict[str, object]]) -> list[dict[str, object]]:
-    corrections = _load_editorial_corrections()
+def _apply_editorial_corrections(rows: list[dict[str, object]], editorial_corrections_path: Path = EDITORIAL_CORRECTIONS) -> list[dict[str, object]]:
+    corrections = _load_editorial_corrections(editorial_corrections_path)
     if not corrections:
         return rows
     by_id = {str(row.get("id")): index for index, row in enumerate(rows)}
@@ -99,19 +99,19 @@ def _apply_editorial_corrections(rows: list[dict[str, object]]) -> list[dict[str
     return updated
 
 
-def _fingerprint_sources(content_path: Path, verb_path: Path) -> list[Path]:
+def _fingerprint_sources(content_path: Path, verb_path: Path, editorial_corrections_path: Path = EDITORIAL_CORRECTIONS) -> list[Path]:
     sources = [content_path, verb_path]
-    if EDITORIAL_CORRECTIONS.exists():
-        sources.append(EDITORIAL_CORRECTIONS)
+    if editorial_corrections_path.exists():
+        sources.append(editorial_corrections_path)
     return sources
 
 
-def load(content_path: Path = CONTENT_JSON, verb_path: Path = VERB_JSON) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
+def load(content_path: Path = CONTENT_JSON, verb_path: Path = VERB_JSON, editorial_corrections_path: Path = EDITORIAL_CORRECTIONS) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
     content = json.loads(content_path.read_text(encoding="utf-8"))
     verbs = json.loads(verb_path.read_text(encoding="utf-8"))
     if not isinstance(content, list) or not isinstance(verbs, list):
         raise ValueError("content pack roots must be arrays")
-    return _apply_editorial_corrections(content), verbs
+    return _apply_editorial_corrections(content, editorial_corrections_path), verbs
 
 
 def _write_if_changed(path: Path, text: str) -> bool:
@@ -158,12 +158,12 @@ def _write_aggregate(path: Path, model_import: str, imports: list[str], declarat
     return _write_if_changed(path, text)
 
 
-def compile_to(output_dir: Path, content_path: Path = CONTENT_JSON, verb_path: Path = VERB_JSON, cache_path: Path | None = None) -> tuple[Path, Path]:
-    content, verbs = load(content_path, verb_path)
+def compile_to(output_dir: Path, content_path: Path = CONTENT_JSON, verb_path: Path = VERB_JSON, cache_path: Path | None = None, editorial_corrections_path: Path = EDITORIAL_CORRECTIONS) -> tuple[Path, Path]:
+    content, verbs = load(content_path, verb_path, editorial_corrections_path)
     output_dir.mkdir(parents=True, exist_ok=True)
     cache_key = "content_compilation"
     if cache_path is not None:
-        fp = fingerprint(_fingerprint_sources(content_path, verb_path), config={"chunk_size": CHUNK_SIZE, "fields": CONTENT_FIELDS + VERB_FIELDS}, tool_version="V379")
+        fp = fingerprint(_fingerprint_sources(content_path, verb_path, editorial_corrections_path), config={"chunk_size": CHUNK_SIZE, "fields": CONTENT_FIELDS + VERB_FIELDS}, tool_version="V379")
         cached = load_cache(cache_path)
         if cache_valid(cached.get(cache_key, {}), fp) and (output_dir / "content_items_generated.dart").exists() and (output_dir / "verb_conjugations_generated.dart").exists():
             return output_dir / "content_items_generated.dart", output_dir / "verb_conjugations_generated.dart"
@@ -184,7 +184,7 @@ def compile_to(output_dir: Path, content_path: Path = CONTENT_JSON, verb_path: P
     _write_aggregate(content_out, f"import '{content_model_uri}';", content_imports, "generatedContentItems = <ContentItem>", content_spread)
     _write_aggregate(verbs_out, f"import '{verb_model_uri}';", verb_imports, "generatedVerbConjugations = <VerbConjugation>", verb_spread)
     if cache_path is not None:
-        fp = fingerprint(_fingerprint_sources(content_path, verb_path), config={"chunk_size": CHUNK_SIZE, "fields": CONTENT_FIELDS + VERB_FIELDS}, tool_version="V379")
+        fp = fingerprint(_fingerprint_sources(content_path, verb_path, editorial_corrections_path), config={"chunk_size": CHUNK_SIZE, "fields": CONTENT_FIELDS + VERB_FIELDS}, tool_version="V379")
         store_cache(cache_path, "content_compilation", fp, {"status": "PASS", "content_chunk_hashes": content_hashes, "verb_chunk_hashes": verb_hashes})
     return content_out, verbs_out
 
@@ -269,12 +269,13 @@ def main() -> int:
     c = sub.add_parser("compile")
     c.add_argument("--output-dir", required=True, type=Path)
     c.add_argument("--cache", type=Path)
+    c.add_argument("--editorial-corrections", type=Path)
     p = sub.add_parser("parity")
     p.add_argument("--output-dir", required=True, type=Path)
     args = ap.parse_args()
     try:
         if args.command == "compile":
-            content_out, verbs_out = compile_to(args.output_dir, cache_path=args.cache)
+            content_out, verbs_out = compile_to(args.output_dir, cache_path=args.cache, editorial_corrections_path=args.editorial_corrections or EDITORIAL_CORRECTIONS)
             print(f"generated_content={content_out} generated_verbs={verbs_out}")
         else:
             content_rows, verb_rows = parity(args.output_dir)

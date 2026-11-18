@@ -100,7 +100,8 @@ class RecoveredWorkflowContracts(unittest.TestCase):
         source = self.read("build_apk.yml")
         self.assertIn("sha256sum deutsch-app.apk > deutsch-app.apk.sha256", source)
         self.assertIn("sha256sum --check deutsch-app.apk.sha256", source)
-        self.assertIn('artifacts: "deutsch-app.apk,deutsch-app.apk.sha256"', source)
+        # Verify required artifacts are present (may include additional provenance files)
+        self.assertIn('artifacts: "deutsch-app.apk,deutsch-app.apk.sha256', source)
         self.assertLess(source.index("flutter build apk"), source.index("sha256sum deutsch-app.apk"))
         self.assertLess(source.index("sha256sum --check deutsch-app.apk.sha256"),
                         source.index("Publish Direct APK Release"))

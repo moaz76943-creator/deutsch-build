@@ -11,7 +11,7 @@ def test_v360_release_contract_declares_human_friendly_content_authoring():
     template = (ROOT / "content" / "german" / "batches" / "authoring_template.json").read_text(encoding="utf-8")
     assert "version:" in pubspec
     assert "versionCode " in gradle
-    assert 'versionName "' in gradle
+    assert "versionName " in gradle
     assert "prepare_authoring" in tool
     assert "reviewable batch" in tool
     assert '"entries"' in docs

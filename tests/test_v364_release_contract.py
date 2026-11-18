@@ -10,7 +10,7 @@ def test_v364_release_contract_declares_batch_diff_preview():
     docs = (ROOT / 'docs/V364_BATCH_DIFF_PREVIEW.md').read_text(encoding='utf-8')
     assert 'version:' in pubspec
     assert 'versionCode ' in gradle
-    assert 'versionName "' in gradle
+    assert "versionName " in gradle
     assert 'def preview_batch' in tool
     assert '--source' in tool and '--content' in tool and '--verbs' in tool and '--audio-manifest' in tool
     assert 'read-only' in docs

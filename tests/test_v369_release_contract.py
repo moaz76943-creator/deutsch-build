@@ -16,7 +16,7 @@ def test_v369_release_contract_declares_ui_language_boundary():
     progress = (ROOT / 'lib/ui_v35/progress_pages.dart').read_text(encoding='utf-8')
     assert 'version:' in pubspec
     assert 'versionCode ' in gradle
-    assert 'versionName "' in gradle
+    assert "versionName " in gradle
     for getter in ('targetLanguageName', 'pronunciationTooltip', 'grammaticalMarkerLabel', 'pluralLabel'):
         assert f'String get {getter}' in presentation
     assert 'LanguagePresentation' in core

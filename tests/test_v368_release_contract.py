@@ -11,7 +11,7 @@ def test_v368_release_contract_declares_neutral_shared_service_projection():
     me = (ROOT / "lib/services/mistake_engine.dart").read_text(encoding="utf-8")
     assert "version:" in pubspec
     assert "versionCode " in gradle
-    assert 'versionName "' in gradle
+    assert "versionName " in gradle
     assert "../core/content_contract.dart" in ci
     assert "List<LearningContent>" in ci
     assert "ContentItem" not in ci

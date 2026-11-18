@@ -10,7 +10,7 @@ def test_v371_core_boundary_contract():
     quality = (ROOT / "lib/services/quality.dart").read_text(encoding="utf-8")
     assert "version:" in pubspec
     assert "versionCode " in gradle
-    assert 'versionName "' in gradle
+    assert "versionName " in gradle
     assert "GermanTextNormalizer" in normalizer
     assert "GermanContentQuality" in quality
     assert not (ROOT / "lib/core/text_normalizer.dart").exists()

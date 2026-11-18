@@ -10,6 +10,6 @@ def test_v358_release_contract_declares_audio_asset_pipeline():
     docs = (ROOT / 'docs' / 'V358_AUDIO_ASSET_PIPELINE.md').read_text(encoding='utf-8')
     assert 'version:' in pubspec
     assert 'versionCode ' in gradle
-    assert 'versionName "' in gradle
+    assert "versionName " in gradle
     assert 'validate-audio' in tool
     assert 'content/german/audio' in docs

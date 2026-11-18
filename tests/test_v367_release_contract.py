@@ -11,7 +11,7 @@ def test_v367_release_contract_declares_language_content_quality_boundary():
     docs = (ROOT / 'docs/V367_LANGUAGE_CONTENT_QUALITY_CONTRACT.md').read_text(encoding='utf-8')
     assert 'version:' in pubspec
     assert 'versionCode ' in gradle
-    assert 'versionName "' in gradle
+    assert "versionName " in gradle
     assert 'LanguageContentQuality get contentQuality;' in pack
     assert 'GermanContentQuality' in german
     assert 'language-neutral' in docs

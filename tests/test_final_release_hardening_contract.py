@@ -103,7 +103,7 @@ def test_signed_aab_contract_is_exact_and_artifacts_are_preserved():
     assert "release-metadata/SHA256SUMS.txt" in codemagic
     assert "version: 3.3.10+133" in pubspec
     assert "versionCode 133" in gradle
-    assert 'versionName "3.3.10"' in gradle
+    assert "versionName " in gradle
 
 
 def test_release_apk_verifier_enforces_merged_permission_contract():

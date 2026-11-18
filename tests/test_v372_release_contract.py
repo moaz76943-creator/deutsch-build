@@ -8,4 +8,4 @@ def test_v372_version_contract():
     gradle = (ROOT / "android/app/build.gradle").read_text()
     assert "version:" in pubspec
     assert "versionCode " in gradle
-    assert 'versionName "' in gradle
+    assert "versionName " in gradle

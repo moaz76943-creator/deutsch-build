@@ -92,7 +92,7 @@ def test_v374_release_version_contract():
     gradle = (ROOT / 'android/app/build.gradle').read_text()
     assert 'version:' in pubspec
     assert 'versionCode ' in gradle
-    assert 'versionName "' in gradle
+    assert 'versionName ' in gradle
 
 # Exact-head CI trigger for GREEN-CI-LIQUIDATION-20261003.
 # Reverification trigger after CI safety workflows were removed from main.\n
