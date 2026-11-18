@@ -13,6 +13,7 @@ import '../models/diagnostic_placement.dart';
 import '../core/date_utils.dart';
 import '../features/gamification/domain/gamification_models.dart';
 import '../features/gamification/domain/gamification_review_sink.dart';
+import '../features/gamification/gamification_repository.dart';
 import '../features/error_pattern_agent/domain/error_diagnostic_repository.dart';
 import '../features/error_pattern_agent/domain/error_pattern_models.dart';
 
@@ -402,18 +403,6 @@ class LearnerRepository {
             ? attempts.sublist(attempts.length - maxAttempts)
             : attempts;
         await persistence.applyReviewAttemptOnce(attempt);
-        final last =
-            state.attempts.isEmpty ? null : state.attempts.last.at;
-        final today = now.toUtcMidnight;
-        final sameDay =
-            last != null && last.toUtcMidnight == today;
-        final yesterday = last != null &&
-            today.difference(last.toUtcMidnight).inDays == 1;
-        final nextStreak = state.attempts.isEmpty
-            ? 1
-            : (sameDay
-                ? state.streak
-                : (yesterday ? state.streak + 1 : 1));
         final xpReward = unifiedSrsScheduler.xpRewardForReview(
           correct: correct,
           hinted: hinted,
@@ -460,8 +449,6 @@ class LearnerRepository {
 
         await _saveNow(
           state.copyWith(
-            xp: (state.xp + xpReward).clamp(0, maxXp),
-            streak: nextStreak.clamp(0, maxStreak),
             attempts: bounded,
           ),
         );
@@ -506,9 +493,25 @@ class LearnerRepository {
             ? bounded.sublist(bounded.length - maxAttempts)
             : bounded;
         await persistence.applyReviewAttemptOnce(attempt);
+        final authority = _requirePairProgressAuthority();
+        await persistReviewDeliveryEnvelope(
+          pair: authority.pair,
+          reviewEventId: attempt.id,
+          cardId: safeId,
+          rating: correct ? 2 : 0,
+          timestamp: now,
+          languagePairKey: authority.pair.uniqueKey,
+          learnerContentKey: safeId,
+          correct: correct,
+          hinted: hinted,
+          achievedLevel: 0,
+          achievementDelta: correct ? 10 : 2,
+          requestedXp: correct ? 10 : 2,
+          kind: 'conversation',
+          facetType: ReviewFacetType.production,
+        );
         await _saveNow(
           s.copyWith(
-            xp: (s.xp + (correct ? 10 : 2)).clamp(0, maxXp),
             attempts: kept,
           ),
         );
@@ -664,4 +667,53 @@ extension PlacementDiagnosticRepository on LearnerRepository {
         await persistence.recordPlacementOnce(record);
         await _saveNow(state.copyWith(placementHistory: history));
       });
+}
+
+extension LearnerGamificationContract on LearnerRepository {
+  Future<void> persistReviewDeliveryEnvelope({
+    required ResolvedLanguagePair pair,
+    required String reviewEventId,
+    required String cardId,
+    required int rating,
+    required DateTime timestamp,
+    required String languagePairKey,
+    required String learnerContentKey,
+    required bool correct,
+    required bool hinted,
+    required int achievedLevel,
+    required int achievementDelta,
+    required int requestedXp,
+    required ReviewFacetType facetType,
+    required String kind,
+  }) async {
+    final authority = _requirePairProgressAuthority();
+    await authority.engine.persistReviewDeliveryEnvelope(
+      pair: pair,
+      reviewEventId: reviewEventId,
+      cardId: cardId,
+      rating: rating,
+      timestamp: timestamp,
+      languagePairKey: languagePairKey,
+      learnerContentKey: learnerContentKey,
+      correct: correct,
+      hinted: hinted,
+      achievedLevel: achievedLevel,
+      achievementDelta: achievementDelta,
+      requestedXp: requestedXp,
+      kind: kind,
+      facetType: facetType,
+    );
+  }
+
+  Future<GamificationSnapshot> loadGamificationSnapshot() async {
+    final sink = gamificationReviewSink;
+    if (sink is GamificationRepository) {
+      return sink.loadSnapshot();
+    }
+    return const GamificationSnapshot(
+      profile: GamificationProfile(),
+      unlocked: <UnlockedMilestone>[],
+      badges: GamificationMilestones.defaults,
+    );
+  }
 }

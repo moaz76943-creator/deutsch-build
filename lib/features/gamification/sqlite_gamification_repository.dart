@@ -68,6 +68,15 @@ final class SqliteGamificationRepository implements GamificationRepository {
             )
           ''');
           await db.execute('''
+            CREATE TABLE gamification_store_meta (
+              id INTEGER PRIMARY KEY CHECK (id = 1),
+              revision INTEGER NOT NULL DEFAULT 0
+            )
+          ''');
+          await db.execute('''
+            INSERT INTO gamification_store_meta (id, revision) VALUES (1, 0)
+          ''');
+          await db.execute('''
             CREATE TABLE gamification_review_events (
               event_id TEXT PRIMARY KEY,
               facet_type TEXT NOT NULL,
@@ -127,10 +136,61 @@ final class SqliteGamificationRepository implements GamificationRepository {
         },
       ),
     );
+    await _ensureMetaTable(database);
     return SqliteGamificationRepository._(
       database,
       clockIntegritySource,
     );
+  }
+
+  static Future<void> _ensureMetaTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS gamification_store_meta (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        revision INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+    await db.execute(
+      'INSERT OR IGNORE INTO gamification_store_meta (id, revision) VALUES (1, 0)',
+    );
+  }
+
+  static Future<void> _bumpRevision(DatabaseExecutor txn) async {
+    final meta = await txn.query(
+      'gamification_store_meta',
+      where: 'id = 1',
+      limit: 1,
+    );
+    if (meta.isNotEmpty) {
+      final revision = _strictInt(
+        meta.first['revision'],
+        field: 'revision',
+        min: 0,
+        max: 1 << 62,
+      );
+      await txn.update(
+        'gamification_store_meta',
+        <String, Object?>{
+          'revision': revision + 1,
+        },
+        where: 'id = 1',
+      );
+    }
+  }
+
+  static int _strictInt(
+    Object? value, {
+    required String field,
+    required int min,
+    required int max,
+  }) {
+    if (value is! int) {
+      throw StateError('gamification_store_field_not_int:$field');
+    }
+    if (value < min || value > max) {
+      throw StateError('gamification_store_field_out_of_range:$field');
+    }
+    return value;
   }
 
   Future<bool> migrateLegacyProfileIfPristine({
@@ -155,6 +215,8 @@ final class SqliteGamificationRepository implements GamificationRepository {
 
     return _database.transaction((txn) async {
       final current = await _readProfile(txn);
+      final revision = await _readRevision(txn);
+      if (revision != 0) return false;
       final events = await txn.query(
         'gamification_review_events',
         columns: const <String>['event_id'],
@@ -214,8 +276,24 @@ final class SqliteGamificationRepository implements GamificationRepository {
           conflictAlgorithm: ConflictAlgorithm.ignore,
         );
       }
+      await SqliteGamificationRepository._bumpRevision(txn);
       return true;
     });
+  }
+
+  static Future<int> _readRevision(DatabaseExecutor txn) async {
+    final meta = await txn.query(
+      'gamification_store_meta',
+      where: 'id = 1',
+      limit: 1,
+    );
+    if (meta.isEmpty) return 0;
+    return _strictInt(
+      meta.first['revision'],
+      field: 'revision',
+      min: 0,
+      max: 1 << 62,
+    );
   }
 
   @override
@@ -315,6 +393,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
             },
             conflictAlgorithm: ConflictAlgorithm.ignore);
       }
+      await SqliteGamificationRepository._bumpRevision(txn);
     });
   }
 

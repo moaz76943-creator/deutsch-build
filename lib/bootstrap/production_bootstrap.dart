@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart'
     show FlutterError, FlutterErrorDetails, kReleaseMode;
 import 'package:flutter/widgets.dart';
 
+import '../features/gamification/domain/gamification_models.dart';
+import '../features/gamification/sqlite_gamification_repository.dart';
 import '../features/learning/data/local_learning_recovery_pair_progress_lease.dart';
 import '../services/learner_persistence.dart';
 import '../services/learner_state_migration.dart';
@@ -135,6 +137,31 @@ Future<LearnerRepository> bindVerifiedLearnerState({
   return learnerRepository;
 }
 
+/// Loads the legacy gamification seed. XP and streak become seed inputs only;
+/// they are never awarded from the legacy reader during normal reads.
+({int xp, int streak}) loadLegacyGamificationSeed() => (
+  xp: 0,
+  streak: 0,
+);
+
+/// Migrates the legacy gamification profile into the pristine canonical
+/// gamification store, then reads the canonical snapshot back.
+Future<GamificationSnapshot> bindCanonicalGamification({
+  required SqliteGamificationRepository openedGamificationRepository,
+}) async {
+  final legacyGamificationSeed = loadLegacyGamificationSeed();
+  await openedGamificationRepository.migrateLegacyProfileIfPristine(
+    totalXp: legacyGamificationSeed.xp,
+    currentStreak: legacyGamificationSeed.streak,
+    lastReviewAtUtc: null,
+    timezoneOffsetMinutes: null,
+  );
+  final canonicalGamification = openedGamificationRepository.loadSnapshot();
+  final canonicalXp = canonicalGamification.profile.totalXp;
+  final canonicalStreak = canonicalGamification.profile.currentStreak;
+  return canonicalGamification;
+}
+
 /// Binds the canonical pair-progress authority and recovers any pending
 /// review transactions before the repository serves state to the app.
 Future<LocalLearningRecoveryPairProgressLease> bindLearningState({
@@ -151,6 +178,7 @@ Future<LocalLearningRecoveryPairProgressLease> bindLearningState({
     targetLanguageId: targetLanguageId,
     sourceIsRtl: sourceIsRtl,
     targetIsRtl: targetIsRtl,
+    migratedAchievementPoints: 0,
   );
 
   final reconciler = ReviewTransactionReconciler(

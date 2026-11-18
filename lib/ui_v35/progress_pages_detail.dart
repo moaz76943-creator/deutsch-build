@@ -66,7 +66,7 @@ class ProgressPage extends StatelessWidget {
               c,
               MaterialPageRoute(
                 builder: (_) => MilestoneBadgesPage(
-                  currentStreak: state.streak,
+                  currentStreak: 0,
                   engine: StreakMilestonesEngine.getInstance(),
                 ),
               ),

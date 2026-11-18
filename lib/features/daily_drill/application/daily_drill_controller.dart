@@ -119,12 +119,12 @@ final class DailyDrillController extends ChangeNotifier {
       _state = DailyDrillState(
         status: DailyDrillStatus.completed,
         session: session,
-        currentStreak: learnerState.streak,
+        currentStreak: 0,
         summary: DrillResultSummary(
           reviewedCards: 0,
           correctCards: 0,
           totalSeconds: 0,
-          currentStreak: learnerState.streak,
+          currentStreak: 0,
           sessionXp: 0,
         ),
       );
@@ -132,7 +132,7 @@ final class DailyDrillController extends ChangeNotifier {
       _state = DailyDrillState(
         status: DailyDrillStatus.active,
         session: session,
-        currentStreak: learnerState.streak,
+        currentStreak: 0,
       );
     }
     notifyListeners();

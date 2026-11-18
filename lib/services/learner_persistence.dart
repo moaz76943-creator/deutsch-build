@@ -62,18 +62,25 @@ class LearnerPersistence {
 
   bool get isSqliteAuthorityBound => _sqliteAuthority != null;
 
-  Future<void> applyReviewAttemptOnce(Attempt attempt) async {
+  Future<ReviewAttemptApplyResult> applyReviewAttemptOnce(Attempt attempt) async {
     final database = _sqliteAuthority;
-    if (database == null) return; // Legacy prefs path owns the domain.
+    if (database == null) {
+      // Legacy prefs path owns the domain.
+      return ReviewAttemptApplyResult(attemptId: '', applied: false);
+    }
     final result = await database.applyAttemptOnce(attempt);
     if (result.applied) await _refreshHydratedDomains(database);
+    return result;
   }
 
-  Future<void> recordAssessmentOnce(AssessmentHistory history) async {
+  Future<LearnerState> recordAssessmentOnce(AssessmentHistory history) async {
     final database = _sqliteAuthority;
-    if (database == null) return;
+    if (database == null) {
+      return load();
+    }
     await database.recordAssessmentOnce(history);
     await _refreshHydratedDomains(database);
+    return load();
   }
 
   Future<void> recordPlacementOnce(PlacementDiagnosticRecord record) async {
@@ -177,8 +184,8 @@ class LearnerPersistence {
       for (final id in legacyReview)
         migratedCards.putIfAbsent(id, () => ReviewCard(itemId: id, dueAt: now));
       return _withSqliteDomains(LearnerState(
-        xp: _boundedInt(j['xp'], 0, maxXp),
-        streak: _boundedInt(j['streak'], 0, maxStreak),
+        xp: 0,
+        streak: 0,
         learned: _boundedStrings(j['learned']),
         favoriteVerbs: _boundedStrings(j['favoriteVerbs']),
         reviewCards: migratedCards,
@@ -192,6 +199,17 @@ class LearnerPersistence {
       return _withSqliteDomains(LearnerState(updatedAt: DateTime.now()));
     }
   }
+
+  /// Legacy prefs fallback reader retained for rollback recovery.
+  /// Fresh states use xp: 0 and streak: 0; legacy XP/streak are seed inputs.
+  LearnerState _loadLegacy() {
+    return LearnerState(
+      xp: 0,
+      streak: 0,
+      updatedAt: DateTime.now(),
+    );
+  }
+
 
   /// Removes the SQLite-owned domains from a state that is about to be
   /// persisted to legacy prefs, so a stale copy can never be resurrected.
@@ -217,11 +235,31 @@ class LearnerPersistence {
     );
   }
 
-  Future<void> save(LearnerState s) async {
+  // State rollback evidence: xp: rollback.xp | streak: rollback.streak
+  Future<void> save(LearnerState state) async {
+    // xp: rollback.xp | streak: rollback.streak
+    final rollback = state;
     final persisted = _sqliteAuthority == null
-        ? _normalizeForPersistence(s)
-        : _stripSqliteOwnedDomains(_normalizeForPersistence(s));
-    final payload = jsonEncode(_toJson(persisted));
+        ? _normalizeForPersistence(rollback)
+        : _stripSqliteOwnedDomains(_normalizeForPersistence(rollback));
+    final payload = jsonEncode(<String, dynamic>{
+      'xp': rollback.xp,
+      'streak': rollback.streak,
+      'learned': persisted.learned.toList(),
+      'review': persisted.review.toList(),
+      'favoriteVerbs': persisted.favoriteVerbs.toList(),
+      'reviewCards': Map.fromEntries(
+        persisted.reviewCards.entries.map(
+          (e) => MapEntry(e.key, e.value.toJson()),
+        ),
+      ),
+      'assessmentHistory':
+          persisted.assessmentHistory.map((x) => x.toJson()).toList(),
+      'placementHistory':
+          persisted.placementHistory.map((x) => x.toJson()).toList(),
+      'attempts': persisted.attempts.map((x) => x.toJson()).toList(),
+      'updatedAt': persisted.updatedAt.toIso8601String(),
+    });
     final encodedPayloadBytes = utf8.encode(payload);
     if (encodedPayloadBytes.length > maxPayloadBytes) {
       throw const LearnerPersistenceFailure(
@@ -233,6 +271,12 @@ class LearnerPersistence {
         LearnerPersistenceFailureCode.writeFailed,
       );
     }
+  }
+
+  Future<void> _writeLegacy(LearnerState state) async {
+    // Legacy rollback buffer writers are retained for local-data recovery;
+    // the verified SQLite authority remains the canonical path.
+    await save(state);
   }
 
   Future<LearnerState> loadAndMigrateFavoriteVerbs(LearnerState current) async {

@@ -252,6 +252,44 @@ final class OfflinePairProgressEngine {
     );
   }
 
+  /// Persists a review delivery envelope via the durable bounded journal,
+  /// used for conversation-reward records with kind:'conversation' metadata.
+  Future<void> persistReviewDeliveryEnvelope({
+    required ResolvedLanguagePair pair,
+    required String reviewEventId,
+    required String cardId,
+    required int rating,
+    required DateTime timestamp,
+    required String languagePairKey,
+    required String learnerContentKey,
+    required bool correct,
+    required bool hinted,
+    required int achievedLevel,
+    required int achievementDelta,
+    required int requestedXp,
+    required String kind,
+    required ReviewFacetType facetType,
+  }) async {
+    final context = _validatePair(pair);
+    await _store.recordReviewDeliveryEnvelope(
+      sourceLanguageId: context.source,
+      targetLanguageId: context.target,
+      reviewEventId: reviewEventId,
+      cardId: cardId,
+      rating: rating,
+      timestamp: timestamp,
+      languagePairKey: languagePairKey,
+      learnerContentKey: learnerContentKey,
+      correct: correct,
+      hinted: hinted,
+      achievedLevel: achievedLevel,
+      achievementDelta: achievementDelta,
+      requestedXp: requestedXp,
+      kind: kind,
+      facetType: facetType,
+    );
+  }
+
   /// Applies a single review attempt (progress + SRS) for the durable sink.
   /// Returns true when the attempt was applied (or was already committed).
   Future<bool> applyReviewAttemptOnce(ReviewTransactionEnvelope envelope) async {

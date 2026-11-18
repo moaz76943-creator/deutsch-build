@@ -372,8 +372,8 @@ class _HomeState extends State<HomeV35> {
         future: _homeGamification,
         builder: (context, snapshot) {
           final profile = snapshot.data?.profile;
-          final streak = profile?.currentStreak ?? state.streak;
-          final xp = profile?.totalXp ?? state.xp;
+          final streak = profile?.currentStreak ?? 0;
+          final xp = profile?.totalXp ?? 0;
 
           return ListView(
             padding: const EdgeInsets.fromLTRB(18, 18, 18, 112),
