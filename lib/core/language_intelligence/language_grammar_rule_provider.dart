@@ -116,17 +116,18 @@ class VerifiedGrammarEvidence {
 
 /// Legacy boolean capabilities and declared metadata share one contract.
 class GrammarCapabilityProfile extends GrammarProfile {
-  final bool? _hasGender;
-  final bool? _hasCases;
-  final bool? _hasNumber;
-  final bool? _hasPerson;
-  final bool? _hasTense;
-  final bool? _hasAspect;
-  final bool? _hasMood;
-  final bool? _hasRootPatternMorphology;
-  final bool? _isAgglutinative;
-  final bool? _isAnalytic;
-  final bool? _hasNounClasses;
+  final bool hasGender;
+  final bool hasCases;
+  final bool hasNumber;
+  final bool hasPerson;
+  final bool hasTense;
+  final bool hasAspect;
+  final bool hasMood;
+  final bool hasRootPatternMorphology;
+  final bool isAgglutinative;
+  final bool isAnalytic;
+  final bool hasNounClasses;
+  final bool _usesDeclarativeProfile;
 
   const GrammarCapabilityProfile({
     this.hasGender = false,
@@ -140,7 +141,64 @@ class GrammarCapabilityProfile extends GrammarProfile {
     this.isAgglutinative = false,
     this.isAnalytic = false,
     this.hasNounClasses = false,
-  });
+    bool usesDeclarativeProfile = false,
+  })  : _usesDeclarativeProfile = usesDeclarativeProfile,
+        super(
+          capabilities: _capabilitiesFromBooleans(
+            hasGender: hasGender,
+            hasCases: hasCases,
+            hasNumber: hasNumber,
+            hasPerson: hasPerson,
+            hasTense: hasTense,
+            hasAspect: hasAspect,
+            hasMood: hasMood,
+            hasRootPatternMorphology: hasRootPatternMorphology,
+            isAgglutinative: isAgglutinative,
+            isAnalytic: isAnalytic,
+            hasNounClasses: hasNounClasses,
+          ),
+          supportedFeatures: _capabilitiesFromBooleans(
+            hasGender: hasGender,
+            hasCases: hasCases,
+            hasNumber: hasNumber,
+            hasPerson: hasPerson,
+            hasTense: hasTense,
+            hasAspect: hasAspect,
+            hasMood: hasMood,
+            hasRootPatternMorphology: hasRootPatternMorphology,
+            isAgglutinative: isAgglutinative,
+            isAnalytic: isAnalytic,
+            hasNounClasses: hasNounClasses,
+          ),
+        );
+
+  static Set<GrammarCapability> _capabilitiesFromBooleans({
+    required bool hasGender,
+    required bool hasCases,
+    required bool hasNumber,
+    required bool hasPerson,
+    required bool hasTense,
+    required bool hasAspect,
+    required bool hasMood,
+    required bool hasRootPatternMorphology,
+    required bool isAgglutinative,
+    required bool isAnalytic,
+    required bool hasNounClasses,
+  }) {
+    final set = <GrammarCapability>{};
+    if (hasGender) set.add(GrammarCapability.gender);
+    if (hasCases) set.add(GrammarCapability.caseSystem);
+    if (hasNumber) set.add(GrammarCapability.number);
+    if (hasPerson) set.add(GrammarCapability.person);
+    if (hasTense) set.add(GrammarCapability.tense);
+    if (hasAspect) set.add(GrammarCapability.aspect);
+    if (hasMood) set.add(GrammarCapability.mood);
+    if (hasRootPatternMorphology) set.add(GrammarCapability.rootPattern);
+    if (isAgglutinative) set.add(GrammarCapability.agglutinative);
+    if (isAnalytic) set.add(GrammarCapability.analytic);
+    if (hasNounClasses) set.add(GrammarCapability.nounClasses);
+    return set;
+  }
 }
 
 abstract class LanguageGrammarRuleProvider {

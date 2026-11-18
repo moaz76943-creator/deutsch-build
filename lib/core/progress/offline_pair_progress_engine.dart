@@ -223,6 +223,14 @@ final class OfflinePairProgressEngine {
     return _store.loadPendingReviewTransactions(limit: limit);
   }
 
+  /// Marks a review transaction as acknowledged/committed.
+  /// Delegates to PairProgressDatabase.
+  Future<void> acknowledgeReviewTransaction({
+    required String reviewEventId,
+  }) async {
+    await _store.acknowledgeReviewTransaction(reviewEventId: reviewEventId);
+  }
+
   /// Persists a review transaction envelope to the bounded journal.
   /// Called by ReviewTransactionReconciler / repository to record
   /// pending reviews before durable commit.

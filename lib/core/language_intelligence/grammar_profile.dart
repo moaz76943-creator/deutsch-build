@@ -5,7 +5,7 @@ import 'language_grammar_rule_provider.dart'
 class GrammarProfile {
   final String languageCode;
   final Set<GrammarCapability> capabilities;
-  final Set<GrammarFeature> supportedFeatures;
+  final Set<GrammarCapability> supportedFeatures;
   final Set<GrammaticalGender> supportedGenders;
   final Set<GrammaticalNumber> supportedNumbers;
   final Set<GrammaticalCase> supportedCases;
@@ -25,31 +25,31 @@ class GrammarProfile {
 
   bool supports(GrammarCapability capability) => supportsFeature(capability);
 
-  bool supportsFeature(GrammarFeature feature) {
+  bool supportsFeature(GrammarCapability feature) {
     if (capabilities.contains(feature) || supportedFeatures.contains(feature)) {
       return true;
     }
     switch (feature) {
-      case GrammarFeature.gender:
+      case GrammarCapability.gender:
         return supportedGenders.isNotEmpty;
-      case GrammarFeature.caseSystem:
-      case GrammarFeature.grammaticalCase:
+      case GrammarCapability.caseSystem:
+      case GrammarCapability.nounClasses:
         return supportedCases.isNotEmpty ||
-            capabilities.contains(GrammarFeature.caseSystem) ||
-            capabilities.contains(GrammarFeature.grammaticalCase) ||
-            supportedFeatures.contains(GrammarFeature.caseSystem) ||
-            supportedFeatures.contains(GrammarFeature.grammaticalCase);
-      case GrammarFeature.number:
+            capabilities.contains(GrammarCapability.caseSystem) ||
+            capabilities.contains(GrammarCapability.nounClasses) ||
+            supportedFeatures.contains(GrammarCapability.caseSystem) ||
+            supportedFeatures.contains(GrammarCapability.nounClasses);
+      case GrammarCapability.number:
         return supportedNumbers.isNotEmpty;
-      case GrammarFeature.agreement:
+      case GrammarCapability.agreement:
         return supportsAgreement;
-      case GrammarFeature.rootPattern:
+      case GrammarCapability.rootPattern:
         return morphologyType == MorphologyType.rootPattern;
-      case GrammarFeature.inflectional:
+      case GrammarCapability.inflectional:
         return morphologyType == MorphologyType.inflectional;
-      case GrammarFeature.agglutinative:
+      case GrammarCapability.agglutinative:
         return morphologyType == MorphologyType.agglutinative;
-      case GrammarFeature.analytic:
+      case GrammarCapability.analytic:
         return morphologyType == MorphologyType.analytic;
       default:
         return false;

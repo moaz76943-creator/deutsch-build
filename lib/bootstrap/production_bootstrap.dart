@@ -14,6 +14,9 @@ import '../services/preferences_service.dart';
 import '../services/repository.dart';
 import '../services/review_transaction_reconciler.dart';
 import '../core/storage/local_db/learner_state_database.dart';
+import '../bootstrap/production_runtime.dart';
+import '../core/bootstrap/startup_boundary.dart';
+import '../core/progress/offline_pair_progress_engine.dart';
 
 final ProductionRuntimeCoordinator productionRuntimeCoordinator =
     ProductionRuntimeCoordinator();
@@ -156,7 +159,7 @@ Future<GamificationSnapshot> bindCanonicalGamification({
     lastReviewAtUtc: null,
     timezoneOffsetMinutes: null,
   );
-  final canonicalGamification = openedGamificationRepository.loadSnapshot();
+  final canonicalGamification = await openedGamificationRepository.loadSnapshot();
   final canonicalXp = canonicalGamification.profile.totalXp;
   final canonicalStreak = canonicalGamification.profile.currentStreak;
   return canonicalGamification;

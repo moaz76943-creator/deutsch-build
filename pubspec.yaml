@@ -27,6 +27,10 @@ dependencies:
   sqlite3: '>=2.3.0 <3.0.0'
   crypto: ^3.0.7
   http: ^1.6.0
+  cryptography: ^2.8.0
+  sqflite_sqlcipher: ^3.4.1
+  percent_indicator: ^4.2.3
+  meta: ^1.18.0
 
   archive: ^4.5.2
   flutter_animate: ^4.5.2
