@@ -62,7 +62,7 @@ jobs:
           fi
 
           if [ "$DONE" -eq 0 ]; then
-            for MODEL in "gemini-3.5-flash-lite" "gemini-2.5-flash"; do
+            for MODEL in "gemini-4-hydrogen" "gemini-3.1-pro-preview" "gemini-3.8-flash" "gemini-3.6-flash"; do
               while IFS= read -r K; do
                 [ -n "$K" ] || continue
                 echo "Trying $MODEL with key ${K:0:12}..."
