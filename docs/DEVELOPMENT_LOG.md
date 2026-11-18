@@ -26,3 +26,15 @@ Placeholder fix in progress.
 - Re-ran tests: PASS (51 unique items, contains präteritum and article: 'der').
 - No bugs/crashes found. Content correctness prioritized. Preview remains on approved workspace port.
 - Next: continue expanding content or integrate into learning system if needed.
+
+## 2026-11-18 Hourly Session (Grok Build)
+
+- Read AGENTS.md. Auth/DB remain OFF.
+- Ran `npm test` (test-vocab-extra.js): PASS (51 unique items).
+- Added 20 new high-quality A1/A2 items to `src/lib/deutsch/content/vocab-extra.ts` (ids v-extra-551 to v-extra-570):
+  - Verbs with full conjugation (ich/du/er/wir/ihr/sie_pl + Präteritum + Perfekt + aux haben/sein): essen, trinken, schlafen, kaufen, sehen, gehen, kommen, arbeiten, spielen, lesen.
+  - Nouns with correct article (der/die/das), plural, natural German example sentences + Arabic translations: Brot, Wasser, Bett, Apfel, Film, Haus, Zeit, Büro, Kind, Zeitung.
+  - No ID repeats. Existing content preserved. No auto-deletion of similar items.
+- Re-ran tests: PASS (71 unique items, contains präteritum and article: 'der').
+- No bugs/crashes found. Content correctness prioritized. Preview remains on approved workspace port.
+- Next: continue expanding content or integrate into learning system if needed.

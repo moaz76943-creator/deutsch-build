@@ -750,4 +750,295 @@ export const vocabExtra = [
     example: 'Der Mann arbeitet hart.',
     exampleAr: 'الرجل يعمل بجد.'
   },
+
+  {
+    id: 'v-extra-551',
+    type: 'verb',
+    infinitive: 'essen',
+    arabic: 'يأكل',
+    conjugation: {
+      ich: 'esse',
+      du: 'isst',
+      er: 'isst',
+      wir: 'essen',
+      ihr: 'esst',
+      sie_pl: 'essen',
+      präteritum: 'aß',
+      perfekt: 'hat gegessen',
+      aux: 'haben'
+    },
+    example: 'Ich esse gerne Brot.',
+    exampleAr: 'أنا أحب أكل الخبز.'
+  },
+  {
+    id: 'v-extra-552',
+    type: 'noun',
+    german: 'Brot',
+    article: 'das',
+    plural: 'Brote',
+    arabic: 'خبز',
+    example: 'Das Brot ist frisch.',
+    exampleAr: 'الخبز طازج.'
+  },
+  {
+    id: 'v-extra-553',
+    type: 'verb',
+    infinitive: 'trinken',
+    arabic: 'يشرب',
+    conjugation: {
+      ich: 'trinke',
+      du: 'trinkst',
+      er: 'trinkt',
+      wir: 'trinken',
+      ihr: 'trinkt',
+      sie_pl: 'trinken',
+      präteritum: 'trank',
+      perfekt: 'hat getrunken',
+      aux: 'haben'
+    },
+    example: 'Du trinkst Wasser.',
+    exampleAr: 'أنت تشرب ماء.'
+  },
+  {
+    id: 'v-extra-554',
+    type: 'noun',
+    german: 'Wasser',
+    article: 'das',
+    plural: 'Wasser',
+    arabic: 'ماء',
+    example: 'Das Wasser ist kalt.',
+    exampleAr: 'الماء بارد.'
+  },
+  {
+    id: 'v-extra-555',
+    type: 'verb',
+    infinitive: 'schlafen',
+    arabic: 'ينام',
+    conjugation: {
+      ich: 'schlafe',
+      du: 'schläfst',
+      er: 'schläft',
+      wir: 'schlafen',
+      ihr: 'schlaft',
+      sie_pl: 'schlafen',
+      präteritum: 'schlief',
+      perfekt: 'hat geschlafen',
+      aux: 'haben'
+    },
+    example: 'Er schläft früh.',
+    exampleAr: 'هو ينام مبكراً.'
+  },
+  {
+    id: 'v-extra-556',
+    type: 'noun',
+    german: 'Bett',
+    article: 'das',
+    plural: 'Betten',
+    arabic: 'سرير',
+    example: 'Das Bett ist weich.',
+    exampleAr: 'السرير ناعم.'
+  },
+  {
+    id: 'v-extra-557',
+    type: 'verb',
+    infinitive: 'kaufen',
+    arabic: 'يشتري',
+    conjugation: {
+      ich: 'kaufe',
+      du: 'kaufst',
+      er: 'kauft',
+      wir: 'kaufen',
+      ihr: 'kauft',
+      sie_pl: 'kaufen',
+      präteritum: 'kaufte',
+      perfekt: 'hat gekauft',
+      aux: 'haben'
+    },
+    example: 'Wir kaufen Obst.',
+    exampleAr: 'نحن نشتري فاكهة.'
+  },
+  {
+    id: 'v-extra-558',
+    type: 'noun',
+    german: 'Apfel',
+    article: 'der',
+    plural: 'Äpfel',
+    arabic: 'تفاحة',
+    example: 'Der Apfel ist rot.',
+    exampleAr: 'التفاحة حمراء.'
+  },
+  {
+    id: 'v-extra-559',
+    type: 'verb',
+    infinitive: 'sehen',
+    arabic: 'يرى',
+    conjugation: {
+      ich: 'sehe',
+      du: 'siehst',
+      er: 'sieht',
+      wir: 'sehen',
+      ihr: 'seht',
+      sie_pl: 'sehen',
+      präteritum: 'sah',
+      perfekt: 'hat gesehen',
+      aux: 'haben'
+    },
+    example: 'Ich sehe den Film.',
+    exampleAr: 'أنا أشاهد الفيلم.'
+  },
+  {
+    id: 'v-extra-560',
+    type: 'noun',
+    german: 'Film',
+    article: 'der',
+    plural: 'Filme',
+    arabic: 'فيلم',
+    example: 'Der Film ist gut.',
+    exampleAr: 'الفيلم جيد.'
+  },
+  {
+    id: 'v-extra-561',
+    type: 'verb',
+    infinitive: 'gehen',
+    arabic: 'يذهب',
+    conjugation: {
+      ich: 'gehe',
+      du: 'gehst',
+      er: 'geht',
+      wir: 'gehen',
+      ihr: 'geht',
+      sie_pl: 'gehen',
+      präteritum: 'ging',
+      perfekt: 'ist gegangen',
+      aux: 'sein'
+    },
+    example: 'Sie geht nach Hause.',
+    exampleAr: 'هي تذهب إلى المنزل.'
+  },
+  {
+    id: 'v-extra-562',
+    type: 'noun',
+    german: 'Haus',
+    article: 'das',
+    plural: 'Häuser',
+    arabic: 'منزل',
+    example: 'Das Haus ist groß.',
+    exampleAr: 'المنزل كبير.'
+  },
+  {
+    id: 'v-extra-563',
+    type: 'verb',
+    infinitive: 'kommen',
+    arabic: 'يأتي',
+    conjugation: {
+      ich: 'komme',
+      du: 'kommst',
+      er: 'kommt',
+      wir: 'kommen',
+      ihr: 'kommt',
+      sie_pl: 'kommen',
+      präteritum: 'kam',
+      perfekt: 'ist gekommen',
+      aux: 'sein'
+    },
+    example: 'Ihr kommt spät.',
+    exampleAr: 'أنتم تأتون متأخرين.'
+  },
+  {
+    id: 'v-extra-564',
+    type: 'noun',
+    german: 'Zeit',
+    article: 'die',
+    plural: 'Zeiten',
+    arabic: 'وقت',
+    example: 'Die Zeit ist knapp.',
+    exampleAr: 'الوقت ضيق.'
+  },
+  {
+    id: 'v-extra-565',
+    type: 'verb',
+    infinitive: 'arbeiten',
+    arabic: 'يعمل',
+    conjugation: {
+      ich: 'arbeite',
+      du: 'arbeitest',
+      er: 'arbeitet',
+      wir: 'arbeiten',
+      ihr: 'arbeitet',
+      sie_pl: 'arbeiten',
+      präteritum: 'arbeitete',
+      perfekt: 'hat gearbeitet',
+      aux: 'haben'
+    },
+    example: 'Ich arbeite im Büro.',
+    exampleAr: 'أنا أعمل في المكتب.'
+  },
+  {
+    id: 'v-extra-566',
+    type: 'noun',
+    german: 'Büro',
+    article: 'das',
+    plural: 'Büros',
+    arabic: 'مكتب',
+    example: 'Das Büro ist modern.',
+    exampleAr: 'المكتب حديث.'
+  },
+  {
+    id: 'v-extra-567',
+    type: 'verb',
+    infinitive: 'spielen',
+    arabic: 'يلعب',
+    conjugation: {
+      ich: 'spiele',
+      du: 'spielst',
+      er: 'spielt',
+      wir: 'spielen',
+      ihr: 'spielt',
+      sie_pl: 'spielen',
+      präteritum: 'spielte',
+      perfekt: 'hat gespielt',
+      aux: 'haben'
+    },
+    example: 'Die Kinder spielen Fußball.',
+    exampleAr: 'الأطفال يلعبون كرة القدم.'
+  },
+  {
+    id: 'v-extra-568',
+    type: 'noun',
+    german: 'Kind',
+    article: 'das',
+    plural: 'Kinder',
+    arabic: 'طفل',
+    example: 'Das Kind lacht.',
+    exampleAr: 'الطفل يضحك.'
+  },
+  {
+    id: 'v-extra-569',
+    type: 'verb',
+    infinitive: 'lesen',
+    arabic: 'يقرأ',
+    conjugation: {
+      ich: 'lese',
+      du: 'liest',
+      er: 'liest',
+      wir: 'lesen',
+      ihr: 'lest',
+      sie_pl: 'lesen',
+      präteritum: 'las',
+      perfekt: 'hat gelesen',
+      aux: 'haben'
+    },
+    example: 'Sie liest ein Buch.',
+    exampleAr: 'هي تقرأ كتاباً.'
+  },
+  {
+    id: 'v-extra-570',
+    type: 'noun',
+    german: 'Zeitung',
+    article: 'die',
+    plural: 'Zeitungen',
+    arabic: 'جريدة',
+    example: 'Die Zeitung liegt auf dem Tisch.',
+    exampleAr: 'الجريدة على الطاولة.'
+  },
 ];
