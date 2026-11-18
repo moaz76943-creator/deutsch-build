@@ -705,10 +705,10 @@ class UserVaultSecurityService {
           Uint8List.fromList(utf8.encode(jsonEncode(
               {'format': 'operational-progress-v1', 'origin': 'migrated'}))));
     });
-  }
     } finally {
-      _isRecovering = false;
-    }
+        _isRecovering = false;
+      }
+  }
 
   /// Transfers every user-owned SQLite table (including SRS, history and
   /// bookmarks) into an encrypted, recoverable snapshot. This is explicitly
@@ -821,9 +821,9 @@ class UserVaultSecurityService {
   Future<LegacyProgressMigrationResult> _migrateLegacyProgressDatabase() async {
     _checkRecoveryLock();
     _isRecovering = true;
-    try {
     final oldFile = File(await _legacyDatabasePath());
     if (!await oldFile.exists()) {
+      _isRecovering = false;
       return const LegacyProgressMigrationResult(
         migrated: false,
         tableRowCounts: <String, int>{},
@@ -831,6 +831,7 @@ class UserVaultSecurityService {
     }
     final backup = File('${oldFile.path}.migrated');
     if (await backup.exists()) {
+      _isRecovering = false;
       throw StateError('Previous migrated backup must not be overwritten');
     }
 
@@ -841,6 +842,7 @@ class UserVaultSecurityService {
             whereArgs: [_index(_manifestId)],
             limit: 1))
         .isNotEmpty) {
+      _isRecovering = false;
       throw StateError('A previous legacy vault snapshot already exists');
     }
 
@@ -949,13 +951,11 @@ class UserVaultSecurityService {
       throw StateError('Legacy DB changed before atomic rename');
     }
     await oldFile.rename(backup.path);
+    _isRecovering = false;
     return LegacyProgressMigrationResult(
       migrated: true,
       tableRowCounts: Map<String, int>.unmodifiable(counts),
     );
   }
-    } finally {
-      _isRecovering = false;
-    }
 }
 
