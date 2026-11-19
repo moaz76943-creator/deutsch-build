@@ -2,7 +2,7 @@
 
 ## Vocabulary ListView UI Jank and Memory Optimization (2026-11-19)
 
-**Change:** In `lib/ui_v35/learning/vocabulary_page.dart` `_buildListView`, added `cacheExtent: 300`, `addAutomaticKeepAlives: false` to `ListView.separated`, and wrapped each `AppGlassCard` item in `RepaintBoundary`.
+**Change:** In `lib/ui_v35/learning/vocabulary_page.dart` `_buildListView` (and custom entries list), added `cacheExtent: 300`, `addAutomaticKeepAlives: false` to `ListView.separated`, and wrapped each `AppGlassCard` item in `RepaintBoundary`.
 
 **Before:** Default cacheExtent (~250), keep-alives enabled, no explicit repaint isolation on complex glass cards with ExpansionTile.
 
