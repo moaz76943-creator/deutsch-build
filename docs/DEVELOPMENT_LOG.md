@@ -87,3 +87,16 @@ Placeholder fix in progress.
 - Re-ran tests: PASS (151 unique items, contains präteritum and article: 'der').
 - No bugs/crashes found. Content correctness prioritized. Preview remains on approved workspace port.
 - Next: continue expanding content or integrate into learning system if needed.
+
+## 2026-11-19 Hourly Session (Grok Build — late)
+
+- Read AGENTS.md. Auth/DB remain OFF.
+- Restored `src/lib/deutsch/content/vocab-extra.ts` from last good commit (3f7f6e9e1) after PLACEHOLDER_TOO_LARGE corruption on main (131 unique items).
+- Ran `npm test` (test-vocab-extra.js): PASS (131 unique items).
+- Added 20 new high-quality A1/A2 items to `src/lib/deutsch/content/vocab-extra.ts` (ids v-extra-651 to v-extra-670):
+  - Verbs with full conjugation (ich/du/er/wir/ihr/sie_pl + Präteritum + Perfekt + aux haben/sein): öffnen, waschen, tragen, verstehen, warten, fliegen, schwimmen, kochen, zeichnen, erzählen.
+  - Nouns with correct article (der/die/das), plural, natural German example sentences + Arabic translations: Fenster, Hand, Tasche, Frage, Bahnhof, Vogel, See, Suppe, Bild, Geschichte.
+  - No ID repeats. Existing content preserved. No auto-deletion of similar items.
+- Re-ran tests: PASS (151 unique items, contains präteritum and article: 'der').
+- No bugs/crashes found. Content correctness prioritized. Preview remains on approved workspace port.
+- Next: continue expanding content or integrate into learning system if needed.
