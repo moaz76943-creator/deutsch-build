@@ -825,8 +825,8 @@ export const vocabExtra = [
       perfekt: 'hat geschlafen',
       aux: 'haben'
     },
-    example: 'Er schläft früh.',
-    exampleAr: 'هو ينام مبكراً.'
+    example: 'Er schläft gut.',
+    exampleAr: 'هو ينام جيداً.'
   },
   {
     id: 'v-extra-556',
@@ -855,7 +855,7 @@ export const vocabExtra = [
       aux: 'haben'
     },
     example: 'Wir kaufen Obst.',
-    exampleAr: 'نحن نشتري فاكهة.'
+    exampleAr: 'نشتري فاكهة.'
   },
   {
     id: 'v-extra-558',
@@ -864,8 +864,8 @@ export const vocabExtra = [
     article: 'der',
     plural: 'Äpfel',
     arabic: 'تفاحة',
-    example: 'Der Apfel ist rot.',
-    exampleAr: 'التفاحة حمراء.'
+    example: 'Der Apfel ist süß.',
+    exampleAr: 'التفاحة حلوة.'
   },
   {
     id: 'v-extra-559',
@@ -884,7 +884,7 @@ export const vocabExtra = [
       aux: 'haben'
     },
     example: 'Ich sehe den Film.',
-    exampleAr: 'أنا أشاهد الفيلم.'
+    exampleAr: 'أرى الفيلم.'
   },
   {
     id: 'v-extra-560',
@@ -893,8 +893,8 @@ export const vocabExtra = [
     article: 'der',
     plural: 'Filme',
     arabic: 'فيلم',
-    example: 'Der Film ist gut.',
-    exampleAr: 'الفيلم جيد.'
+    example: 'Der Film ist spannend.',
+    exampleAr: 'الفيلم مثير.'
   },
   {
     id: 'v-extra-561',
@@ -912,8 +912,8 @@ export const vocabExtra = [
       perfekt: 'ist gegangen',
       aux: 'sein'
     },
-    example: 'Sie geht nach Hause.',
-    exampleAr: 'هي تذهب إلى المنزل.'
+    example: 'Wir gehen nach Hause.',
+    exampleAr: 'نذهب إلى المنزل.'
   },
   {
     id: 'v-extra-562',
@@ -922,8 +922,8 @@ export const vocabExtra = [
     article: 'das',
     plural: 'Häuser',
     arabic: 'منزل',
-    example: 'Das Haus ist groß.',
-    exampleAr: 'المنزل كبير.'
+    example: 'Das Haus ist alt.',
+    exampleAr: 'المنزل قديم.'
   },
   {
     id: 'v-extra-563',
@@ -941,8 +941,8 @@ export const vocabExtra = [
       perfekt: 'ist gekommen',
       aux: 'sein'
     },
-    example: 'Ihr kommt spät.',
-    exampleAr: 'أنتم تأتون متأخرين.'
+    example: 'Sie kommen spät.',
+    exampleAr: 'هم يأتون متأخراً.'
   },
   {
     id: 'v-extra-564',
@@ -951,8 +951,8 @@ export const vocabExtra = [
     article: 'die',
     plural: 'Zeiten',
     arabic: 'وقت',
-    example: 'Die Zeit ist knapp.',
-    exampleAr: 'الوقت ضيق.'
+    example: 'Die Zeit vergeht schnell.',
+    exampleAr: 'الوقت يمر بسرعة.'
   },
   {
     id: 'v-extra-565',
@@ -970,8 +970,8 @@ export const vocabExtra = [
       perfekt: 'hat gearbeitet',
       aux: 'haben'
     },
-    example: 'Ich arbeite im Büro.',
-    exampleAr: 'أنا أعمل في المكتب.'
+    example: 'Ich arbeite von neun bis fünf.',
+    exampleAr: 'أعمل من التاسعة إلى الخامسة.'
   },
   {
     id: 'v-extra-566',
@@ -980,8 +980,8 @@ export const vocabExtra = [
     article: 'das',
     plural: 'Büros',
     arabic: 'مكتب',
-    example: 'Das Büro ist modern.',
-    exampleAr: 'المكتب حديث.'
+    example: 'Das Büro ist geschlossen.',
+    exampleAr: 'المكتب مغلق.'
   },
   {
     id: 'v-extra-567',
@@ -999,8 +999,8 @@ export const vocabExtra = [
       perfekt: 'hat gespielt',
       aux: 'haben'
     },
-    example: 'Die Kinder spielen Fußball.',
-    exampleAr: 'الأطفال يلعبون كرة القدم.'
+    example: 'Die Kinder spielen im Park.',
+    exampleAr: 'الأطفال يلعبون في المنتزه.'
   },
   {
     id: 'v-extra-568',
@@ -1009,8 +1009,8 @@ export const vocabExtra = [
     article: 'das',
     plural: 'Kinder',
     arabic: 'طفل',
-    example: 'Das Kind lacht.',
-    exampleAr: 'الطفل يضحك.'
+    example: 'Das Kind ist fröhlich.',
+    exampleAr: 'الطفل سعيد.'
   },
   {
     id: 'v-extra-569',
@@ -1028,8 +1028,8 @@ export const vocabExtra = [
       perfekt: 'hat gelesen',
       aux: 'haben'
     },
-    example: 'Sie liest ein Buch.',
-    exampleAr: 'هي تقرأ كتاباً.'
+    example: 'Sie liest die Zeitung.',
+    exampleAr: 'هي تقرأ الجريدة.'
   },
   {
     id: 'v-extra-570',
@@ -1038,10 +1038,10 @@ export const vocabExtra = [
     article: 'die',
     plural: 'Zeitungen',
     arabic: 'جريدة',
-    example: 'Die Zeitung liegt auf dem Tisch.',
-    exampleAr: 'الجريدة على الطاولة.'
+    example: 'Die Zeitung ist interessant.',
+    exampleAr: 'الجريدة مثيرة للاهتمام.'
   },
-  // New A1/A2 items v-extra-571 to v-extra-590 (20 items)
+
   {
     id: 'v-extra-571',
     type: 'verb',
@@ -1059,7 +1059,7 @@ export const vocabExtra = [
       aux: 'haben'
     },
     example: 'Ich höre Musik.',
-    exampleAr: 'أسمع موسيقى.'
+    exampleAr: 'أسمع الموسيقى.'
   },
   {
     id: 'v-extra-572',
@@ -1098,7 +1098,7 @@ export const vocabExtra = [
     plural: 'Fragen',
     arabic: 'سؤال',
     example: 'Die Frage ist einfach.',
-    exampleAr: 'السؤال سهل.'
+    exampleAr: 'السؤال بسيط.'
   },
   {
     id: 'v-extra-575',
@@ -1126,8 +1126,8 @@ export const vocabExtra = [
     article: 'der',
     plural: 'Lehrer',
     arabic: 'معلم',
-    example: 'Der Lehrer erklärt die Grammatik.',
-    exampleAr: 'المعلم يشرح القواعد.'
+    example: 'Der Lehrer erklärt gut.',
+    exampleAr: 'المعلم يشرح جيداً.'
   },
   {
     id: 'v-extra-577',
@@ -1145,8 +1145,8 @@ export const vocabExtra = [
       perfekt: 'hat geantwortet',
       aux: 'haben'
     },
-    example: 'Sie antwortet richtig.',
-    exampleAr: 'هي تجيب بشكل صحيح.'
+    example: 'Sie antwortet schnell.',
+    exampleAr: 'هي تجيب بسرعة.'
   },
   {
     id: 'v-extra-578',
@@ -1155,7 +1155,7 @@ export const vocabExtra = [
     article: 'die',
     plural: 'Antworten',
     arabic: 'إجابة',
-    example: 'Die Antwort ist korrekt.',
+    example: 'Die Antwort ist richtig.',
     exampleAr: 'الإجابة صحيحة.'
   },
   {
@@ -1174,8 +1174,8 @@ export const vocabExtra = [
       perfekt: 'hat geöffnet',
       aux: 'haben'
     },
-    example: 'Bitte öffne die Tür.',
-    exampleAr: 'من فضلك افتح الباب.'
+    example: 'Ich öffne die Tür.',
+    exampleAr: 'أفتح الباب.'
   },
   {
     id: 'v-extra-580',
@@ -1184,8 +1184,8 @@ export const vocabExtra = [
     article: 'die',
     plural: 'Türen',
     arabic: 'باب',
-    example: 'Die Tür ist offen.',
-    exampleAr: 'الباب مفتوح.'
+    example: 'Die Tür ist zu.',
+    exampleAr: 'الباب مغلق.'
   },
   {
     id: 'v-extra-581',
@@ -1213,8 +1213,8 @@ export const vocabExtra = [
     article: 'das',
     plural: 'Fenster',
     arabic: 'نافذة',
-    example: 'Das Fenster ist groß.',
-    exampleAr: 'النافذة كبيرة.'
+    example: 'Das Fenster ist offen.',
+    exampleAr: 'النافذة مفتوحة.'
   },
   {
     id: 'v-extra-583',
@@ -1232,8 +1232,8 @@ export const vocabExtra = [
       perfekt: 'hat geholfen',
       aux: 'haben'
     },
-    example: 'Kannst du mir helfen?',
-    exampleAr: 'هل يمكنك مساعدتي؟'
+    example: 'Wir helfen den Freunden.',
+    exampleAr: 'نساعد الأصدقاء.'
   },
   {
     id: 'v-extra-584',
@@ -1242,8 +1242,8 @@ export const vocabExtra = [
     article: 'der',
     plural: 'Freunde',
     arabic: 'صديق',
-    example: 'Mein Freund hilft mir.',
-    exampleAr: 'صديقي يساعدني.'
+    example: 'Der Freund ist nett.',
+    exampleAr: 'الصديق لطيف.'
   },
   {
     id: 'v-extra-585',
@@ -1261,8 +1261,8 @@ export const vocabExtra = [
       perfekt: 'hat gebraucht',
       aux: 'haben'
     },
-    example: 'Wir brauchen mehr Zeit.',
-    exampleAr: 'نحتاج المزيد من الوقت.'
+    example: 'Ich brauche Zeit.',
+    exampleAr: 'أحتاج إلى وقت.'
   },
   {
     id: 'v-extra-586',
@@ -1271,8 +1271,8 @@ export const vocabExtra = [
     article: 'die',
     plural: 'Zeiten',
     arabic: 'وقت',
-    example: 'Die Zeit ist knapp.',
-    exampleAr: 'الوقت ضيق.'
+    example: 'Die Zeit ist wichtig.',
+    exampleAr: 'الوقت مهم.'
   },
   {
     id: 'v-extra-587',
@@ -1290,8 +1290,8 @@ export const vocabExtra = [
       perfekt: 'hat gewartet',
       aux: 'haben'
     },
-    example: 'Ich warte auf den Bus.',
-    exampleAr: 'أنتظر الحافلة.'
+    example: 'Wir warten auf den Bus.',
+    exampleAr: 'ننتظر الحافلة.'
   },
   {
     id: 'v-extra-588',
@@ -1300,14 +1300,14 @@ export const vocabExtra = [
     article: 'der',
     plural: 'Busse',
     arabic: 'حافلة',
-    example: 'Der Bus kommt spät.',
-    exampleAr: 'الحافلة تأتي متأخرة.'
+    example: 'Der Bus ist spät.',
+    exampleAr: 'الحافلة متأخرة.'
   },
   {
     id: 'v-extra-589',
     type: 'verb',
     infinitive: 'fahren',
-    arabic: 'يقود / يسافر',
+    arabic: 'يقود',
     conjugation: {
       ich: 'fahre',
       du: 'fährst',
@@ -1319,8 +1319,8 @@ export const vocabExtra = [
       perfekt: 'ist gefahren',
       aux: 'sein'
     },
-    example: 'Wir fahren nach Berlin.',
-    exampleAr: 'نسافر إلى برلين.'
+    example: 'Er fährt Auto.',
+    exampleAr: 'هو يقود السيارة.'
   },
   {
     id: 'v-extra-590',
@@ -1329,12 +1329,10 @@ export const vocabExtra = [
     article: 'das',
     plural: 'Autos',
     arabic: 'سيارة',
-    example: 'Das Auto ist schnell.',
-    exampleAr: 'السيارة سريعة.'
+    example: 'Das Auto ist rot.',
+    exampleAr: 'السيارة حمراء.'
   },
 
-
-  // New A1/A2 items v-extra-591 to v-extra-610 (20 items) — 2026-11-19 session
   {
     id: 'v-extra-591',
     type: 'verb',
@@ -1380,8 +1378,8 @@ export const vocabExtra = [
       perfekt: 'hat gewaschen',
       aux: 'haben'
     },
-    example: 'Du wäschst das Auto.',
-    exampleAr: 'تغسل السيارة.'
+    example: 'Sie wäscht die Hände.',
+    exampleAr: 'هي تغسل اليدين.'
   },
   {
     id: 'v-extra-594',
@@ -1438,8 +1436,8 @@ export const vocabExtra = [
       perfekt: 'hat gefunden',
       aux: 'haben'
     },
-    example: 'Er findet den Schlüssel.',
-    exampleAr: 'يجد المفتاح.'
+    example: 'Ich finde den Schlüssel.',
+    exampleAr: 'أجد المفتاح.'
   },
   {
     id: 'v-extra-598',
@@ -1449,7 +1447,7 @@ export const vocabExtra = [
     plural: 'Schlüssel',
     arabic: 'مفتاح',
     example: 'Der Schlüssel liegt auf dem Tisch.',
-    exampleAr: 'المفتاح على الطاولة.'
+    exampleAr: 'المفتاح يقع على الطاولة.'
   },
   {
     id: 'v-extra-599',
@@ -1467,8 +1465,8 @@ export const vocabExtra = [
       perfekt: 'hat genommen',
       aux: 'haben'
     },
-    example: 'Ich nehme den Bus.',
-    exampleAr: 'آخذ الحافلة.'
+    example: 'Du nimmst die Uhr.',
+    exampleAr: 'تأخذ الساعة.'
   },
   {
     id: 'v-extra-600',
@@ -1477,8 +1475,8 @@ export const vocabExtra = [
     article: 'die',
     plural: 'Uhren',
     arabic: 'ساعة',
-    example: 'Die Uhr zeigt acht.',
-    exampleAr: 'الساعة تشير إلى الثامنة.'
+    example: 'Die Uhr zeigt drei.',
+    exampleAr: 'الساعة تشير إلى الثالثة.'
   },
   {
     id: 'v-extra-601',
@@ -1496,8 +1494,8 @@ export const vocabExtra = [
       perfekt: 'hat gegeben',
       aux: 'haben'
     },
-    example: 'Sie gibt dem Kind das Buch.',
-    exampleAr: 'تعطي الطفل الكتاب.'
+    example: 'Er gibt mir die Milch.',
+    exampleAr: 'هو يعطيني الحليب.'
   },
   {
     id: 'v-extra-602',
@@ -1624,5 +1622,296 @@ export const vocabExtra = [
     arabic: 'شاي',
     example: 'Der Tee schmeckt gut.',
     exampleAr: 'الشاي طعمه جيد.'
+  },
+
+  {
+    id: 'v-extra-611',
+    type: 'verb',
+    infinitive: 'lachen',
+    arabic: 'يضحك',
+    conjugation: {
+      ich: 'lache',
+      du: 'lachst',
+      er: 'lacht',
+      wir: 'lachen',
+      ihr: 'lacht',
+      sie_pl: 'lachen',
+      präteritum: 'lachte',
+      perfekt: 'hat gelacht',
+      aux: 'haben'
+    },
+    example: 'Wir lachen viel.',
+    exampleAr: 'نحن نضحك كثيراً.'
+  },
+  {
+    id: 'v-extra-612',
+    type: 'noun',
+    german: 'Sonne',
+    article: 'die',
+    plural: 'Sonnen',
+    arabic: 'شمس',
+    example: 'Die Sonne scheint heute.',
+    exampleAr: 'الشمس تشرق اليوم.'
+  },
+  {
+    id: 'v-extra-613',
+    type: 'verb',
+    infinitive: 'weinen',
+    arabic: 'يبكي',
+    conjugation: {
+      ich: 'weine',
+      du: 'weinst',
+      er: 'weint',
+      wir: 'weinen',
+      ihr: 'weint',
+      sie_pl: 'weinen',
+      präteritum: 'weinte',
+      perfekt: 'hat geweint',
+      aux: 'haben'
+    },
+    example: 'Das Kind weint.',
+    exampleAr: 'الطفل يبكي.'
+  },
+  {
+    id: 'v-extra-614',
+    type: 'noun',
+    german: 'Mond',
+    article: 'der',
+    plural: 'Monde',
+    arabic: 'قمر',
+    example: 'Der Mond ist voll.',
+    exampleAr: 'القمر مكتمل.'
+  },
+  {
+    id: 'v-extra-615',
+    type: 'verb',
+    infinitive: 'singen',
+    arabic: 'يغني',
+    conjugation: {
+      ich: 'singe',
+      du: 'singst',
+      er: 'singt',
+      wir: 'singen',
+      ihr: 'singt',
+      sie_pl: 'singen',
+      präteritum: 'sang',
+      perfekt: 'hat gesungen',
+      aux: 'haben'
+    },
+    example: 'Sie singt ein Lied.',
+    exampleAr: 'هي تغني أغنية.'
+  },
+  {
+    id: 'v-extra-616',
+    type: 'noun',
+    german: 'Lied',
+    article: 'das',
+    plural: 'Lieder',
+    arabic: 'أغنية',
+    example: 'Das Lied ist schön.',
+    exampleAr: 'الأغنية جميلة.'
+  },
+  {
+    id: 'v-extra-617',
+    type: 'verb',
+    infinitive: 'tanzen',
+    arabic: 'يرقص',
+    conjugation: {
+      ich: 'tanze',
+      du: 'tanzt',
+      er: 'tanzt',
+      wir: 'tanzen',
+      ihr: 'tanzt',
+      sie_pl: 'tanzen',
+      präteritum: 'tanzte',
+      perfekt: 'hat getanzt',
+      aux: 'haben'
+    },
+    example: 'Wir tanzen zusammen.',
+    exampleAr: 'نحن نرقص معاً.'
+  },
+  {
+    id: 'v-extra-618',
+    type: 'noun',
+    german: 'Musik',
+    article: 'die',
+    plural: 'Musiken',
+    arabic: 'موسيقى',
+    example: 'Die Musik ist laut.',
+    exampleAr: 'الموسيقى عالية.'
+  },
+  {
+    id: 'v-extra-619',
+    type: 'verb',
+    infinitive: 'laufen',
+    arabic: 'يركض / يمشي',
+    conjugation: {
+      ich: 'laufe',
+      du: 'läufst',
+      er: 'läuft',
+      wir: 'laufen',
+      ihr: 'lauft',
+      sie_pl: 'laufen',
+      präteritum: 'lief',
+      perfekt: 'ist gelaufen',
+      aux: 'sein'
+    },
+    example: 'Er läuft schnell.',
+    exampleAr: 'هو يركض بسرعة.'
+  },
+  {
+    id: 'v-extra-620',
+    type: 'noun',
+    german: 'Straße',
+    article: 'die',
+    plural: 'Straßen',
+    arabic: 'شارع',
+    example: 'Die Straße ist breit.',
+    exampleAr: 'الشارع عريض.'
+  },
+  {
+    id: 'v-extra-621',
+    type: 'verb',
+    infinitive: 'sitzen',
+    arabic: 'يجلس',
+    conjugation: {
+      ich: 'sitze',
+      du: 'sitzt',
+      er: 'sitzt',
+      wir: 'sitzen',
+      ihr: 'sitzt',
+      sie_pl: 'sitzen',
+      präteritum: 'saß',
+      perfekt: 'hat gesessen',
+      aux: 'haben'
+    },
+    example: 'Ich sitze am Tisch.',
+    exampleAr: 'أجلس على الطاولة.'
+  },
+  {
+    id: 'v-extra-622',
+    type: 'noun',
+    german: 'Stuhl',
+    article: 'der',
+    plural: 'Stühle',
+    arabic: 'كرسي',
+    example: 'Der Stuhl ist bequem.',
+    exampleAr: 'الكرسي مريح.'
+  },
+  {
+    id: 'v-extra-623',
+    type: 'verb',
+    infinitive: 'stehen',
+    arabic: 'يقف',
+    conjugation: {
+      ich: 'stehe',
+      du: 'stehst',
+      er: 'steht',
+      wir: 'stehen',
+      ihr: 'steht',
+      sie_pl: 'stehen',
+      präteritum: 'stand',
+      perfekt: 'hat gestanden',
+      aux: 'haben'
+    },
+    example: 'Das Auto steht vor dem Haus.',
+    exampleAr: 'السيارة تقف أمام المنزل.'
+  },
+  {
+    id: 'v-extra-624',
+    type: 'noun',
+    german: 'Garten',
+    article: 'der',
+    plural: 'Gärten',
+    arabic: 'حديقة',
+    example: 'Der Garten ist grün.',
+    exampleAr: 'الحديقة خضراء.'
+  },
+  {
+    id: 'v-extra-625',
+    type: 'verb',
+    infinitive: 'liegen',
+    arabic: 'يستلقي / يقع',
+    conjugation: {
+      ich: 'liege',
+      du: 'liegst',
+      er: 'liegt',
+      wir: 'liegen',
+      ihr: 'liegt',
+      sie_pl: 'liegen',
+      präteritum: 'lag',
+      perfekt: 'hat gelegen',
+      aux: 'haben'
+    },
+    example: 'Das Buch liegt auf dem Tisch.',
+    exampleAr: 'الكتاب يقع على الطاولة.'
+  },
+  {
+    id: 'v-extra-626',
+    type: 'noun',
+    german: 'Buch',
+    article: 'das',
+    plural: 'Bücher',
+    arabic: 'كتاب',
+    example: 'Das Buch ist neu.',
+    exampleAr: 'الكتاب جديد.'
+  },
+  {
+    id: 'v-extra-627',
+    type: 'verb',
+    infinitive: 'bringen',
+    arabic: 'يحضر / يجلب',
+    conjugation: {
+      ich: 'bringe',
+      du: 'bringst',
+      er: 'bringt',
+      wir: 'bringen',
+      ihr: 'bringt',
+      sie_pl: 'bringen',
+      präteritum: 'brachte',
+      perfekt: 'hat gebracht',
+      aux: 'haben'
+    },
+    example: 'Ich bringe das Essen.',
+    exampleAr: 'أحضر الطعام.'
+  },
+  {
+    id: 'v-extra-628',
+    type: 'noun',
+    german: 'Essen',
+    article: 'das',
+    plural: 'Essen',
+    arabic: 'طعام',
+    example: 'Das Essen ist lecker.',
+    exampleAr: 'الطعام لذيذ.'
+  },
+  {
+    id: 'v-extra-629',
+    type: 'verb',
+    infinitive: 'nehmen',
+    arabic: 'يأخذ',
+    conjugation: {
+      ich: 'nehme',
+      du: 'nimmst',
+      er: 'nimmt',
+      wir: 'nehmen',
+      ihr: 'nehmt',
+      sie_pl: 'nehmen',
+      präteritum: 'nahm',
+      perfekt: 'hat genommen',
+      aux: 'haben'
+    },
+    example: 'Du nimmst den Bus.',
+    exampleAr: 'تأخذ الحافلة.'
+  },
+  {
+    id: 'v-extra-630',
+    type: 'noun',
+    german: 'Bus',
+    article: 'der',
+    plural: 'Busse',
+    arabic: 'حافلة',
+    example: 'Der Bus kommt pünktlich.',
+    exampleAr: 'الحافلة تأتي في الوقت.'
   },
 ];
