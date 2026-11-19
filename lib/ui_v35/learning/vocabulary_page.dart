@@ -235,6 +235,11 @@ class _VocabularyV35State extends State<VocabularyV35> {
     final showTranslation = widget
         .dependencies.settingsController.preferences.showAutomaticTranslation;
     return ListView.separated(
+      // Performance: bound pre-build area beyond viewport (default ~250 px).
+      // Moderate value balances smoothness vs memory on complex glass cards with ExpansionTiles.
+      cacheExtent: 300,
+      // Pure items with no persistent per-item state to preserve when off-screen.
+      addAutomaticKeepAlives: false,
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 28),
       itemCount: items.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -246,7 +251,10 @@ class _VocabularyV35State extends State<VocabularyV35> {
         final articleColor = _getArticleColor(item.grammaticalMarker);
         final hasArticle = item.grammaticalMarker.trim().isNotEmpty;
         final scheme = Theme.of(context).colorScheme;
-        return AppGlassCard(
+        return RepaintBoundary(
+          // Isolates repaint of each complex glass card + ExpansionTile.
+          // Reduces overpaint during scroll on mid-range devices.
+          child: AppGlassCard(
           backgroundColor: scheme.surface,
           opacity: _glassOpacity(context),
           borderColor: hasArticle
@@ -408,6 +416,7 @@ class _VocabularyV35State extends State<VocabularyV35> {
               ),
             ],
           ),
+        ),
         );
       },
     );
@@ -483,10 +492,7 @@ class _VocabularyV35State extends State<VocabularyV35> {
                           isFavorite
                               ? Icons.favorite_rounded
                               : Icons.favorite_border_rounded,
-                          size: 20,
-                          color: isFavorite
-                              ? const Color(0xFFE11D48)
-                              : scheme.onSurfaceVariant,
+                          color: isFavorite ? const Color(0xFFE11D48) : null,
                         ),
                         onPressed: () async {
                           await widget.dependencies.favoritesRepository
@@ -496,42 +502,38 @@ class _VocabularyV35State extends State<VocabularyV35> {
                       ),
                     ],
                   ),
-                  const Spacer(),
-                  AppDirectionalText(
-                    item.sourceText,
-                    languageCode: _targetLanguageCode,
-                    textAlign: TextAlign.center,
-                    style: AppTypography.title.copyWith(fontSize: 19),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (showTranslation) ...<Widget>[
-                    const SizedBox(height: 8),
-                    AppDirectionalText(
-                      item.translationText,
-                      languageCode: 'ar',
-                      textAlign: TextAlign.center,
-                      style: AppTypography.body,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                  const Spacer(),
-                  AppDirectionalText(
-                    item.topic,
-                    languageCode: 'ar',
-                    textAlign: TextAlign.center,
-                    style: AppTypography.label.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
                   const SizedBox(height: 8),
-                  AppAudioButton(
-                    onPressed: () => _speakSource(item),
-                    semanticLabel: 'استمع إلى ${item.sourceText}',
-                    activeColor: articleColor,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        AppDirectionalText(
+                          item.sourceText,
+                          languageCode: _targetLanguageCode,
+                          style: AppTypography.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (showTranslation) ...[
+                          const SizedBox(height: 4),
+                          AppDirectionalText(
+                            item.translationText,
+                            languageCode: 'ar',
+                            style: AppTypography.body,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                        const Spacer(),
+                        AppDirectionalText(
+                          item.topic,
+                          languageCode: 'ar',
+                          style: AppTypography.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -547,18 +549,23 @@ class _VocabularyV35State extends State<VocabularyV35> {
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
-        return _FlashcardWidget(
-          item: item,
-          isFav: _favorites.contains(item.id),
-          onToggleFav: () async {
-            await widget.dependencies.favoritesRepository
-                .toggleFavorite(item.id);
-            await _loadData();
-          },
-          onSpeak: () => _speakSource(item),
-          onLearn: () => unawaited(_openLearningSession(context, item)),
-          articleColor: _getArticleColor(item.grammaticalMarker),
-          targetLanguageCode: _targetLanguageCode,
+        final isFavorite = _favorites.contains(item.id);
+        final articleColor = _getArticleColor(item.grammaticalMarker);
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: _FlashcardWidget(
+            item: item,
+            isFav: isFavorite,
+            onToggleFav: () async {
+              await widget.dependencies.favoritesRepository
+                  .toggleFavorite(item.id);
+              await _loadData();
+            },
+            onSpeak: () => _speakSource(item),
+            onLearn: () => unawaited(_openLearningSession(context, item)),
+            articleColor: articleColor,
+            targetLanguageCode: _targetLanguageCode,
+          ),
         );
       },
     );
@@ -570,179 +577,167 @@ class _VocabularyV35State extends State<VocabularyV35> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            'A1 • ${widget.corpus.length} وحدات تعلم',
+            'المفردات',
             style: AppTypography.title,
           ),
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(60),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: SegmentedButton<String>(
-                      segments: <ButtonSegment<String>>[
-                        ButtonSegment<String>(
-                          value: 'all',
-                          label: Text('الكل', style: AppTypography.label),
-                        ),
-                        ButtonSegment<String>(
-                          value: 'favorites',
-                          label: Text('المفضلة', style: AppTypography.label),
-                        ),
-                        ButtonSegment<String>(
-                          value: 'custom',
-                          label: Text('مخصص', style: AppTypography.label),
-                        ),
-                      ],
-                      selected: <String>{_filter},
-                      onSelectionChanged: (selection) {
-                        setState(() => _filter = selection.first);
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SegmentedButton<ViewMode>(
-                    showSelectedIcon: false,
-                    segments: const <ButtonSegment<ViewMode>>[
-                      ButtonSegment<ViewMode>(
-                        value: ViewMode.list,
-                        icon: Icon(Icons.view_list_outlined),
-                      ),
-                      ButtonSegment<ViewMode>(
-                        value: ViewMode.grid,
-                        icon: Icon(Icons.grid_view_outlined),
-                      ),
-                      ButtonSegment<ViewMode>(
-                        value: ViewMode.flashcard,
-                        icon: Icon(Icons.style_outlined),
-                      ),
-                    ],
-                    selected: <ViewMode>{_viewMode},
-                    onSelectionChanged: (selection) {
-                      unawaited(_setViewMode(selection.first));
-                    },
-                  ),
+          actions: [
+            IconButton(
+              tooltip: 'إضافة مفردة',
+              onPressed: _showAddCustomDialog,
+              icon: const Icon(Icons.add_rounded),
+            ),
+            PopupMenuButton<ViewMode>(
+              initialValue: _viewMode,
+              onSelected: _setViewMode,
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: ViewMode.list,
+                  child: Text('قائمة'),
+                ),
+                const PopupMenuItem(
+                  value: ViewMode.grid,
+                  child: Text('شبكة'),
+                ),
+                const PopupMenuItem(
+                  value: ViewMode.flashcard,
+                  child: Text('بطاقات'),
+                ),
+              ],
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(value: 'all', label: Text('الكل')),
+                  ButtonSegment(value: 'favorites', label: Text('المفضلة')),
+                  ButtonSegment(value: 'custom', label: Text('مخصصة')),
                 ],
+                selected: {_filter},
+                onSelectionChanged: (s) => setState(() => _filter = s.first),
               ),
             ),
-          ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          tooltip: 'إضافة مفردة مخصصة',
-          onPressed: _showAddCustomDialog,
-          child: const Icon(Icons.add_rounded),
-        ),
-        body: ListenableBuilder(
-          listenable: widget.dependencies.settingsController,
-          builder: (context, _) {
-            final showTranslation = widget.dependencies.settingsController
-                .preferences.showAutomaticTranslation;
-            if (_filter == 'custom') {
-              if (_customEntries.isEmpty) {
-                return Center(
-                  child: Text(
-                    'لا توجد مفردات مخصصة بعد.',
-                    style: AppTypography.body,
-                  ),
-                );
-              }
-              return ListView.separated(
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 28),
-                itemCount: _customEntries.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 10),
-                itemBuilder: (context, index) {
-                  final entry = _customEntries[index];
-                  final id = entry['id']?.toString().trim() ?? '';
-                  final german =
-                      entry['german_text']?.toString().trim() ?? '';
-                  final arabic =
-                      entry['arabic_translation']?.toString().trim() ?? '';
-                  final article =
-                      entry['article']?.toString().trim() ?? '';
-                  final articleColor = _getArticleColor(article);
-                  final scheme = Theme.of(context).colorScheme;
-                  return AppGlassCard(
-                    backgroundColor: scheme.surface,
-                    opacity: _glassOpacity(context),
-                    borderColor: article.isEmpty
-                        ? scheme.outlineVariant.withAlpha(90)
-                        : articleColor.withAlpha(135),
-                    glowColor: article.isEmpty ? null : articleColor,
-                    padding: const EdgeInsetsDirectional.fromSTEB(
-                      14, 12, 10, 12,
-                    ),
-                    child: Row(
-                      children: <Widget>[
-                        if (article.isNotEmpty) ...<Widget>[
-                          Text(
-                            article,
-                            textDirection: TextDirection.ltr,
-                            style: AppTypography.label.copyWith(
-                              color: articleColor,
-                              fontWeight: FontWeight.w900,
-                            ),
+            Expanded(
+              child: Builder(
+                builder: (context) {
+                  final showTranslation = widget.dependencies.settingsController
+                      .preferences.showAutomaticTranslation;
+                  if (_filter == 'custom') {
+                    if (_customEntries.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'لا توجد مفردات مخصصة بعد.',
+                          style: AppTypography.body,
+                        ),
+                      );
+                    }
+                    return ListView.separated(
+                      // Performance: bound pre-build + no keep-alives for custom entries.
+                      cacheExtent: 300,
+                      addAutomaticKeepAlives: false,
+                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 28),
+                      itemCount: _customEntries.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final entry = _customEntries[index];
+                        final id = entry['id']?.toString().trim() ?? '';
+                        final german =
+                            entry['german_text']?.toString().trim() ?? '';
+                        final arabic =
+                            entry['arabic_translation']?.toString().trim() ?? '';
+                        final article =
+                            entry['article']?.toString().trim() ?? '';
+                        final articleColor = _getArticleColor(article);
+                        final scheme = Theme.of(context).colorScheme;
+                        return RepaintBoundary(
+                          child: AppGlassCard(
+                          backgroundColor: scheme.surface,
+                          opacity: _glassOpacity(context),
+                          borderColor: article.isEmpty
+                              ? scheme.outlineVariant.withAlpha(90)
+                              : articleColor.withAlpha(135),
+                          glowColor: article.isEmpty ? null : articleColor,
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                            14, 12, 10, 12,
                           ),
-                          const SizedBox(width: 10),
-                        ],
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row(
                             children: <Widget>[
-                              AppDirectionalText(
-                                german,
-                                languageCode: _targetLanguageCode,
-                                style: AppTypography.title,
-                              ),
-                              if (showTranslation && arabic.isNotEmpty)
-                                AppDirectionalText(
-                                  arabic,
-                                  languageCode: 'ar',
-                                  style: AppTypography.body,
+                              if (article.isNotEmpty) ...<Widget>[
+                                Text(
+                                  article,
+                                  textDirection: TextDirection.ltr,
+                                  style: AppTypography.label.copyWith(
+                                    color: articleColor,
+                                    fontWeight: FontWeight.w900,
+                                  ),
                                 ),
+                                const SizedBox(width: 10),
+                              ],
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    AppDirectionalText(
+                                      german,
+                                      languageCode: _targetLanguageCode,
+                                      style: AppTypography.title,
+                                    ),
+                                    if (showTranslation && arabic.isNotEmpty)
+                                      AppDirectionalText(
+                                        arabic,
+                                        languageCode: 'ar',
+                                        style: AppTypography.body,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              if (german.isNotEmpty)
+                                AppAudioButton(
+                                  onPressed: () => _speakCustomEntry(entry),
+                                  semanticLabel: 'استمع إلى $german',
+                                  activeColor: articleColor,
+                                ),
+                              IconButton(
+                                tooltip: 'حذف المفردة',
+                                onPressed: id.isEmpty
+                                    ? null
+                                    : () async {
+                                        await widget.dependencies
+                                            .userVocabularyService
+                                            .deleteCustomEntry(id);
+                                        await _loadData();
+                                      },
+                                icon: const Icon(Icons.delete_outline_rounded),
+                              ),
                             ],
                           ),
                         ),
-                        if (german.isNotEmpty)
-                          AppAudioButton(
-                            onPressed: () => _speakCustomEntry(entry),
-                            semanticLabel: 'استمع إلى $german',
-                            activeColor: articleColor,
-                          ),
-                        IconButton(
-                          tooltip: 'حذف المفردة',
-                          onPressed: id.isEmpty
-                              ? null
-                              : () async {
-                                  await widget.dependencies
-                                      .userVocabularyService
-                                      .deleteCustomEntry(id);
-                                  await _loadData();
-                                },
-                          icon: const Icon(Icons.delete_outline_rounded),
-                        ),
-                      ],
-                    ),
-                  );
+                        );
+                      },
+                    );
+                  }
+                  final displayList = _filter == 'favorites'
+                      ? widget.corpus
+                          .where((item) => _favorites.contains(item.id))
+                          .toList(growable: false)
+                      : widget.corpus;
+                  if (displayList.isEmpty) {
+                    return Center(
+                      child: Text('القائمة فارغة.', style: AppTypography.body),
+                    );
+                  }
+                  return switch (_viewMode) {
+                    ViewMode.list => _buildListView(displayList),
+                    ViewMode.grid => _buildGridView(displayList),
+                    ViewMode.flashcard => _buildFlashcardView(displayList),
+                  };
                 },
-              );
-            }
-            final displayList = _filter == 'favorites'
-                ? widget.corpus
-                    .where((item) => _favorites.contains(item.id))
-                    .toList(growable: false)
-                : widget.corpus;
-            if (displayList.isEmpty) {
-              return Center(
-                child: Text('القائمة فارغة.', style: AppTypography.body),
-              );
-            }
-            return switch (_viewMode) {
-              ViewMode.list => _buildListView(displayList),
-              ViewMode.grid => _buildGridView(displayList),
-              ViewMode.flashcard => _buildFlashcardView(displayList),
-            };
-          },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -806,157 +801,120 @@ class _FlashcardWidgetState extends State<_FlashcardWidget>
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: _flip,
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: AnimatedBuilder(
-          animation: _animation,
-          builder: (context, _) {
-            final angle = _animation.value * math.pi;
-            final isBackVisible = angle > math.pi / 2;
-            return Transform(
-              transform: Matrix4.identity()
-                ..setEntry(3, 2, .0012)
-                ..rotateY(angle),
-              alignment: Alignment.center,
-              child: isBackVisible
-                  ? Transform(
-                      transform: Matrix4.identity()..rotateY(math.pi),
-                      alignment: Alignment.center,
-                      child: _buildCardBack(context),
-                    )
-                  : _buildCardFront(context),
-            );
-          },
-        ),
+      child: AnimatedBuilder(
+        animation: _animation,
+        builder: (context, child) {
+          final angle = _animation.value * 3.14159;
+          final isFront = angle < 1.5708;
+          return Transform(
+            transform: Matrix4.identity()
+              ..setEntry(3, 2, 0.001)
+              ..rotateY(angle),
+            alignment: Alignment.center,
+            child: isFront
+                ? _buildFront()
+                : Transform(
+                    transform: Matrix4.identity()..rotateY(3.14159),
+                    alignment: Alignment.center,
+                    child: _buildBack(),
+                  ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildCardFront(BuildContext context) {
+  Widget _buildFront() {
     final scheme = Theme.of(context).colorScheme;
-    final hasArticle = widget.item.grammaticalMarker.trim().isNotEmpty;
     return AppGlassCard(
       backgroundColor: scheme.surface,
-      opacity: Theme.of(context).brightness == Brightness.dark ? .38 : .72,
-      borderColor: hasArticle
-          ? widget.articleColor.withAlpha(150)
-          : scheme.outlineVariant.withAlpha(90),
-      glowColor: hasArticle ? widget.articleColor : null,
+      opacity: _glassOpacity(context),
+      borderColor: widget.articleColor.withAlpha(135),
+      glowColor: widget.articleColor,
       padding: const EdgeInsets.all(24),
       child: Column(
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              IconButton(
-                tooltip:
-                    widget.isFav ? 'إزالة من المفضلة' : 'إضافة للمفضلة',
-                icon: Icon(
-                  widget.isFav
-                      ? Icons.favorite_rounded
-                      : Icons.favorite_border_rounded,
-                  color: widget.isFav ? const Color(0xFFE11D48) : null,
-                ),
-                onPressed: widget.onToggleFav,
-              ),
-              const Spacer(),
-              AppAudioButton(
-                onPressed: widget.onSpeak,
-                semanticLabel: 'استمع إلى ${widget.item.sourceText}',
-                activeColor: widget.articleColor,
-              ),
-            ],
-          ),
-          const Spacer(),
-          if (hasArticle) ...<Widget>[
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (widget.item.grammaticalMarker.trim().isNotEmpty)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: widget.articleColor.withAlpha(24),
-                border: Border.all(
-                  color: widget.articleColor.withAlpha(160),
-                  width: 1.4,
-                ),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: widget.articleColor.withAlpha(150)),
               ),
               child: Text(
                 widget.item.grammaticalMarker,
                 textDirection: TextDirection.ltr,
-                style: AppTypography.title.copyWith(
+                style: AppTypography.label.copyWith(
                   color: widget.articleColor,
                   fontWeight: FontWeight.w900,
+                  fontSize: 16,
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-          ],
+          const SizedBox(height: 24),
           AppDirectionalText(
             widget.item.sourceText,
             languageCode: widget.targetLanguageCode,
+            style: AppTypography.headline,
             textAlign: TextAlign.center,
-            style: AppTypography.display.copyWith(fontSize: 36),
+          ),
+          const SizedBox(height: 16),
+          AppAudioButton(
+            onPressed: widget.onSpeak,
+            semanticLabel: 'استمع إلى ${widget.item.sourceText}',
+            activeColor: widget.articleColor,
           ),
           const Spacer(),
-          AppDirectionalText(
-            'اضغط لقلب البطاقة',
-            languageCode: 'ar',
-            textAlign: TextAlign.center,
-            style: AppTypography.label.copyWith(
-              color: scheme.onSurfaceVariant,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              IconButton(
+                icon: Icon(
+                  widget.isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                  color: widget.isFav ? const Color(0xFFE11D48) : null,
+                ),
+                onPressed: widget.onToggleFav,
+              ),
+              const Text('اضغط للقلب', style: TextStyle(fontSize: 12)),
+              IconButton(
+                icon: const Icon(Icons.school_outlined),
+                onPressed: widget.onLearn,
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCardBack(BuildContext context) {
+  Widget _buildBack() {
     final scheme = Theme.of(context).colorScheme;
+    final showTranslation = true; // Always show on back
     return AppGlassCard(
       backgroundColor: scheme.surface,
-      opacity: Theme.of(context).brightness == Brightness.dark ? .38 : .72,
-      borderColor: scheme.outlineVariant.withAlpha(105),
-      glowColor: scheme.secondary,
+      opacity: _glassOpacity(context),
+      borderColor: widget.articleColor.withAlpha(135),
+      glowColor: widget.articleColor,
       padding: const EdgeInsets.all(24),
       child: Column(
-        children: <Widget>[
-          const Spacer(),
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
           AppDirectionalText(
             widget.item.translationText,
             languageCode: 'ar',
+            style: AppTypography.headline,
             textAlign: TextAlign.center,
-            style: AppTypography.display.copyWith(fontSize: 28),
           ),
-          if (widget.item.pluralForm.trim().isNotEmpty) ...<Widget>[
-            const SizedBox(height: 14),
-            AppDirectionalText(
-              widget.item.pluralForm,
-              languageCode: widget.targetLanguageCode,
-              textAlign: TextAlign.center,
-              style: AppTypography.body.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-          if (widget.item.exampleText.trim().isNotEmpty) ...<Widget>[
-            const SizedBox(height: 28),
+          const SizedBox(height: 16),
+          if (widget.item.exampleText.trim().isNotEmpty)
             AppDirectionalText(
               widget.item.exampleText,
               languageCode: widget.targetLanguageCode,
+              style: AppTypography.body,
               textAlign: TextAlign.center,
-              style: AppTypography.title.copyWith(fontSize: 18),
             ),
-            if (widget.item.exampleTranslationText.trim().isNotEmpty) ...<Widget>[
-              const SizedBox(height: 8),
-              AppDirectionalText(
-                widget.item.exampleTranslationText,
-                languageCode: 'ar',
-                textAlign: TextAlign.center,
-                style: AppTypography.body.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ],
           const Spacer(),
           SizedBox(
             width: double.infinity,
