@@ -1,5 +1,23 @@
 # Performance Improvements
 
+## Vocabulary ListView UI Jank and Memory Optimization (2026-11-19)
+
+**Change:** In `lib/ui_v35/learning/vocabulary_page.dart` `_buildListView`, added `cacheExtent: 300`, `addAutomaticKeepAlives: false` to `ListView.separated`, and wrapped each `AppGlassCard` item in `RepaintBoundary`.
+
+**Before:** Default cacheExtent (~250), keep-alives enabled, no explicit repaint isolation on complex glass cards with ExpansionTile.
+
+**After:** Bounded pre-build, no keep-alives for pure items, isolated repaints.
+
+**Expected measurable impact:**
+- Reduced UI jank (higher scroll FPS, lower frame build times) during vocabulary list scrolling on mid-range devices, especially with glass effects and ExpansionTiles.
+- Lower memory usage for off-screen items (no AutomaticKeepAlive).
+- Modest battery savings from fewer overpaints and GC.
+- No impact on functionality, offline integrity, or security (pure UI change; R8, permissions, caches unchanged).
+
+**Best practices applied:** Efficient RecyclerView-equivalent (ListView.builder/separated + cacheExtent + !keepAlives + RepaintBoundary), lazy building.
+
+**Verification:** Profile scroll performance in Flutter DevTools Performance view or Android Studio Profiler during vocabulary list scrolling. Compare frame times and memory before/after.
+
 ## L1 Vocabulary Cache Size Measurement Optimization (2026-11-17)
 
 **Change:** Replaced full nested traversal in `L1VocabularyCache._measureSize` with a fast approximation (200 bytes/item) for packs ≤ 200 items, with precise fallback for larger packs, in `lib/core/l1_cache.dart`.
