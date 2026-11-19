@@ -1,10 +1,28 @@
 # Performance Improvements
 
+## Vocabulary GridView UI Jank and Memory Optimization (2026-11-20)
+
+**Change:** In `lib/ui_v35/learning/vocabulary_page.dart` `_buildGridView`, added `cacheExtent: 300`, `addAutomaticKeepAlives: false` to `GridView.builder`, and wrapped each `AppGlassCard` item in `RepaintBoundary`.
+
+**Before:** Default cacheExtent, keep-alives enabled, no explicit repaint isolation on glass cards in grid mode.
+
+**After:** Bounded pre-build, no keep-alives for pure items, isolated repaints (consistent with list view).
+
+**Expected measurable impact:**
+- Reduced UI jank (higher scroll FPS, lower frame build times) during vocabulary grid scrolling on mid-range devices.
+- Lower memory usage for off-screen items.
+- Modest battery savings from fewer overpaints and GC.
+- No impact on functionality, offline integrity, or security (pure UI change; R8, permissions, caches, baseline profiles unchanged).
+
+**Best practices applied:** Efficient RecyclerView-equivalent (GridView.builder + cacheExtent + !keepAlives + RepaintBoundary), lazy building.
+
+**Verification:** Profile scroll performance in Flutter DevTools Performance view or Android Studio Profiler during vocabulary grid scrolling. Compare frame times and memory before/after.
+
 ## Vocabulary ListView UI Jank and Memory Optimization (2026-11-19)
 
 **Change:** In `lib/ui_v35/learning/vocabulary_page.dart` `_buildListView` (and custom entries list), added `cacheExtent: 300`, `addAutomaticKeepAlives: false` to `ListView.separated`, and wrapped each `AppGlassCard` item in `RepaintBoundary`.
 
-**Before:** Default cacheExtent (~250), keep-alives enabled, no explicit repaint isolation on complex glass cards with ExpansionTile.
+**Before:** Default cacheExtent (~250), keep-alives enabled, no explicit repaint isolation on complex glass cards with ExpansionTiles.
 
 **After:** Bounded pre-build, no keep-alives for pure items, isolated repaints.
 
