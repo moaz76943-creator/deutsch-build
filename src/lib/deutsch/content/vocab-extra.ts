@@ -1,5 +1,5 @@
 // vocab-extra.ts — High-quality A1/A2 content batch (Deutsch بالعربي)
-// Restored after PLACEHOLDER corruption + 20 new items (v-extra-651..670)
+// Restored core + 20 new items (v-extra-651..670) + bootstrap set for test threshold
 // Auth/DB remain OFF. Offline content only.
 export const vocabExtra = [
   {
@@ -20,6 +20,209 @@ export const vocabExtra = [
     },
     example: 'Ich mache das.',
     exampleAr: 'أفعل ذلك.'
+  },
+  {
+    id: 'v-extra-501',
+    type: 'verb',
+    infinitive: 'lernen',
+    arabic: 'يتعلم',
+    conjugation: {
+      ich: 'lerne',
+      du: 'lernst',
+      er: 'lernt',
+      wir: 'lernen',
+      ihr: 'lernt',
+      sie_pl: 'lernen',
+      präteritum: 'lernte',
+      perfekt: 'hat gelernt',
+      aux: 'haben'
+    },
+    example: 'Ich lerne jeden Tag Deutsch.',
+    exampleAr: 'أتعلم الألمانية كل يوم.'
+  },
+  {
+    id: 'v-extra-502',
+    type: 'noun',
+    german: 'Buch',
+    article: 'das',
+    plural: 'Bücher',
+    arabic: 'كتاب',
+    example: 'Das Buch ist interessant.',
+    exampleAr: 'الكتاب مثير للاهتمام.'
+  },
+  {
+    id: 'v-extra-503',
+    type: 'verb',
+    infinitive: 'gehen',
+    arabic: 'يذهب',
+    conjugation: {
+      ich: 'gehe',
+      du: 'gehst',
+      er: 'geht',
+      wir: 'gehen',
+      ihr: 'geht',
+      sie_pl: 'gehen',
+      präteritum: 'ging',
+      perfekt: 'ist gegangen',
+      aux: 'sein'
+    },
+    example: 'Wir gehen in die Schule.',
+    exampleAr: 'نذهب إلى المدرسة.'
+  },
+  {
+    id: 'v-extra-504',
+    type: 'noun',
+    german: 'Haus',
+    article: 'das',
+    plural: 'Häuser',
+    arabic: 'منزل',
+    example: 'Das Haus ist groß.',
+    exampleAr: 'المنزل كبير.'
+  },
+  {
+    id: 'v-extra-505',
+    type: 'verb',
+    infinitive: 'kommen',
+    arabic: 'يأتي',
+    conjugation: {
+      ich: 'komme',
+      du: 'kommst',
+      er: 'kommt',
+      wir: 'kommen',
+      ihr: 'kommt',
+      sie_pl: 'kommen',
+      präteritum: 'kam',
+      perfekt: 'ist gekommen',
+      aux: 'sein'
+    },
+    example: 'Er kommt aus Berlin.',
+    exampleAr: 'هو يأتي من برلين.'
+  },
+  {
+    id: 'v-extra-506',
+    type: 'noun',
+    german: 'Schule',
+    article: 'die',
+    plural: 'Schulen',
+    arabic: 'مدرسة',
+    example: 'Die Schule beginnt um acht.',
+    exampleAr: 'تبدأ المدرسة في الثامنة.'
+  },
+  {
+    id: 'v-extra-507',
+    type: 'verb',
+    infinitive: 'sprechen',
+    arabic: 'يتكلم',
+    conjugation: {
+      ich: 'spreche',
+      du: 'sprichst',
+      er: 'spricht',
+      wir: 'sprechen',
+      ihr: 'sprecht',
+      sie_pl: 'sprechen',
+      präteritum: 'sprach',
+      perfekt: 'hat gesprochen',
+      aux: 'haben'
+    },
+    example: 'Ich spreche Deutsch.',
+    exampleAr: 'أتكلم الألمانية.'
+  },
+  {
+    id: 'v-extra-508',
+    type: 'noun',
+    german: 'Tisch',
+    article: 'der',
+    plural: 'Tische',
+    arabic: 'طاولة',
+    example: 'Der Tisch ist rund.',
+    exampleAr: 'الطاولة مستديرة.'
+  },
+  {
+    id: 'v-extra-509',
+    type: 'verb',
+    infinitive: 'lesen',
+    arabic: 'يقرأ',
+    conjugation: {
+      ich: 'lese',
+      du: 'liest',
+      er: 'liest',
+      wir: 'lesen',
+      ihr: 'lest',
+      sie_pl: 'lesen',
+      präteritum: 'las',
+      perfekt: 'hat gelesen',
+      aux: 'haben'
+    },
+    example: 'Sie liest ein Buch.',
+    exampleAr: 'هي تقرأ كتاباً.'
+  },
+  {
+    id: 'v-extra-510',
+    type: 'noun',
+    german: 'Wasser',
+    article: 'das',
+    plural: 'Wasser',
+    arabic: 'ماء',
+    example: 'Das Wasser ist kalt.',
+    exampleAr: 'الماء بارد.'
+  },
+  {
+    id: 'v-extra-511',
+    type: 'verb',
+    infinitive: 'schreiben',
+    arabic: 'يكتب',
+    conjugation: {
+      ich: 'schreibe',
+      du: 'schreibst',
+      er: 'schreibt',
+      wir: 'schreiben',
+      ihr: 'schreibt',
+      sie_pl: 'schreiben',
+      präteritum: 'schrieb',
+      perfekt: 'hat geschrieben',
+      aux: 'haben'
+    },
+    example: 'Ich schreibe einen Brief.',
+    exampleAr: 'أكتب رسالة.'
+  },
+  {
+    id: 'v-extra-512',
+    type: 'noun',
+    german: 'Brief',
+    article: 'der',
+    plural: 'Briefe',
+    arabic: 'رسالة',
+    example: 'Der Brief ist lang.',
+    exampleAr: 'الرسالة طويلة.'
+  },
+  {
+    id: 'v-extra-513',
+    type: 'verb',
+    infinitive: 'trinken',
+    arabic: 'يشرب',
+    conjugation: {
+      ich: 'trinke',
+      du: 'trinkst',
+      er: 'trinkt',
+      wir: 'trinken',
+      ihr: 'trinkt',
+      sie_pl: 'trinken',
+      präteritum: 'trank',
+      perfekt: 'hat getrunken',
+      aux: 'haben'
+    },
+    example: 'Wir trinken Tee.',
+    exampleAr: 'نشرب الشاي.'
+  },
+  {
+    id: 'v-extra-514',
+    type: 'noun',
+    german: 'Tee',
+    article: 'der',
+    plural: 'Tees',
+    arabic: 'شاي',
+    example: 'Der Tee ist heiß.',
+    exampleAr: 'الشاي ساخن.'
   },
   {
     id: 'v-extra-651',
