@@ -51,3 +51,15 @@ Placeholder fix in progress.
 - No bugs/crashes found. Content correctness prioritized. Preview remains on approved workspace port.
 - Next: continue expanding content or integrate into learning system if needed.
 
+
+## 2026-11-19 Hourly Session (Grok Build)
+
+- Read AGENTS.md. Auth/DB remain OFF.
+- Ran `npm test` (test-vocab-extra.js): PASS (91 unique items).
+- Added 20 new high-quality A1/A2 items to `src/lib/deutsch/content/vocab-extra.ts` (ids v-extra-591 to v-extra-610):
+  - Verbs with full conjugation (ich/du/er/wir/ihr/sie_pl + Präteritum + Perfekt + aux haben/sein): kochen, waschen, bleiben, finden, nehmen, geben, wissen, können, wollen, mögen.
+  - Nouns with correct article (der/die/das), plural, natural German example sentences + Arabic translations: Küche, Bad, Bett, Schlüssel, Uhr, Milch, Tag, Nacht, Kaffee, Tee.
+  - No ID repeats. Existing content preserved. No auto-deletion of similar items.
+- Re-ran tests: PASS (111 unique items, contains präteritum and article: 'der').
+- No bugs/crashes found. Content correctness prioritized. Preview remains on approved workspace port.
+- Next: continue expanding content or integrate into learning system if needed.

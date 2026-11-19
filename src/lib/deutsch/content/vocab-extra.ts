@@ -1332,5 +1332,297 @@ export const vocabExtra = [
     example: 'Das Auto ist schnell.',
     exampleAr: 'السيارة سريعة.'
   },
-];
 
+
+  // New A1/A2 items v-extra-591 to v-extra-610 (20 items) — 2026-11-19 session
+  {
+    id: 'v-extra-591',
+    type: 'verb',
+    infinitive: 'kochen',
+    arabic: 'يطبخ',
+    conjugation: {
+      ich: 'koche',
+      du: 'kochst',
+      er: 'kocht',
+      wir: 'kochen',
+      ihr: 'kocht',
+      sie_pl: 'kochen',
+      präteritum: 'kochte',
+      perfekt: 'hat gekocht',
+      aux: 'haben'
+    },
+    example: 'Ich koche das Abendessen.',
+    exampleAr: 'أطبخ العشاء.'
+  },
+  {
+    id: 'v-extra-592',
+    type: 'noun',
+    german: 'Küche',
+    article: 'die',
+    plural: 'Küchen',
+    arabic: 'مطبخ',
+    example: 'Die Küche ist sauber.',
+    exampleAr: 'المطبخ نظيف.'
+  },
+  {
+    id: 'v-extra-593',
+    type: 'verb',
+    infinitive: 'waschen',
+    arabic: 'يغسل',
+    conjugation: {
+      ich: 'wasche',
+      du: 'wäschst',
+      er: 'wäscht',
+      wir: 'waschen',
+      ihr: 'wascht',
+      sie_pl: 'waschen',
+      präteritum: 'wusch',
+      perfekt: 'hat gewaschen',
+      aux: 'haben'
+    },
+    example: 'Du wäschst das Auto.',
+    exampleAr: 'تغسل السيارة.'
+  },
+  {
+    id: 'v-extra-594',
+    type: 'noun',
+    german: 'Bad',
+    article: 'das',
+    plural: 'Bäder',
+    arabic: 'حمام',
+    example: 'Das Bad ist klein.',
+    exampleAr: 'الحمام صغير.'
+  },
+  {
+    id: 'v-extra-595',
+    type: 'verb',
+    infinitive: 'bleiben',
+    arabic: 'يبقى',
+    conjugation: {
+      ich: 'bleibe',
+      du: 'bleibst',
+      er: 'bleibt',
+      wir: 'bleiben',
+      ihr: 'bleibt',
+      sie_pl: 'bleiben',
+      präteritum: 'blieb',
+      perfekt: 'ist geblieben',
+      aux: 'sein'
+    },
+    example: 'Wir bleiben zu Hause.',
+    exampleAr: 'نبقى في المنزل.'
+  },
+  {
+    id: 'v-extra-596',
+    type: 'noun',
+    german: 'Bett',
+    article: 'das',
+    plural: 'Betten',
+    arabic: 'سرير',
+    example: 'Das Bett ist bequem.',
+    exampleAr: 'السرير مريح.'
+  },
+  {
+    id: 'v-extra-597',
+    type: 'verb',
+    infinitive: 'finden',
+    arabic: 'يجد',
+    conjugation: {
+      ich: 'finde',
+      du: 'findest',
+      er: 'findet',
+      wir: 'finden',
+      ihr: 'findet',
+      sie_pl: 'finden',
+      präteritum: 'fand',
+      perfekt: 'hat gefunden',
+      aux: 'haben'
+    },
+    example: 'Er findet den Schlüssel.',
+    exampleAr: 'يجد المفتاح.'
+  },
+  {
+    id: 'v-extra-598',
+    type: 'noun',
+    german: 'Schlüssel',
+    article: 'der',
+    plural: 'Schlüssel',
+    arabic: 'مفتاح',
+    example: 'Der Schlüssel liegt auf dem Tisch.',
+    exampleAr: 'المفتاح على الطاولة.'
+  },
+  {
+    id: 'v-extra-599',
+    type: 'verb',
+    infinitive: 'nehmen',
+    arabic: 'يأخذ',
+    conjugation: {
+      ich: 'nehme',
+      du: 'nimmst',
+      er: 'nimmt',
+      wir: 'nehmen',
+      ihr: 'nehmt',
+      sie_pl: 'nehmen',
+      präteritum: 'nahm',
+      perfekt: 'hat genommen',
+      aux: 'haben'
+    },
+    example: 'Ich nehme den Bus.',
+    exampleAr: 'آخذ الحافلة.'
+  },
+  {
+    id: 'v-extra-600',
+    type: 'noun',
+    german: 'Uhr',
+    article: 'die',
+    plural: 'Uhren',
+    arabic: 'ساعة',
+    example: 'Die Uhr zeigt acht.',
+    exampleAr: 'الساعة تشير إلى الثامنة.'
+  },
+  {
+    id: 'v-extra-601',
+    type: 'verb',
+    infinitive: 'geben',
+    arabic: 'يعطي',
+    conjugation: {
+      ich: 'gebe',
+      du: 'gibst',
+      er: 'gibt',
+      wir: 'geben',
+      ihr: 'gebt',
+      sie_pl: 'geben',
+      präteritum: 'gab',
+      perfekt: 'hat gegeben',
+      aux: 'haben'
+    },
+    example: 'Sie gibt dem Kind das Buch.',
+    exampleAr: 'تعطي الطفل الكتاب.'
+  },
+  {
+    id: 'v-extra-602',
+    type: 'noun',
+    german: 'Milch',
+    article: 'die',
+    plural: 'Milchen',
+    arabic: 'حليب',
+    example: 'Die Milch ist frisch.',
+    exampleAr: 'الحليب طازج.'
+  },
+  {
+    id: 'v-extra-603',
+    type: 'verb',
+    infinitive: 'wissen',
+    arabic: 'يعرف',
+    conjugation: {
+      ich: 'weiß',
+      du: 'weißt',
+      er: 'weiß',
+      wir: 'wissen',
+      ihr: 'wisst',
+      sie_pl: 'wissen',
+      präteritum: 'wusste',
+      perfekt: 'hat gewusst',
+      aux: 'haben'
+    },
+    example: 'Wir wissen die Antwort.',
+    exampleAr: 'نعرف الإجابة.'
+  },
+  {
+    id: 'v-extra-604',
+    type: 'noun',
+    german: 'Tag',
+    article: 'der',
+    plural: 'Tage',
+    arabic: 'يوم',
+    example: 'Der Tag ist schön.',
+    exampleAr: 'اليوم جميل.'
+  },
+  {
+    id: 'v-extra-605',
+    type: 'verb',
+    infinitive: 'können',
+    arabic: 'يستطيع',
+    conjugation: {
+      ich: 'kann',
+      du: 'kannst',
+      er: 'kann',
+      wir: 'können',
+      ihr: 'könnt',
+      sie_pl: 'können',
+      präteritum: 'konnte',
+      perfekt: 'hat gekonnt',
+      aux: 'haben'
+    },
+    example: 'Ich kann Deutsch sprechen.',
+    exampleAr: 'أستطيع التحدث بالألمانية.'
+  },
+  {
+    id: 'v-extra-606',
+    type: 'noun',
+    german: 'Nacht',
+    article: 'die',
+    plural: 'Nächte',
+    arabic: 'ليل',
+    example: 'Die Nacht ist dunkel.',
+    exampleAr: 'الليل مظلم.'
+  },
+  {
+    id: 'v-extra-607',
+    type: 'verb',
+    infinitive: 'wollen',
+    arabic: 'يريد',
+    conjugation: {
+      ich: 'will',
+      du: 'willst',
+      er: 'will',
+      wir: 'wollen',
+      ihr: 'wollt',
+      sie_pl: 'wollen',
+      präteritum: 'wollte',
+      perfekt: 'hat gewollt',
+      aux: 'haben'
+    },
+    example: 'Du willst lernen.',
+    exampleAr: 'تريد أن تتعلم.'
+  },
+  {
+    id: 'v-extra-608',
+    type: 'noun',
+    german: 'Kaffee',
+    article: 'der',
+    plural: 'Kaffees',
+    arabic: 'قهوة',
+    example: 'Der Kaffee ist heiß.',
+    exampleAr: 'القهوة ساخنة.'
+  },
+  {
+    id: 'v-extra-609',
+    type: 'verb',
+    infinitive: 'mögen',
+    arabic: 'يحب',
+    conjugation: {
+      ich: 'mag',
+      du: 'magst',
+      er: 'mag',
+      wir: 'mögen',
+      ihr: 'mögt',
+      sie_pl: 'mögen',
+      präteritum: 'mochte',
+      perfekt: 'hat gemocht',
+      aux: 'haben'
+    },
+    example: 'Ich mag Tee.',
+    exampleAr: 'أحب الشاي.'
+  },
+  {
+    id: 'v-extra-610',
+    type: 'noun',
+    german: 'Tee',
+    article: 'der',
+    plural: 'Tees',
+    arabic: 'شاي',
+    example: 'Der Tee schmeckt gut.',
+    exampleAr: 'الشاي طعمه جيد.'
+  },
+];
