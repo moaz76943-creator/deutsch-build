@@ -1,7 +1,7 @@
-# Google Play Compliance Status – Deutsch بالعربي (November 20, 2026 – 02:01 UTC verification)
+# Google Play Compliance Status – Deutsch بالعربي (November 21, 2026 – 05:04 UTC verification)
 
 ## Summary
-The app meets current Google Play requirements for target API level, Core App Quality, Data safety, permissions, privacy policy content, signing, and security standards. Risk of rejection is low for most areas once the public privacy policy URL is live. **Primary remaining rejection risk (re-verified 2026-11-20 02:01 UTC via direct HTTP request): privacy policy URL returns 404 because GitHub Pages is not enabled on the deutsch-bilarabi-privacy repository.** One compliance improvement applied this run: re-verified the live URL status (still 404) and updated this status document with the latest check timestamp.
+The app meets current Google Play requirements for target API level, Core App Quality, Data safety, permissions, privacy policy content, signing, and security standards. Risk of rejection is low for most areas once the public privacy policy URL is live. **Primary remaining rejection risk (re-verified 2026-11-21 05:04 UTC via direct HTTP request): privacy policy URL returns 404 because GitHub Pages is not enabled on the deutsch-bilarabi-privacy repository.** One compliance improvement applied this run: re-verified the live URL status (still 404) and updated this status document with the latest check timestamp. Noted that a Netlify site named deutsch-bilarabi-privacy already exists but currently returns 404 (no successful deploy of the policy HTML).
 
 ## Target SDK
 - `targetSdk 36` / `compileSdk 36` in `android/app/build.gradle`.
@@ -17,7 +17,8 @@ The app meets current Google Play requirements for target API level, Core App Qu
 
 ## Privacy Policy & Data Safety
 - Public privacy policy intended at https://moaz76943-creator.github.io/deutsch-bilarabi-privacy/privacy.html
-- **Current status (re-verified 2026-11-20 02:01 UTC via direct HTTP request): 404 — "There isn't a GitHub Pages site here." GitHub Pages not enabled on the deutsch-bilarabi-privacy repository.** This is the primary remaining rejection risk.
+- **Current status (re-verified 2026-11-21 05:04 UTC via direct HTTP request): 404 — "There isn't a GitHub Pages site here." GitHub Pages not enabled on the deutsch-bilarabi-privacy repository.** This is the primary remaining rejection risk.
+- Alternative: A Netlify project `deutsch-bilarabi-privacy` exists at https://deutsch-bilarabi-privacy.netlify.app but currently returns 404. Deploying the privacy.html there would provide a live public URL as a temporary or permanent solution.
 - Content is complete, accurate, and matches the offline design + on-device microphone processing.
 - In-app link present (Profile screen) pointing to the correct URL.
 - Policy explicitly covers on-device microphone processing (not collection/sharing), local storage only, no network, deletion via uninstall.
@@ -45,9 +46,10 @@ The app meets current Google Play requirements for target API level, Core App Qu
    - Source: Deploy from a branch → Branch: `main` → Folder: `/ (root)`.
    - Click Save. Wait 1–2 minutes, then verify https://moaz76943-creator.github.io/deutsch-bilarabi-privacy/privacy.html returns 200 and shows the policy HTML.
    - This is the sole major remaining rejection risk. Manual step required (GitHub UI; API attempt returned 403 due to integration token scopes). An issue with these steps has been opened/prepared in the privacy repo.
-2. Complete Permissions declaration form in Play Console for RECORD_AUDIO with core-functionality justification (pronunciation practice).
-3. Ensure Data safety form is filled exactly as documented (no collection/sharing).
-4. Run pre-launch report and monitor vitals (crash/ANR thresholds).
-5. Test on API 36 devices for behavior changes (edge-to-edge, predictive back).
+2. Alternatively, deploy the privacy.html content to the existing Netlify site `deutsch-bilarabi-privacy` and update the in-app URL + Play Console if preferred.
+3. Complete Permissions declaration form in Play Console for RECORD_AUDIO with core-functionality justification (pronunciation practice).
+4. Ensure Data safety form is filled exactly as documented (no collection/sharing).
+5. Run pre-launch report and monitor vitals (crash/ANR thresholds).
+6. Test on API 36 devices for behavior changes (edge-to-edge, predictive back).
 
-**Status: Nearly ready for production release. Enable GitHub Pages for the privacy policy URL before submitting — this is the final blocker.**
+**Status: Nearly ready for production release. Enable GitHub Pages (or deploy to the existing Netlify site) for the privacy policy URL before submitting — this is the final blocker.**
