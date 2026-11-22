@@ -9,7 +9,7 @@ class ProfileHubScreen extends StatelessWidget {
   const ProfileHubScreen({super.key});
 
   static const String _privacyPolicyUrl =
-      'https://moaz76943-creator.github.io/deutsch-bilarabi-privacy/privacy.html';
+      'https://deutsch-bilarabi-privacy.netlify.app/privacy.html';
 
   void _showPrivacyPolicy(BuildContext context) {
     showDialog(
@@ -37,11 +37,6 @@ class ProfileHubScreen extends StatelessWidget {
               SelectableText(
                 _privacyPolicyUrl,
                 style: const TextStyle(color: Colors.blue),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Note: Enable GitHub Pages on the deutsch-bilarabi-privacy repository for the public URL to be live (required for Play Console).',
-                style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
               ),
             ],
           ),
