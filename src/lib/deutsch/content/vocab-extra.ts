@@ -514,4 +514,295 @@ export const vocabExtra = [
     example: 'Die Geschichte ist spannend.',
     exampleAr: 'القصة مثيرة.'
   },
+
+  {
+    id: 'v-extra-671',
+    type: 'verb',
+    infinitive: 'spielen',
+    arabic: 'يلعب',
+    conjugation: {
+      ich: 'spiele',
+      du: 'spielst',
+      er: 'spielt',
+      wir: 'spielen',
+      ihr: 'spielt',
+      sie_pl: 'spielen',
+      präteritum: 'spielte',
+      perfekt: 'hat gespielt',
+      aux: 'haben'
+    },
+    example: 'Die Kinder spielen im Park.',
+    exampleAr: 'الأطفال يلعبون في الحديقة.'
+  },
+  {
+    id: 'v-extra-672',
+    type: 'noun',
+    german: 'Park',
+    article: 'der',
+    plural: 'Parks',
+    arabic: 'حديقة',
+    example: 'Der Park ist schön.',
+    exampleAr: 'الحديقة جميلة.'
+  },
+  {
+    id: 'v-extra-673',
+    type: 'verb',
+    infinitive: 'hören',
+    arabic: 'يسمع',
+    conjugation: {
+      ich: 'höre',
+      du: 'hörst',
+      er: 'hört',
+      wir: 'hören',
+      ihr: 'hört',
+      sie_pl: 'hören',
+      präteritum: 'hörte',
+      perfekt: 'hat gehört',
+      aux: 'haben'
+    },
+    example: 'Ich höre Musik.',
+    exampleAr: 'أسمع موسيقى.'
+  },
+  {
+    id: 'v-extra-674',
+    type: 'noun',
+    german: 'Musik',
+    article: 'die',
+    plural: 'Musiken',
+    arabic: 'موسيقى',
+    example: 'Die Musik ist laut.',
+    exampleAr: 'الموسيقى عالية.'
+  },
+  {
+    id: 'v-extra-675',
+    type: 'verb',
+    infinitive: 'sehen',
+    arabic: 'يرى',
+    conjugation: {
+      ich: 'sehe',
+      du: 'siehst',
+      er: 'sieht',
+      wir: 'sehen',
+      ihr: 'seht',
+      sie_pl: 'sehen',
+      präteritum: 'sah',
+      perfekt: 'hat gesehen',
+      aux: 'haben'
+    },
+    example: 'Siehst du den Film?',
+    exampleAr: 'هل ترى الفيلم؟'
+  },
+  {
+    id: 'v-extra-676',
+    type: 'noun',
+    german: 'Film',
+    article: 'der',
+    plural: 'Filme',
+    arabic: 'فيلم',
+    example: 'Der Film ist interessant.',
+    exampleAr: 'الفيلم مثير للاهتمام.'
+  },
+  {
+    id: 'v-extra-677',
+    type: 'verb',
+    infinitive: 'geben',
+    arabic: 'يعطي',
+    conjugation: {
+      ich: 'gebe',
+      du: 'gibst',
+      er: 'gibt',
+      wir: 'geben',
+      ihr: 'gebt',
+      sie_pl: 'geben',
+      präteritum: 'gab',
+      perfekt: 'hat gegeben',
+      aux: 'haben'
+    },
+    example: 'Ich gebe dir das Buch.',
+    exampleAr: 'أعطيك الكتاب.'
+  },
+  {
+    id: 'v-extra-678',
+    type: 'noun',
+    german: 'Apfel',
+    article: 'der',
+    plural: 'Äpfel',
+    arabic: 'تفاحة',
+    example: 'Der Apfel ist rot.',
+    exampleAr: 'التفاحة حمراء.'
+  },
+  {
+    id: 'v-extra-679',
+    type: 'verb',
+    infinitive: 'nehmen',
+    arabic: 'يأخذ',
+    conjugation: {
+      ich: 'nehme',
+      du: 'nimmst',
+      er: 'nimmt',
+      wir: 'nehmen',
+      ihr: 'nehmt',
+      sie_pl: 'nehmen',
+      präteritum: 'nahm',
+      perfekt: 'hat genommen',
+      aux: 'haben'
+    },
+    example: 'Nimmst du den Bus?',
+    exampleAr: 'هل تأخذ الحافلة؟'
+  },
+  {
+    id: 'v-extra-680',
+    type: 'noun',
+    german: 'Bus',
+    article: 'der',
+    plural: 'Busse',
+    arabic: 'حافلة',
+    example: 'Der Bus kommt.',
+    exampleAr: 'الحافلة قادمة.'
+  },
+  {
+    id: 'v-extra-681',
+    type: 'verb',
+    infinitive: 'finden',
+    arabic: 'يجد',
+    conjugation: {
+      ich: 'finde',
+      du: 'findest',
+      er: 'findet',
+      wir: 'finden',
+      ihr: 'findet',
+      sie_pl: 'finden',
+      präteritum: 'fand',
+      perfekt: 'hat gefunden',
+      aux: 'haben'
+    },
+    example: 'Ich finde meinen Schlüssel.',
+    exampleAr: 'أجد مفتاحي.'
+  },
+  {
+    id: 'v-extra-682',
+    type: 'noun',
+    german: 'Schlüssel',
+    article: 'der',
+    plural: 'Schlüssel',
+    arabic: 'مفتاح',
+    example: 'Der Schlüssel liegt auf dem Tisch.',
+    exampleAr: 'المفتاح على الطاولة.'
+  },
+  {
+    id: 'v-extra-683',
+    type: 'verb',
+    infinitive: 'wissen',
+    arabic: 'يعرف',
+    conjugation: {
+      ich: 'weiß',
+      du: 'weißt',
+      er: 'weiß',
+      wir: 'wissen',
+      ihr: 'wisst',
+      sie_pl: 'wissen',
+      präteritum: 'wusste',
+      perfekt: 'hat gewusst',
+      aux: 'haben'
+    },
+    example: 'Weißt du die Antwort?',
+    exampleAr: 'هل تعرف الإجابة؟'
+  },
+  {
+    id: 'v-extra-684',
+    type: 'noun',
+    german: 'Antwort',
+    article: 'die',
+    plural: 'Antworten',
+    arabic: 'إجابة',
+    example: 'Die Antwort ist richtig.',
+    exampleAr: 'الإجابة صحيحة.'
+  },
+  {
+    id: 'v-extra-685',
+    type: 'verb',
+    infinitive: 'können',
+    arabic: 'يستطيع',
+    conjugation: {
+      ich: 'kann',
+      du: 'kannst',
+      er: 'kann',
+      wir: 'können',
+      ihr: 'könnt',
+      sie_pl: 'können',
+      präteritum: 'konnte',
+      perfekt: 'hat gekonnt',
+      aux: 'haben'
+    },
+    example: 'Ich kann Deutsch sprechen.',
+    exampleAr: 'أستطيع التحدث بالألمانية.'
+  },
+  {
+    id: 'v-extra-686',
+    type: 'noun',
+    german: 'Brot',
+    article: 'das',
+    plural: 'Brote',
+    arabic: 'خبز',
+    example: 'Das Brot ist frisch.',
+    exampleAr: 'الخبز طازج.'
+  },
+  {
+    id: 'v-extra-687',
+    type: 'verb',
+    infinitive: 'wollen',
+    arabic: 'يريد',
+    conjugation: {
+      ich: 'will',
+      du: 'willst',
+      er: 'will',
+      wir: 'wollen',
+      ihr: 'wollt',
+      sie_pl: 'wollen',
+      präteritum: 'wollte',
+      perfekt: 'hat gewollt',
+      aux: 'haben'
+    },
+    example: 'Ich will einen Kaffee.',
+    exampleAr: 'أريد قهوة.'
+  },
+  {
+    id: 'v-extra-688',
+    type: 'noun',
+    german: 'Kaffee',
+    article: 'der',
+    plural: 'Kaffees',
+    arabic: 'قهوة',
+    example: 'Der Kaffee ist heiß.',
+    exampleAr: 'القهوة ساخنة.'
+  },
+  {
+    id: 'v-extra-689',
+    type: 'verb',
+    infinitive: 'müssen',
+    arabic: 'يجب',
+    conjugation: {
+      ich: 'muss',
+      du: 'musst',
+      er: 'muss',
+      wir: 'müssen',
+      ihr: 'müsst',
+      sie_pl: 'müssen',
+      präteritum: 'musste',
+      perfekt: 'hat gemusst',
+      aux: 'haben'
+    },
+    example: 'Ich muss arbeiten.',
+    exampleAr: 'يجب أن أعمل.'
+  },
+  {
+    id: 'v-extra-690',
+    type: 'noun',
+    german: 'Arbeit',
+    article: 'die',
+    plural: 'Arbeiten',
+    arabic: 'عمل',
+    example: 'Die Arbeit ist wichtig.',
+    exampleAr: 'العمل مهم.'
+  },
 ];
