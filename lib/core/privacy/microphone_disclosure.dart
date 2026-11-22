@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 
 /// Public privacy policy. Shown from Settings/About and opened in the browser.
 const String kPrivacyPolicyUrl =
-    'https://moaz76943-creator.github.io/deutsch-bilarabi-privacy/privacy.html';
+    'https://deutsch-bilarabi-privacy.netlify.app/privacy.html';
 
 const String kMicrophoneDisclosureTextAr =
     'يُستخدم الميكروفون فقط لتدريب النطق على هذا الجهاز. لا يُرفع التسجيل إلى خادم. يمكنك الرفض، ولن يظهر إذن النظام قبل موافقتك هنا.';
