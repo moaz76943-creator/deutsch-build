@@ -8,7 +8,7 @@ on:
 permissions: {}
 
 env:
-  PRIVACY_POLICY_URL: https://moaz76943-creator.github.io/deutsch-bilarabi-privacy/privacy.html
+  PRIVACY_POLICY_URL: https://deutsch-bilarabi-privacy.netlify.app/privacy.html
 
 concurrency:
   group: privacy-policy-health-check
