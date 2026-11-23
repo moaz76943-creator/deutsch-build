@@ -1,5 +1,23 @@
 # Performance Improvements
 
+## Lazy Non-Critical MethodChannel Initialization (2026-11-24)
+
+**Change:** In `android/app/src/main/kotlin/com/deutschbilarabi/app/MainActivity.kt`, moved setup of non-critical MethodChannels (pronunciation probe, offline voice, recorded audio player, gamification clock, process-text, TTS settings) to a post-frame Handler on the main looper. Critical security channels (SecureSessionStorage, PackDatabaseKeyStore, UserVaultCipher) remain in `configureFlutterEngine`.
+
+**Before:** All MethodChannels registered synchronously during `configureFlutterEngine` on the startup critical path.
+
+**After:** Only security/storage channels on the critical path; others deferred until after the first Flutter frame is scheduled.
+
+**Expected measurable impact:**
+- 5-15% faster cold startup / Time to Initial Display (TTID) on mid-range devices by reducing work before first frame.
+- Modest reduction in main-thread contention during engine init and first layout.
+- No impact on functionality (channels become available shortly after first frame; process-text queuing already handled).
+- No security regression: early SecurityGuard check, FLAG_SECURE, critical cipher/keystore channels, R8 full mode, offline policy, and baseline/startup profiles unchanged.
+
+**Best practices applied:** Lazy loading of non-essential components, keeping critical path minimal, baseline profiles + R8 already active.
+
+**Verification:** Measure cold-start TTID with Macrobenchmark or Android Studio Profiler / Perfetto before/after on a mid-range device. Compare method traces in configureFlutterEngine.
+
 ## Vocabulary GridView UI Jank and Memory Optimization (2026-11-23)
 
 **Change:** In `lib/ui_v35/learning/vocabulary_page.dart` `_buildGridView`, added `cacheExtent: 300`, `addAutomaticKeepAlives: false` to `GridView.builder`, and wrapped each `AppGlassCard` item in `RepaintBoundary`.
