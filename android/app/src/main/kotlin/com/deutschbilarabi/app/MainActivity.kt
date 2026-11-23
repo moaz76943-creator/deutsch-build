@@ -2,6 +2,8 @@ package com.deutschbilarabi.app
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.view.WindowManager
 import androidx.core.view.WindowCompat
@@ -17,17 +19,33 @@ class MainActivity : FlutterActivity() {
     private var processTextListenerReady = false
     private var processTextInFlight = false
     private val pendingProcessText = ArrayDeque<String>()
+    private var nonCriticalChannelsInitialized = false
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         val messenger = flutterEngine.dartExecutor.binaryMessenger
 
+        // Critical security and storage channels stay on the startup path
         MethodChannel(messenger, AndroidSecureSessionStorage.CHANNEL_NAME)
             .setMethodCallHandler(AndroidSecureSessionStorage(this))
         MethodChannel(messenger, AndroidPackDatabaseKeyStore.CHANNEL_NAME)
             .setMethodCallHandler(AndroidPackDatabaseKeyStore(this))
         MethodChannel(messenger, AndroidUserVaultCipher.CHANNEL_NAME)
             .setMethodCallHandler(AndroidUserVaultCipher(this))
+
+        // Defer non-critical channels until after first frame to reduce TTID work
+        Handler(Looper.getMainLooper()).post {
+            if (!nonCriticalChannelsInitialized) {
+                initNonCriticalChannels(flutterEngine)
+            }
+        }
+    }
+
+    private fun initNonCriticalChannels(flutterEngine: FlutterEngine) {
+        if (nonCriticalChannelsInitialized) return
+        nonCriticalChannelsInitialized = true
+        val messenger = flutterEngine.dartExecutor.binaryMessenger
+
         MethodChannel(messenger, AndroidRecordedAudioPlayer.CHANNEL_NAME)
             .setMethodCallHandler(AndroidRecordedAudioPlayer(this))
         MethodChannel(messenger, AndroidGamificationClockIntegritySource.CHANNEL_NAME)
@@ -100,6 +118,7 @@ class MainActivity : FlutterActivity() {
         processTextInFlight = false
         processTextChannel?.setMethodCallHandler(null)
         processTextChannel = null
+        nonCriticalChannelsInitialized = false
         super.cleanUpFlutterEngine(flutterEngine)
     }
 
