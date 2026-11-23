@@ -1,10 +1,10 @@
 # Privacy Policy for Deutsch بالعربي
 
-**Last updated:** November 10, 2026
+**Last updated:** November 23, 2026
 
 **Developer / Entity:** moaz76943-creator (matches Google Play developer account listing)
 
-**Public URL:** https://moaz76943-creator.github.io/deutsch-bilarabi-privacy/privacy.html
+**Public URL:** https://deutsch-bilarabi-privacy.netlify.app/privacy.html
 
 **Contact for privacy inquiries:** Open a GitHub issue on the deutsch-bilarabi-privacy repository or use the in-app feedback / privacy dialog. We respond to legitimate privacy requests.
 
@@ -22,7 +22,7 @@ The app is designed to function entirely without an internet connection. Learnin
 - **Collection:** Audio is processed **locally on your device only**. We do not transmit, store on servers, or share audio recordings. Per Google Play Data safety guidelines, pure on-device processing that never leaves the device is not considered "collection" or "sharing".
 - **Data Safety:** No voice data is collected or shared off the device. Declare "No" for Audio files / Voice or sound recordings in the Play Console Data safety form.
 - You can deny the permission; text-based practice remains available.
-- **Recommended prominent disclosure text (show immediately before the system permission dialog):** "Deutsch بالعربي needs access to your microphone to analyze your pronunciation on-device for practice. Audio never leaves your device and is not stored or shared."
+- **Required prominent disclosure (must be shown in-app, clearly visible, before the system permission dialog):** "Deutsch بالعربي needs access to your microphone to analyze your pronunciation on-device for practice. Audio never leaves your device and is not stored or shared." This disclosure is mandatory under Google Play User Data policy for sensitive permissions. The system dialog is only shown after the user acknowledges the in-app disclosure. Bilingual (AR/EN) version is implemented in the app.
 
 ### Network Access
 
@@ -54,7 +54,7 @@ Exact answers for the Play Console Data safety form (must match this policy):
 - **Data shared:** None.
 - **Is all of the user data collected by your app encrypted in transit?** N/A (no data collected; no network traffic from the app).
 - **Do you provide a way for users to request that their data is deleted?** Yes — see the dedicated section below. Uninstalling the app removes all local data. No server-side data exists.
-- **Security practices:** Local data protected by Android sandbox and encryption where used. App uses Google Play App Signing. Release builds enforce minification, resource shrinking, and signing. Native libraries are built with NDK r28+ for 16 KB page size alignment.
+- **Security practices:** Local data protected by Android sandbox and encryption where used. App uses Google Play App Signing. Release builds enforce minification, resource shrinking, and signing. Native libraries (including SQLite via sqlite3_flutter_libs) are built with NDK r28+ for 16 KB page size alignment, meeting Google Play's page size compatibility requirements for apps targeting API 35+.
 
 ## Your Rights and Data Deletion
 
@@ -69,7 +69,7 @@ Because the app stores data only locally on your device and does not create user
 
 | Permission              | Required? | Purpose                              | Off-device transmission? |
 |-------------------------|-----------|--------------------------------------|--------------------------|
-| RECORD_AUDIO            | Optional (runtime, on-demand)  | Pronunciation practice (on-device)  | No                       |
+| RECORD_AUDIO            | Optional (runtime, on-demand, after in-app disclosure)  | Pronunciation practice (on-device)  | No                       |
 | INTERNET / network      | Not declared | Not used (offline-first)         | No                       |
 | Storage / media permissions     | Removed   | Not used                            | N/A                      |
 | POST_NOTIFICATIONS      | Removed (release) | Not used                       | N/A                      |
@@ -78,11 +78,12 @@ Because the app stores data only locally on your device and does not create user
 
 - Distributed via Google Play App Signing (upload key separate from the signing key managed by Google).
 - Targets Android 16 (API level 36), meeting the August 31, 2026 requirement for new apps and updates. Existing apps need at least API 35 to remain available to new users on newer devices.
-- Native code compiled with NDK 28.2+ ensuring 16 KB memory page size alignment (required for updates targeting API 35+).
+- Native code compiled with NDK 28.2+ ensuring 16 KB memory page size alignment (required for updates targeting API 35+; enforcement strengthens in 2027).
 - allowBackup="false"; usesCleartextTraffic="false"; data extraction rules configured; R8/ProGuard minification and resource shrinking enabled in release.
-- Prominent disclosure is shown in-app before any sensitive permission request (e.g., microphone). See recommended text above.
+- Prominent disclosure is shown in-app before any sensitive permission request (e.g., microphone). See required text above. Failure to show this disclosure is a policy violation.
 - FLAG_SECURE is set to prevent screenshots of sensitive learning content in the app switcher (disabled only in debug builds).
-- No Play Integrity or other network-dependent integrity APIs are included, consistent with the fully offline design. Integrity is maintained through Play App Signing, code minification, and platform sandboxing.
+- Edge-to-edge display enabled for API 35+ compatibility.
+- No Play Integrity or other network-dependent integrity APIs are included, consistent with the fully offline design. Integrity is maintained through Play App Signing, code minification, and platform sandboxing. Basic runtime checks for debugger/root/emulator are present in release builds.
 
 ## Children's Privacy
 
@@ -98,4 +99,4 @@ For questions about this privacy policy or data practices, contact the developer
 
 ---
 
-**Compliance notes:** Link the public URL in Play Console App content (Privacy policy). Complete Data safety form accurately matching the answers above (no collection/sharing). Provide in-app link and prominent disclosure before RECORD_AUDIO. Ensure GitHub Pages is enabled for the public URL. Target SDK 36, signing, 16 KB page size support, and offline permissions are in place for production readiness.
+**Compliance notes:** Link the public URL in Play Console App content (Privacy policy). Complete Data safety form accurately matching the answers above (no collection/sharing). Provide in-app link and prominent disclosure before RECORD_AUDIO (mandatory). The public URL is live on Netlify. Target SDK 36, signing, 16 KB page size support for native libs, and offline permissions are in place for production readiness.
