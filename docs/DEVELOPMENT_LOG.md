@@ -12,3 +12,14 @@
 - Content: full verb conjugations (incl. irregulars like gehen, sein, haben), nouns with correct articles/plurals, natural A1/A2 examples + accurate Arabic.
 - No crashes. Auth/DB OFF.
 - Ready for preview if applicable.
+
+## Session 2026-11-24 03:09 +03 — Grok Build hourly
+
+- Read AGENTS.md. Auth/DB remain OFF.
+- Ran npm test: PASS (31 unique IDs).
+- Action: Added 20 new high-quality A1/A2 items to vocab-extra.ts (10 verbs with full conjugations incl. Präteritum/Perfekt/aux, 10 nouns with der/die/das + plural).
+- New IDs: v-extra-701 to v-extra-720. No ID repeats. No auto-deletion of similars.
+- Content integrity: accurate conjugations (incl. irregulars like sprechen, lesen, schreiben, trinken, schlafen, schließen), correct articles/plurals, natural German examples + accurate Arabic translations.
+- Re-ran npm test: PASS (51 unique IDs).
+- No crashes. Auth/DB OFF.
+- Ready for preview if applicable.
