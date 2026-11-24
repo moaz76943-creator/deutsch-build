@@ -455,5 +455,295 @@ export const vocabExtra = [
     arabic: 'الليل',
     example: 'Gute Nacht!',
     exampleAr: 'تصبح على خير!'
-  }
+  },
+  {
+    id: 'v-extra-701',
+    type: 'verb',
+    infinitive: 'sprechen',
+    arabic: 'يتكلم',
+    conjugation: {
+      ich: 'spreche',
+      du: 'sprichst',
+      er: 'spricht',
+      wir: 'sprechen',
+      ihr: 'sprecht',
+      sie_pl: 'sprechen',
+      präteritum: 'sprach',
+      perfekt: 'hat gesprochen',
+      aux: 'haben'
+    },
+    example: 'Ich spreche Deutsch.',
+    exampleAr: 'أنا أتكلم الألمانية.'
+  },
+  {
+    id: 'v-extra-702',
+    type: 'verb',
+    infinitive: 'lesen',
+    arabic: 'يقرأ',
+    conjugation: {
+      ich: 'lese',
+      du: 'liest',
+      er: 'liest',
+      wir: 'lesen',
+      ihr: 'lest',
+      sie_pl: 'lesen',
+      präteritum: 'las',
+      perfekt: 'hat gelesen',
+      aux: 'haben'
+    },
+    example: 'Sie liest ein Buch.',
+    exampleAr: 'هي تقرأ كتاباً.'
+  },
+  {
+    id: 'v-extra-703',
+    type: 'verb',
+    infinitive: 'schreiben',
+    arabic: 'يكتب',
+    conjugation: {
+      ich: 'schreibe',
+      du: 'schreibst',
+      er: 'schreibt',
+      wir: 'schreiben',
+      ihr: 'schreibt',
+      sie_pl: 'schreiben',
+      präteritum: 'schrieb',
+      perfekt: 'hat geschrieben',
+      aux: 'haben'
+    },
+    example: 'Wir schreiben einen Brief.',
+    exampleAr: 'نحن نكتب رسالة.'
+  },
+  {
+    id: 'v-extra-704',
+    type: 'verb',
+    infinitive: 'kaufen',
+    arabic: 'يشتري',
+    conjugation: {
+      ich: 'kaufe',
+      du: 'kaufst',
+      er: 'kauft',
+      wir: 'kaufen',
+      ihr: 'kauft',
+      sie_pl: 'kaufen',
+      präteritum: 'kaufte',
+      perfekt: 'hat gekauft',
+      aux: 'haben'
+    },
+    example: 'Ich kaufe Brot.',
+    exampleAr: 'أنا أشتري الخبز.'
+  },
+  {
+    id: 'v-extra-705',
+    type: 'verb',
+    infinitive: 'arbeiten',
+    arabic: 'يعمل',
+    conjugation: {
+      ich: 'arbeite',
+      du: 'arbeitest',
+      er: 'arbeitet',
+      wir: 'arbeiten',
+      ihr: 'arbeitet',
+      sie_pl: 'arbeiten',
+      präteritum: 'arbeitete',
+      perfekt: 'hat gearbeitet',
+      aux: 'haben'
+    },
+    example: 'Er arbeitet in einem Büro.',
+    exampleAr: 'هو يعمل في مكتب.'
+  },
+  {
+    id: 'v-extra-706',
+    type: 'verb',
+    infinitive: 'lernen',
+    arabic: 'يتعلم',
+    conjugation: {
+      ich: 'lerne',
+      du: 'lernst',
+      er: 'lernt',
+      wir: 'lernen',
+      ihr: 'lernt',
+      sie_pl: 'lernen',
+      präteritum: 'lernte',
+      perfekt: 'hat gelernt',
+      aux: 'haben'
+    },
+    example: 'Die Kinder lernen Deutsch.',
+    exampleAr: 'الأطفال يتعلمون الألمانية.'
+  },
+  {
+    id: 'v-extra-707',
+    type: 'verb',
+    infinitive: 'trinken',
+    arabic: 'يشرب',
+    conjugation: {
+      ich: 'trinke',
+      du: 'trinkst',
+      er: 'trinkt',
+      wir: 'trinken',
+      ihr: 'trinkt',
+      sie_pl: 'trinken',
+      präteritum: 'trank',
+      perfekt: 'hat getrunken',
+      aux: 'haben'
+    },
+    example: 'Ich trinke Wasser.',
+    exampleAr: 'أنا أشرب الماء.'
+  },
+  {
+    id: 'v-extra-708',
+    type: 'verb',
+    infinitive: 'schlafen',
+    arabic: 'ينام',
+    conjugation: {
+      ich: 'schlafe',
+      du: 'schläfst',
+      er: 'schläft',
+      wir: 'schlafen',
+      ihr: 'schlaft',
+      sie_pl: 'schlafen',
+      präteritum: 'schlief',
+      perfekt: 'hat geschlafen',
+      aux: 'haben'
+    },
+    example: 'Das Kind schläft schon.',
+    exampleAr: 'الطفل ينام بالفعل.'
+  },
+  {
+    id: 'v-extra-709',
+    type: 'verb',
+    infinitive: 'öffnen',
+    arabic: 'يفتح',
+    conjugation: {
+      ich: 'öffne',
+      du: 'öffnest',
+      er: 'öffnet',
+      wir: 'öffnen',
+      ihr: 'öffnet',
+      sie_pl: 'öffnen',
+      präteritum: 'öffnete',
+      perfekt: 'hat geöffnet',
+      aux: 'haben'
+    },
+    example: 'Bitte öffne die Tür.',
+    exampleAr: 'من فضلك افتح الباب.'
+  },
+  {
+    id: 'v-extra-710',
+    type: 'verb',
+    infinitive: 'schließen',
+    arabic: 'يغلق',
+    conjugation: {
+      ich: 'schließe',
+      du: 'schließt',
+      er: 'schließt',
+      wir: 'schließen',
+      ihr: 'schließt',
+      sie_pl: 'schließen',
+      präteritum: 'schloss',
+      perfekt: 'hat geschlossen',
+      aux: 'haben'
+    },
+    example: 'Wir schließen das Fenster.',
+    exampleAr: 'نحن نغلق النافذة.'
+  },
+  {
+    id: 'v-extra-711',
+    type: 'noun',
+    word: 'Buch',
+    article: 'das',
+    plural: 'Bücher',
+    arabic: 'الكتاب',
+    example: 'Das Buch ist interessant.',
+    exampleAr: 'الكتاب مثير للاهتمام.'
+  },
+  {
+    id: 'v-extra-712',
+    type: 'noun',
+    word: 'Tisch',
+    article: 'der',
+    plural: 'Tische',
+    arabic: 'الطاولة',
+    example: 'Der Tisch ist groß.',
+    exampleAr: 'الطاولة كبيرة.'
+  },
+  {
+    id: 'v-extra-713',
+    type: 'noun',
+    word: 'Stuhl',
+    article: 'der',
+    plural: 'Stühle',
+    arabic: 'الكرسي',
+    example: 'Der Stuhl ist bequem.',
+    exampleAr: 'الكرسي مريح.'
+  },
+  {
+    id: 'v-extra-714',
+    type: 'noun',
+    word: 'Fenster',
+    article: 'das',
+    plural: 'Fenster',
+    arabic: 'النافذة',
+    example: 'Das Fenster ist offen.',
+    exampleAr: 'النافذة مفتوحة.'
+  },
+  {
+    id: 'v-extra-715',
+    type: 'noun',
+    word: 'Tür',
+    article: 'die',
+    plural: 'Türen',
+    arabic: 'الباب',
+    example: 'Die Tür ist geschlossen.',
+    exampleAr: 'الباب مغلق.'
+  },
+  {
+    id: 'v-extra-716',
+    type: 'noun',
+    word: 'Schule',
+    article: 'die',
+    plural: 'Schulen',
+    arabic: 'المدرسة',
+    example: 'Die Schule beginnt um acht.',
+    exampleAr: 'المدرسة تبدأ في الثامنة.'
+  },
+  {
+    id: 'v-extra-717',
+    type: 'noun',
+    word: 'Lehrer',
+    article: 'der',
+    plural: 'Lehrer',
+    arabic: 'المعلم',
+    example: 'Der Lehrer erklärt die Grammatik.',
+    exampleAr: 'المعلم يشرح القواعد.'
+  },
+  {
+    id: 'v-extra-718',
+    type: 'noun',
+    word: 'Wasser',
+    article: 'das',
+    plural: 'Wasser',
+    arabic: 'الماء',
+    example: 'Ich trinke gerne Wasser.',
+    exampleAr: 'أنا أشرب الماء بكل سرور.'
+  },
+  {
+    id: 'v-extra-719',
+    type: 'noun',
+    word: 'Kaffee',
+    article: 'der',
+    plural: 'Kaffees',
+    arabic: 'القهوة',
+    example: 'Der Kaffee ist heiß.',
+    exampleAr: 'القهوة ساخنة.'
+  },
+  {
+    id: 'v-extra-720',
+    type: 'noun',
+    word: 'Brot',
+    article: 'das',
+    plural: 'Brote',
+    arabic: 'الخبز',
+    example: 'Das Brot ist frisch.',
+    exampleAr: 'الخبز طازج.'
+  },
 ];
