@@ -745,5 +745,296 @@ export const vocabExtra = [
     arabic: 'الخبز',
     example: 'Das Brot ist frisch.',
     exampleAr: 'الخبز طازج.'
+  },,
+
+  {
+    id: 'v-extra-721',
+    type: 'verb',
+    infinitive: 'kaufen',
+    arabic: 'يشتري',
+    conjugation: {
+      ich: 'kaufe',
+      du: 'kaufst',
+      er: 'kauft',
+      wir: 'kaufen',
+      ihr: 'kauft',
+      sie_pl: 'kaufen',
+      präteritum: 'kaufte',
+      perfekt: 'hat gekauft',
+      aux: 'haben'
+    },
+    example: 'Ich kaufe Brot im Supermarkt.',
+    exampleAr: 'أشتري الخبز من السوبرماركت.'
+  },
+  {
+    id: 'v-extra-722',
+    type: 'verb',
+    infinitive: 'arbeiten',
+    arabic: 'يعمل',
+    conjugation: {
+      ich: 'arbeite',
+      du: 'arbeitest',
+      er: 'arbeitet',
+      wir: 'arbeiten',
+      ihr: 'arbeitet',
+      sie_pl: 'arbeiten',
+      präteritum: 'arbeitete',
+      perfekt: 'hat gearbeitet',
+      aux: 'haben'
+    },
+    example: 'Sie arbeitet im Büro.',
+    exampleAr: 'هي تعمل في المكتب.'
+  },
+  {
+    id: 'v-extra-723',
+    type: 'verb',
+    infinitive: 'lernen',
+    arabic: 'يتعلم',
+    conjugation: {
+      ich: 'lerne',
+      du: 'lernst',
+      er: 'lernt',
+      wir: 'lernen',
+      ihr: 'lernt',
+      sie_pl: 'lernen',
+      präteritum: 'lernte',
+      perfekt: 'hat gelernt',
+      aux: 'haben'
+    },
+    example: 'Wir lernen Deutsch.',
+    exampleAr: 'نحن نتعلم الألمانية.'
+  },
+  {
+    id: 'v-extra-724',
+    type: 'verb',
+    infinitive: 'spielen',
+    arabic: 'يلعب',
+    conjugation: {
+      ich: 'spiele',
+      du: 'spielst',
+      er: 'spielt',
+      wir: 'spielen',
+      ihr: 'spielt',
+      sie_pl: 'spielen',
+      präteritum: 'spielte',
+      perfekt: 'hat gespielt',
+      aux: 'haben'
+    },
+    example: 'Die Kinder spielen im Park.',
+    exampleAr: 'الأطفال يلعبون في الحديقة.'
+  },
+  {
+    id: 'v-extra-725',
+    type: 'verb',
+    infinitive: 'hören',
+    arabic: 'يسمع / يستمع',
+    conjugation: {
+      ich: 'höre',
+      du: 'hörst',
+      er: 'hört',
+      wir: 'hören',
+      ihr: 'hört',
+      sie_pl: 'hören',
+      präteritum: 'hörte',
+      perfekt: 'hat gehört',
+      aux: 'haben'
+    },
+    example: 'Ich höre Musik.',
+    exampleAr: 'أستمع إلى الموسيقى.'
+  },
+  {
+    id: 'v-extra-726',
+    type: 'verb',
+    infinitive: 'fragen',
+    arabic: 'يسأل',
+    conjugation: {
+      ich: 'frage',
+      du: 'fragst',
+      er: 'fragt',
+      wir: 'fragen',
+      ihr: 'fragt',
+      sie_pl: 'fragen',
+      präteritum: 'fragte',
+      perfekt: 'hat gefragt',
+      aux: 'haben'
+    },
+    example: 'Darf ich dich etwas fragen?',
+    exampleAr: 'هل يمكنني أن أسألك شيئاً؟'
+  },
+  {
+    id: 'v-extra-727',
+    type: 'verb',
+    infinitive: 'antworten',
+    arabic: 'يجيب',
+    conjugation: {
+      ich: 'antworte',
+      du: 'antwortest',
+      er: 'antwortet',
+      wir: 'antworten',
+      ihr: 'antwortet',
+      sie_pl: 'antworten',
+      präteritum: 'antwortete',
+      perfekt: 'hat geantwortet',
+      aux: 'haben'
+    },
+    example: 'Er antwortet schnell.',
+    exampleAr: 'هو يجيب بسرعة.'
+  },
+  {
+    id: 'v-extra-728',
+    type: 'verb',
+    infinitive: 'öffnen',
+    arabic: 'يفتح',
+    conjugation: {
+      ich: 'öffne',
+      du: 'öffnest',
+      er: 'öffnet',
+      wir: 'öffnen',
+      ihr: 'öffnet',
+      sie_pl: 'öffnen',
+      präteritum: 'öffnete',
+      perfekt: 'hat geöffnet',
+      aux: 'haben'
+    },
+    example: 'Bitte öffne die Tür.',
+    exampleAr: 'من فضلك افتح الباب.'
+  },
+  {
+    id: 'v-extra-729',
+    type: 'verb',
+    infinitive: 'bringen',
+    arabic: 'يحضر / يجلب',
+    conjugation: {
+      ich: 'bringe',
+      du: 'bringst',
+      er: 'bringt',
+      wir: 'bringen',
+      ihr: 'bringt',
+      sie_pl: 'bringen',
+      präteritum: 'brachte',
+      perfekt: 'hat gebracht',
+      aux: 'haben'
+    },
+    example: 'Kannst du mir das Buch bringen?',
+    exampleAr: 'هل يمكنك أن تحضر لي الكتاب؟'
+  },
+  {
+    id: 'v-extra-730',
+    type: 'verb',
+    infinitive: 'nehmen',
+    arabic: 'يأخذ',
+    conjugation: {
+      ich: 'nehme',
+      du: 'nimmst',
+      er: 'nimmt',
+      wir: 'nehmen',
+      ihr: 'nehmt',
+      sie_pl: 'nehmen',
+      präteritum: 'nahm',
+      perfekt: 'hat genommen',
+      aux: 'haben'
+    },
+    example: 'Ich nehme den Bus.',
+    exampleAr: 'أنا آخذ الحافلة.'
+  },
+  {
+    id: 'v-extra-731',
+    type: 'noun',
+    word: 'Haus',
+    article: 'das',
+    plural: 'Häuser',
+    arabic: 'البيت / المنزل',
+    example: 'Das Haus ist groß.',
+    exampleAr: 'البيت كبير.'
+  },
+  {
+    id: 'v-extra-732',
+    type: 'noun',
+    word: 'Schule',
+    article: 'die',
+    plural: 'Schulen',
+    arabic: 'المدرسة',
+    example: 'Die Schule beginnt um acht Uhr.',
+    exampleAr: 'المدرسة تبدأ في الساعة الثامنة.'
+  },
+  {
+    id: 'v-extra-733',
+    type: 'noun',
+    word: 'Buch',
+    article: 'das',
+    plural: 'Bücher',
+    arabic: 'الكتاب',
+    example: 'Ich lese ein Buch.',
+    exampleAr: 'أقرأ كتاباً.'
+  },
+  {
+    id: 'v-extra-734',
+    type: 'noun',
+    word: 'Tisch',
+    article: 'der',
+    plural: 'Tische',
+    arabic: 'الطاولة',
+    example: 'Der Tisch ist aus Holz.',
+    exampleAr: 'الطاولة من الخشب.'
+  },
+  {
+    id: 'v-extra-735',
+    type: 'noun',
+    word: 'Stuhl',
+    article: 'der',
+    plural: 'Stühle',
+    arabic: 'الكرسي',
+    example: 'Der Stuhl steht neben dem Tisch.',
+    exampleAr: 'الكرسي بجانب الطاولة.'
+  },
+  {
+    id: 'v-extra-736',
+    type: 'noun',
+    word: 'Tür',
+    article: 'die',
+    plural: 'Türen',
+    arabic: 'الباب',
+    example: 'Die Tür ist offen.',
+    exampleAr: 'الباب مفتوح.'
+  },
+  {
+    id: 'v-extra-737',
+    type: 'noun',
+    word: 'Fenster',
+    article: 'das',
+    plural: 'Fenster',
+    arabic: 'النافذة',
+    example: 'Das Fenster ist geschlossen.',
+    exampleAr: 'النافذة مغلقة.'
+  },
+  {
+    id: 'v-extra-738',
+    type: 'noun',
+    word: 'Apfel',
+    article: 'der',
+    plural: 'Äpfel',
+    arabic: 'التفاحة',
+    example: 'Der Apfel ist rot.',
+    exampleAr: 'التفاحة حمراء.'
+  },
+  {
+    id: 'v-extra-739',
+    type: 'noun',
+    word: 'Banane',
+    article: 'die',
+    plural: 'Bananen',
+    arabic: 'الموزة',
+    example: 'Die Banane ist gelb.',
+    exampleAr: 'الموزة صفراء.'
+  },
+  {
+    id: 'v-extra-740',
+    type: 'noun',
+    word: 'Milch',
+    article: 'die',
+    plural: 'Milchsorten',
+    arabic: 'الحليب',
+    example: 'Ich trinke Milch zum Frühstück.',
+    exampleAr: 'أشرب الحليب في الفطور.'
   },
 ];
