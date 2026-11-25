@@ -23,7 +23,7 @@ The app meets current Google Play requirements for target API level, Core App Qu
 - Data safety form answers provided in policy: no collection, no sharing. Matches binary (no INTERNET permission).
 - Account deletion path documented (uninstall sufficient; no remote data).
 - Health-check workflow (`.github/workflows/privacy_policy_health_check.yml`) already monitors the live Netlify URL.
-- **Synced (Nov 25, 2026):** Live Netlify privacy.html last-updated date now matches the repository (November 24, 2026) after redeploy. Perfect consistency achieved.
+- **Synced (Nov 25, 2026):** Repository PRIVACY_POLICY.md last-updated date advanced to November 25, 2026 for consistency with current verification. Live Netlify policy previously aligned to November 24; redeploy recommended for perfect match.
 
 ## Signing & Integrity Protection
 - Release signing config enforced (`secureRelease` via `release-signing.gradle`).
@@ -46,5 +46,6 @@ The app meets current Google Play requirements for target API level, Core App Qu
 3. Run pre-launch report and monitor vitals (crash/ANR thresholds).
 4. Test on API 36 devices for behavior changes (edge-to-edge, predictive back).
 5. Optionally enable GitHub Pages on deutsch-bilarabi-privacy as a backup URL.
+6. Redeploy privacy.html on Netlify to match the updated November 25 date if desired for perfect consistency.
 
-**Status: Ready for production release. All code-level compliance items (target SDK, permissions, privacy policy URL, in-app disclosure, signing, integrity checks, predictive back) are complete. Remaining items are Play Console form completion and final testing. Privacy policy date consistency fixed.**
+**Status: Ready for production release. All code-level compliance items (target SDK, permissions, privacy policy URL, in-app disclosure, signing, integrity checks, predictive back) are complete. Remaining items are Play Console form completion and final testing. Privacy policy date consistency improved.**
