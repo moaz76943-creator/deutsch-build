@@ -1,5 +1,23 @@
 # Performance Improvements
 
+## Personalized Path ListView UI Jank and Memory Optimization (2026-11-25)
+
+**Change:** In `lib/ui_v35/progress_pages.dart` `PersonalizedPathPage`, replaced eager `ListView(children: [...spread path.items])` with `ListView.builder` (cacheExtent: 300, addAutomaticKeepAlives: false), wrapping each path item Card in `RepaintBoundary`.
+
+**Before:** All path items (potentially dozens) materialized up front; default cacheExtent; keep-alives enabled; no repaint isolation.
+
+**After:** Lazy item building only for visible + cacheExtent; no keep-alives for pure items; isolated repaints.
+
+**Expected measurable impact:**
+- Reduced UI jank (higher scroll FPS, lower frame build times) during personal path scrolling on mid-range devices when daily plans have many items.
+- Lower peak memory for off-screen path cards (no AutomaticKeepAlive, lazy construction).
+- Modest battery savings from fewer overpaints and GC events.
+- No impact on functionality, offline integrity, or security (pure UI change; R8, permissions, caches, SecurityGuard unchanged).
+
+**Best practices applied:** Efficient RecyclerView-equivalent (ListView.builder + cacheExtent + !keepAlives + RepaintBoundary), lazy loading.
+
+**Verification:** Profile scroll performance in Flutter DevTools Performance view or Android Studio Profiler during PersonalizedPathPage scrolling with a large daily plan. Compare frame times and memory before/after.
+
 ## ImageCache Further Tuning (2026-11-24)
 
 **Change:** Reduced Flutter `ImageCache` from 80 items / 12 MB to 60 items / 10 MB in `lib/main.dart`.
