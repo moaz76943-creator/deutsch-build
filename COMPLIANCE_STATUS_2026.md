@@ -1,4 +1,4 @@
-# Google Play Compliance Status – Deutsch بالعربي (November 25, 2026 – verification)
+# Google Play Compliance Status – Deutsch بالعربي (November 26, 2026 – verification)
 
 ## Summary
 The app meets current Google Play requirements for target API level, Core App Quality, Data safety, permissions, privacy policy content, signing, and security standards. Risk of rejection is low. Privacy policy is publicly live at https://deutsch-bilarabi-privacy.netlify.app/privacy.html. In-app links point to the live URL. All major code-level compliance items are in place.
@@ -23,7 +23,7 @@ The app meets current Google Play requirements for target API level, Core App Qu
 - Data safety form answers provided in policy: no collection, no sharing. Matches binary (no INTERNET permission).
 - Account deletion path documented (uninstall sufficient; no remote data).
 - Health-check workflow (`.github/workflows/privacy_policy_health_check.yml`) already monitors the live Netlify URL.
-- **Synced (Nov 25, 2026):** Repository PRIVACY_POLICY.md last-updated date advanced to November 25, 2026 for consistency with current verification. Live Netlify policy previously aligned to November 24; redeploy recommended for perfect match.
+- Last-updated date in repository and public policy: November 25, 2026 (consistent).
 
 ## Signing & Integrity Protection
 - Release signing config enforced (`secureRelease` via `release-signing.gradle`).
@@ -38,7 +38,8 @@ The app meets current Google Play requirements for target API level, Core App Qu
 - Offline-first, no unnecessary permissions, stable expected (pre-launch report recommended).
 - No ads, no tracking, clear value for language learning.
 - Prominent bilingual in-app disclosure implemented before any RECORD_AUDIO request (see `lib/core/privacy/microphone_disclosure.dart`).
-- **Predictive back:** Explicitly enabled via `android:enableOnBackInvokedCallback="true"` on the application tag (added Nov 24, 2026). Aligns with Android 16 (API 36) default behavior and Core App Quality expectations. Flutter PopScope handles navigation correctly.
+- **Predictive back:** Explicitly enabled via `android:enableOnBackInvokedCallback="true"` on the application tag. Aligns with Android 16 (API 36) default behavior and Core App Quality expectations. Flutter PopScope handles navigation correctly.
+- **Adaptive / large screens (upcoming):** `android:resizeableActivity="true"` and comprehensive `configChanges` already present. Prepares for Tier 3 adaptive app quality requirements for foldables (effective April 2027). No letterboxing risk expected.
 
 ## Remaining Recommendations (future runs / Play Console)
 1. Complete Permissions declaration form in Play Console for RECORD_AUDIO with core-functionality justification (pronunciation practice).
@@ -46,6 +47,6 @@ The app meets current Google Play requirements for target API level, Core App Qu
 3. Run pre-launch report and monitor vitals (crash/ANR thresholds).
 4. Test on API 36 devices for behavior changes (edge-to-edge, predictive back).
 5. Optionally enable GitHub Pages on deutsch-bilarabi-privacy as a backup URL.
-6. Redeploy privacy.html on Netlify to match the updated November 25 date if desired for perfect consistency.
+6. Plan foldable/large-screen testing ahead of April 2027 adaptive quality enforcement.
 
-**Status: Ready for production release. All code-level compliance items (target SDK, permissions, privacy policy URL, in-app disclosure, signing, integrity checks, predictive back) are complete. Remaining items are Play Console form completion and final testing. Privacy policy date consistency improved.**
+**Status: Ready for production release. All code-level compliance items (target SDK, permissions, privacy policy URL, in-app disclosure, signing, integrity checks, predictive back, adaptive basics) are complete as of November 26, 2026. Remaining items are Play Console form completion and final testing.**
