@@ -1,6 +1,6 @@
 # Privacy Policy for Deutsch بالعربي
 
-**Last updated:** November 23, 2026
+**Last updated:** November 25, 2026
 
 **Developer / Entity:** moaz76943-creator (matches Google Play developer account listing)
 
@@ -83,6 +83,7 @@ Because the app stores data only locally on your device and does not create user
 - Prominent disclosure is shown in-app before any sensitive permission request (e.g., microphone). See required text above. Failure to show this disclosure is a policy violation.
 - FLAG_SECURE is set to prevent screenshots of sensitive learning content in the app switcher (disabled only in debug builds).
 - Edge-to-edge display enabled for API 35+ compatibility.
+- Predictive back navigation enabled via android:enableOnBackInvokedCallback="true" for Android 16 compatibility and Core App Quality.
 - No Play Integrity or other network-dependent integrity APIs are included, consistent with the fully offline design. Integrity is maintained through Play App Signing, code minification, and platform sandboxing. Basic runtime checks for debugger/root/emulator are present in release builds.
 
 ## Children's Privacy
