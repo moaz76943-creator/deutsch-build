@@ -8,40 +8,44 @@ class AppTheme {
   /// Builds a Material 3 theme that prefers dynamic (Material You) colors
   /// when available, otherwise falls back to the brand seed.
   /// Enhanced for accessibility (TalkBack, contrast, font scaling), dark mode,
-  /// and smoother animations.
+  /// surface hierarchy, and smoother animations.
   static ThemeData build({
     required Brightness brightness,
     ColorScheme? dynamicScheme,
   }) {
     final isDark = brightness == Brightness.dark;
 
-    final ColorScheme colorScheme = dynamicScheme ??
+    final ColorScheme baseScheme = dynamicScheme ??
         ColorScheme.fromSeed(
           seedColor: isDark ? AppColors.primaryDark : AppColors.primary,
           brightness: brightness,
-          primary: isDark ? AppColors.primaryDark : AppColors.primary,
-          secondary: isDark ? AppColors.secondaryDark : AppColors.secondary,
-          tertiary: isDark ? AppColors.tertiaryDark : AppColors.tertiary,
-          surface: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-          background: isDark ? const Color(0xFF0B1F4D) : const Color(0xFFF8FAFC),
         );
 
-    // Boost contrast for WCAG AA+ accessibility (TalkBack + low-vision users)
-    final adjustedScheme = colorScheme.copyWith(
+    // Explicit surface hierarchy for proper MD3 elevation and containers
+    final ColorScheme colorScheme = baseScheme.copyWith(
+      primary: isDark ? AppColors.primaryDark : AppColors.primary,
+      secondary: isDark ? AppColors.secondaryDark : AppColors.secondary,
+      tertiary: isDark ? AppColors.tertiaryDark : AppColors.tertiary,
+      surface: isDark ? const Color(0xFF12151A) : const Color(0xFFFFFEFC),
+      surfaceContainerLowest: isDark ? const Color(0xFF0B0E12) : const Color(0xFFFFFFFF),
+      surfaceContainerLow: isDark ? const Color(0xFF1B1F25) : const Color(0xFFF8FAFC),
+      surfaceContainer: isDark ? const Color(0xFF1F2329) : const Color(0xFFF1F5F9),
+      surfaceContainerHigh: isDark ? const Color(0xFF292D33) : const Color(0xFFE2E8F0),
+      surfaceContainerHighest: isDark ? const Color(0xFF33373D) : const Color(0xFFCBD5E1),
       onSurface: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A),
       onSurfaceVariant: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
-      surfaceContainerHighest: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
       outline: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+      outlineVariant: isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8),
     );
 
     return ThemeData(
       useMaterial3: true,
-      brightness: brightness, // Fixed: was always light
+      brightness: brightness,
       fontFamily: 'Cairo',
       fontFamilyFallback: AppTypography.fallbackFontFamilies,
-      colorScheme: adjustedScheme,
-      scaffoldBackgroundColor: adjustedScheme.background,
-      textTheme: _buildTextTheme(adjustedScheme),
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: colorScheme.surface,
+      textTheme: _buildTextTheme(colorScheme),
       // Larger touch targets (min 48dp) for TalkBack and motor accessibility
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -62,7 +66,7 @@ class AppTheme {
           minimumSize: const Size(64, 48),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          side: BorderSide(color: adjustedScheme.outline, width: 1.5),
+          side: BorderSide(color: colorScheme.outline, width: 1.5),
         ),
       ),
       iconButtonTheme: IconButtonThemeData(
@@ -71,42 +75,85 @@ class AppTheme {
         ),
       ),
       cardTheme: CardTheme(
-        elevation: isDark ? 2 : 1,
+        elevation: isDark ? 1 : 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        color: adjustedScheme.surface,
-        surfaceTintColor: adjustedScheme.surfaceTint,
+        color: colorScheme.surfaceContainer,
+        surfaceTintColor: colorScheme.surfaceTint,
         margin: const EdgeInsets.symmetric(vertical: 4),
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: adjustedScheme.surface,
-        foregroundColor: adjustedScheme.onSurface,
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
         elevation: 0,
-        scrolledUnderElevation: 2,
+        scrolledUnderElevation: 3,
         centerTitle: true,
-        titleTextStyle: AppTypography.h2.copyWith(color: adjustedScheme.onSurface),
+        titleTextStyle: AppTypography.h2.copyWith(color: colorScheme.onSurface),
+        surfaceTintColor: colorScheme.surfaceTint,
       ),
       navigationBarTheme: NavigationBarThemeData(
         height: 72,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        indicatorColor: adjustedScheme.secondaryContainer,
+        indicatorColor: colorScheme.secondaryContainer,
+        backgroundColor: colorScheme.surfaceContainer,
+        elevation: 3,
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          return TextStyle(
+            fontSize: 12,
+            fontWeight: states.contains(WidgetState.selected)
+                ? FontWeight.w600
+                : FontWeight.w500,
+            color: states.contains(WidgetState.selected)
+                ? colorScheme.onSurface
+                : colorScheme.onSurfaceVariant,
+          );
+        }),
+      ),
+      dialogTheme: DialogTheme(
+        backgroundColor: colorScheme.surfaceContainerHigh,
+        elevation: 6,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        titleTextStyle: AppTypography.h2.copyWith(color: colorScheme.onSurface),
+        contentTextStyle: AppTypography.body.copyWith(color: colorScheme.onSurfaceVariant),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: colorScheme.surfaceContainerHigh,
+        elevation: 8,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        modalElevation: 8,
+        modalBackgroundColor: colorScheme.surfaceContainerHigh,
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: colorScheme.surfaceContainer,
+        selectedColor: colorScheme.secondaryContainer,
+        labelStyle: TextStyle(color: colorScheme.onSurface),
+        secondaryLabelStyle: TextStyle(color: colorScheme.onSecondaryContainer),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: colorScheme.primary,
+        linearTrackColor: colorScheme.surfaceContainerHighest,
+        circularTrackColor: colorScheme.surfaceContainerHighest,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: adjustedScheme.surfaceContainerHighest.withOpacity(0.5),
+        fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.4),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: adjustedScheme.outline),
+          borderSide: BorderSide(color: colorScheme.outline),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: adjustedScheme.outline),
+          borderSide: BorderSide(color: colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: adjustedScheme.primary, width: 2),
+          borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        labelStyle: TextStyle(color: adjustedScheme.onSurfaceVariant),
+        labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
       ),
       // Smoother page transitions for better perceived performance
       pageTransitionsTheme: const PageTransitionsTheme(
@@ -118,7 +165,7 @@ class AppTheme {
       visualDensity: VisualDensity.adaptivePlatformDensity,
       // Respect system font scaling for accessibility (no textScaleFactor override)
       materialTapTargetSize: MaterialTapTargetSize.padded,
-      splashFactory: InkSparkle.splashFactory, // Modern Material 3 ripple
+      splashFactory: InkSparkle.splashFactory,
     );
   }
 
