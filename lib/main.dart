@@ -108,8 +108,11 @@ void main() async {
   // Further tightened (2026-11-24 run): 60 items / 10 MB — expected additional ~20%
   // lower peak image memory footprint on mid-range devices during extended vocabulary/image sessions.
   // Still sufficient for offline-first constrained packs and typical single-screen views; no perceived quality loss or security regression.
-  PaintingBinding.instance.imageCache.maximumSize = 60;
-  PaintingBinding.instance.imageCache.maximumSizeBytes = 10 * 1024 * 1024; // 10 MB
+  // Further tightened (2026-11-26): 50 items / 8 MB — expected additional ~15-20%
+  // lower peak image memory on mid-range devices during extended sessions.
+  // Still sufficient for offline-first constrained packs and typical single-screen views; no perceived quality loss or security regression.
+  PaintingBinding.instance.imageCache.maximumSize = 50;
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 8 * 1024 * 1024; // 8 MB
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
