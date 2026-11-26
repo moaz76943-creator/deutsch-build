@@ -1,6 +1,6 @@
 # Privacy Policy for Deutsch بالعربي
 
-**Last updated:** November 25, 2026
+**Last updated:** November 26, 2026
 
 **Developer / Entity:** moaz76943-creator (matches Google Play developer account listing)
 
@@ -84,6 +84,7 @@ Because the app stores data only locally on your device and does not create user
 - FLAG_SECURE is set to prevent screenshots of sensitive learning content in the app switcher (disabled only in debug builds).
 - Edge-to-edge display enabled for API 35+ compatibility.
 - Predictive back navigation enabled via android:enableOnBackInvokedCallback="true" for Android 16 compatibility and Core App Quality.
+- Adaptive / large-screen support: android:resizeableActivity="true" and full configChanges declared to prepare for Google Play Tier 3 adaptive app quality requirements (effective April 2027 for foldables). No letterboxing expected.
 - No Play Integrity or other network-dependent integrity APIs are included, consistent with the fully offline design. Integrity is maintained through Play App Signing, code minification, and platform sandboxing. Basic runtime checks for debugger/root/emulator are present in release builds.
 
 ## Children's Privacy
@@ -100,4 +101,4 @@ For questions about this privacy policy or data practices, contact the developer
 
 ---
 
-**Compliance notes:** Link the public URL in Play Console App content (Privacy policy). Complete Data safety form accurately matching the answers above (no collection/sharing). Provide in-app link and prominent disclosure before RECORD_AUDIO (mandatory). The public URL is live on Netlify. Target SDK 36, signing, 16 KB page size support for native libs, and offline permissions are in place for production readiness.
+**Compliance notes:** Link the public URL in Play Console App content (Privacy policy). Complete Data safety form accurately matching the answers above (no collection/sharing). Provide in-app link and prominent disclosure before RECORD_AUDIO (mandatory). The public URL is live on Netlify. Target SDK 36, signing, 16 KB page size support for native libs, offline permissions, and adaptive basics are in place for production readiness.
