@@ -1,5 +1,23 @@
 # Performance Improvements
 
+## ImageCache Further Tuning (2026-11-26)
+
+**Change:** Reduced Flutter `ImageCache` from 60 items / 10 MB to 50 items / 8 MB in `lib/main.dart`.
+
+**Before:** 60 / 10 MB.
+
+**After:** 50 / 8 MB.
+
+**Expected measurable impact:**
+- Additional ~15-20% lower peak image memory footprint on mid-range devices during extended vocabulary/image sessions.
+- Fewer GC pauses and modest battery savings (complements prior L1 and ImageCache tunings).
+- No impact on perceived image quality (offline-first constrained packs; CachedNetworkImage size-aware; typical screens fit within limit).
+- No security regression (R8, minify, offline permissions, crash-loop guards, baseline profiles, secure storage unchanged).
+
+**Best practices applied:** Caching limits with size awareness, memory pressure handling (`didHaveMemoryPressure` clears cache + L1), efficient UI.
+
+**Verification:** Monitor via Android Studio Profiler or Flutter DevTools Memory view during extended sessions. Startup time unaffected. Compare peak RSS before/after on mid-range device.
+
 ## Personalized Path ListView UI Jank and Memory Optimization (2026-11-25)
 
 **Change:** In `lib/ui_v35/progress_pages.dart` `PersonalizedPathPage`, replaced eager `ListView(children: [...spread path.items])` with `ListView.builder` (cacheExtent: 300, addAutomaticKeepAlives: false), wrapping each path item Card in `RepaintBoundary`.
@@ -78,7 +96,7 @@
 
 **Before:** Default cacheExtent (~250), keep-alives enabled, no explicit repaint isolation on complex glass cards.
 
-**After:** Bounded pre-build, no keep-alives for pure items, isolated repaints.
+**After:** Bounded pre-build, no keep-alives for pure items; isolated repaints.
 
 **Expected measurable impact:**
 - Reduced UI jank (higher scroll FPS, lower frame build times) during vocabulary grid scrolling on mid-range devices, especially with glass effects.
@@ -132,7 +150,7 @@
 
 **Before:** Default cacheExtent (~250), keep-alives enabled, no explicit repaint isolation on complex glass cards with ExpansionTiles.
 
-**After:** Bounded pre-build, no keep-alives for pure items, isolated repaints.
+**After:** Bounded pre-build, no keep-alives for pure items; isolated repaints.
 
 **Expected measurable impact:**
 - Reduced UI jank (higher scroll FPS, lower frame build times) during vocabulary list scrolling on mid-range devices, especially with glass effects and ExpansionTiles.
