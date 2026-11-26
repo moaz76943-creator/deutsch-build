@@ -1037,4 +1037,294 @@ export const vocabExtra = [
     example: 'Ich trinke Milch zum Frühstück.',
     exampleAr: 'أشرب الحليب في الفطور.'
   },
+  {
+    id: 'v-extra-741',
+    type: 'verb',
+    infinitive: 'fahren',
+    arabic: 'يسافر / يقود',
+    conjugation: {
+      ich: 'fahre',
+      du: 'fährst',
+      er: 'fährt',
+      wir: 'fahren',
+      ihr: 'fahrt',
+      sie_pl: 'fahren',
+      präteritum: 'fuhr',
+      perfekt: 'ist gefahren',
+      aux: 'sein'
+    },
+    example: 'Wir fahren mit dem Zug nach Berlin.',
+    exampleAr: 'نحن نسافر بالقطار إلى برلين.'
+  },
+  {
+    id: 'v-extra-742',
+    type: 'verb',
+    infinitive: 'kaufen',
+    arabic: 'يشتري',
+    conjugation: {
+      ich: 'kaufe',
+      du: 'kaufst',
+      er: 'kauft',
+      wir: 'kaufen',
+      ihr: 'kauft',
+      sie_pl: 'kaufen',
+      präteritum: 'kaufte',
+      perfekt: 'hat gekauft',
+      aux: 'haben'
+    },
+    example: 'Ich kaufe Brot im Supermarkt.',
+    exampleAr: 'أشتري الخبز من السوبرماركت.'
+  },
+  {
+    id: 'v-extra-743',
+    type: 'verb',
+    infinitive: 'wohnen',
+    arabic: 'يسكن / يعيش',
+    conjugation: {
+      ich: 'wohne',
+      du: 'wohnst',
+      er: 'wohnt',
+      wir: 'wohnen',
+      ihr: 'wohnt',
+      sie_pl: 'wohnen',
+      präteritum: 'wohnte',
+      perfekt: 'hat gewohnt',
+      aux: 'haben'
+    },
+    example: 'Sie wohnt in München.',
+    exampleAr: 'هي تسكن في ميونخ.'
+  },
+  {
+    id: 'v-extra-744',
+    type: 'verb',
+    infinitive: 'spielen',
+    arabic: 'يلعب',
+    conjugation: {
+      ich: 'spiele',
+      du: 'spielst',
+      er: 'spielt',
+      wir: 'spielen',
+      ihr: 'spielt',
+      sie_pl: 'spielen',
+      präteritum: 'spielte',
+      perfekt: 'hat gespielt',
+      aux: 'haben'
+    },
+    example: 'Die Kinder spielen im Park.',
+    exampleAr: 'الأطفال يلعبون في الحديقة.'
+  },
+  {
+    id: 'v-extra-745',
+    type: 'verb',
+    infinitive: 'helfen',
+    arabic: 'يساعد',
+    conjugation: {
+      ich: 'helfe',
+      du: 'hilfst',
+      er: 'hilft',
+      wir: 'helfen',
+      ihr: 'helft',
+      sie_pl: 'helfen',
+      präteritum: 'half',
+      perfekt: 'hat geholfen',
+      aux: 'haben'
+    },
+    example: 'Kannst du mir bitte helfen?',
+    exampleAr: 'هل يمكنك أن تساعدني من فضلك؟'
+  },
+  {
+    id: 'v-extra-746',
+    type: 'verb',
+    infinitive: 'finden',
+    arabic: 'يجد',
+    conjugation: {
+      ich: 'finde',
+      du: 'findest',
+      er: 'findet',
+      wir: 'finden',
+      ihr: 'findet',
+      sie_pl: 'finden',
+      präteritum: 'fand',
+      perfekt: 'hat gefunden',
+      aux: 'haben'
+    },
+    example: 'Ich finde meinen Schlüssel nicht.',
+    exampleAr: 'لا أجد مفتاحي.'
+  },
+  {
+    id: 'v-extra-747',
+    type: 'verb',
+    infinitive: 'bleiben',
+    arabic: 'يبقى',
+    conjugation: {
+      ich: 'bleibe',
+      du: 'bleibst',
+      er: 'bleibt',
+      wir: 'bleiben',
+      ihr: 'bleibt',
+      sie_pl: 'bleiben',
+      präteritum: 'blieb',
+      perfekt: 'ist geblieben',
+      aux: 'sein'
+    },
+    example: 'Wir bleiben heute zu Hause.',
+    exampleAr: 'نحن نبقى اليوم في المنزل.'
+  },
+  {
+    id: 'v-extra-748',
+    type: 'verb',
+    infinitive: 'stehen',
+    arabic: 'يقف',
+    conjugation: {
+      ich: 'stehe',
+      du: 'stehst',
+      er: 'steht',
+      wir: 'stehen',
+      ihr: 'steht',
+      sie_pl: 'stehen',
+      präteritum: 'stand',
+      perfekt: 'hat gestanden',
+      aux: 'haben'
+    },
+    example: 'Der Mann steht vor dem Haus.',
+    exampleAr: 'الرجل يقف أمام البيت.'
+  },
+  {
+    id: 'v-extra-749',
+    type: 'verb',
+    infinitive: 'sitzen',
+    arabic: 'يجلس',
+    conjugation: {
+      ich: 'sitze',
+      du: 'sitzt',
+      er: 'sitzt',
+      wir: 'sitzen',
+      ihr: 'sitzt',
+      sie_pl: 'sitzen',
+      präteritum: 'saß',
+      perfekt: 'hat gesessen',
+      aux: 'haben'
+    },
+    example: 'Ich sitze am Tisch.',
+    exampleAr: 'أنا أجلس على الطاولة.'
+  },
+  {
+    id: 'v-extra-750',
+    type: 'verb',
+    infinitive: 'geben',
+    arabic: 'يعطي',
+    conjugation: {
+      ich: 'gebe',
+      du: 'gibst',
+      er: 'gibt',
+      wir: 'geben',
+      ihr: 'gebt',
+      sie_pl: 'geben',
+      präteritum: 'gab',
+      perfekt: 'hat gegeben',
+      aux: 'haben'
+    },
+    example: 'Gib mir bitte das Buch.',
+    exampleAr: 'أعطني الكتاب من فضلك.'
+  },
+  {
+    id: 'v-extra-751',
+    type: 'noun',
+    word: 'Auto',
+    article: 'das',
+    plural: 'Autos',
+    arabic: 'السيارة',
+    example: 'Das Auto ist neu.',
+    exampleAr: 'السيارة جديدة.'
+  },
+  {
+    id: 'v-extra-752',
+    type: 'noun',
+    word: 'Freund',
+    article: 'der',
+    plural: 'Freunde',
+    arabic: 'الصديق',
+    example: 'Mein Freund kommt heute.',
+    exampleAr: 'صديقي يأتي اليوم.'
+  },
+  {
+    id: 'v-extra-753',
+    type: 'noun',
+    word: 'Familie',
+    article: 'die',
+    plural: 'Familien',
+    arabic: 'العائلة',
+    example: 'Die Familie isst zusammen.',
+    exampleAr: 'العائلة تأكل معاً.'
+  },
+  {
+    id: 'v-extra-754',
+    type: 'noun',
+    word: 'Wasser',
+    article: 'das',
+    plural: 'Wasser',
+    arabic: 'الماء',
+    example: 'Ich trinke kaltes Wasser.',
+    exampleAr: 'أشرب ماءً بارداً.'
+  },
+  {
+    id: 'v-extra-755',
+    type: 'noun',
+    word: 'Stadt',
+    article: 'die',
+    plural: 'Städte',
+    arabic: 'المدينة',
+    example: 'Berlin ist eine große Stadt.',
+    exampleAr: 'برلين مدينة كبيرة.'
+  },
+  {
+    id: 'v-extra-756',
+    type: 'noun',
+    word: 'Land',
+    article: 'das',
+    plural: 'Länder',
+    arabic: 'البلد',
+    example: 'Deutschland ist ein schönes Land.',
+    exampleAr: 'ألمانيا بلد جميل.'
+  },
+  {
+    id: 'v-extra-757',
+    type: 'noun',
+    word: 'Tag',
+    article: 'der',
+    plural: 'Tage',
+    arabic: 'اليوم',
+    example: 'Heute ist ein schöner Tag.',
+    exampleAr: 'اليوم يوم جميل.'
+  },
+  {
+    id: 'v-extra-758',
+    type: 'noun',
+    word: 'Nacht',
+    article: 'die',
+    plural: 'Nächte',
+    arabic: 'الليل',
+    example: 'Gute Nacht!',
+    exampleAr: 'تصبح على خير!'
+  },
+  {
+    id: 'v-extra-759',
+    type: 'noun',
+    word: 'Kind',
+    article: 'das',
+    plural: 'Kinder',
+    arabic: 'الطفل',
+    example: 'Das Kind spielt im Garten.',
+    exampleAr: 'الطفل يلعب في الحديقة.'
+  },
+  {
+    id: 'v-extra-760',
+    type: 'noun',
+    word: 'Frau',
+    article: 'die',
+    plural: 'Frauen',
+    arabic: 'المرأة',
+    example: 'Die Frau liest ein Buch.',
+    exampleAr: 'المرأة تقرأ كتاباً.'
+  },
 ];
