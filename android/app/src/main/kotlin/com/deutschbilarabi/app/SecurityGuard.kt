@@ -9,15 +9,16 @@ import java.security.MessageDigest
 
 /**
  * Lightweight runtime integrity checks suitable for Google Play offline apps.
- * Detects common root indicators, Magisk, attached debuggers, emulators, and basic Frida.
+ * Detects common root indicators, Magisk, attached debuggers, emulators, basic Frida, and Xposed.
  * Includes optional APK signature verification to detect repackaging/modding.
  * In release builds, suspicious environments cause the app to exit early.
  * Keep checks simple, fast, and non-network to preserve offline-first design.
+ * Enhanced 2026-11-26: Added Xposed detection and more Frida indicators.
  */
 object SecurityGuard {
     // Replace with the SHA-256 hash of your release signing certificate (hex, lowercase).
     // Obtain via: keytool -list -v -keystore your.keystore | grep SHA256
-    // Leave empty to skip signature check.
+    // Leave empty to skip signature check. Strongly recommended for production.
     private const val EXPECTED_SIGNATURE_SHA256 = ""
 
     fun isCompromised(context: Context): Boolean {
@@ -25,6 +26,7 @@ object SecurityGuard {
                 isRooted(context) ||
                 isRunningOnEmulator() ||
                 isFridaDetected() ||
+                isXposedDetected(context) ||
                 !isSignatureValid(context)
     }
 
@@ -98,13 +100,39 @@ object SecurityGuard {
     }
 
     private fun isFridaDetected(): Boolean {
-        // Simple process/port checks; more advanced can use native or file scans
         val fridaPaths = arrayOf(
             "/data/local/tmp/frida-server",
-            "/data/local/tmp/re.frida.server"
+            "/data/local/tmp/re.frida.server",
+            "/data/local/tmp/frida-agent"
         )
         for (path in fridaPaths) {
             if (File(path).exists()) return true
+        }
+        // Check for Frida library in process maps (lightweight)
+        try {
+            val maps = File("/proc/self/maps").readText()
+            if (maps.contains("frida") || maps.contains("gum-js-loop")) return true
+        } catch (_: Exception) {}
+        return false
+    }
+
+    private fun isXposedDetected(context: Context): Boolean {
+        // Common Xposed indicators
+        try {
+            Class.forName("de.robv.android.xposed.XposedBridge")
+            return true
+        } catch (_: ClassNotFoundException) {}
+        val xposedPackages = arrayOf(
+            "de.robv.android.xposed.installer",
+            "org.meowcat.edxposed.manager",
+            "org.lsposed.manager"
+        )
+        val pm = context.packageManager
+        for (pkg in xposedPackages) {
+            try {
+                pm.getPackageInfo(pkg, 0)
+                return true
+            } catch (_: PackageManager.NameNotFoundException) {}
         }
         return false
     }
