@@ -1,18 +1,31 @@
 package com.deutschbilarabi.app
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Debug
 import java.io.File
+import java.security.MessageDigest
 
 /**
  * Lightweight runtime integrity checks suitable for Google Play offline apps.
- * Detects common root indicators and attached debuggers.
+ * Detects common root indicators, Magisk, attached debuggers, emulators, and basic Frida.
+ * Includes optional APK signature verification to detect repackaging/modding.
  * In release builds, suspicious environments cause the app to exit early.
+ * Keep checks simple, fast, and non-network to preserve offline-first design.
  */
 object SecurityGuard {
+    // Replace with the SHA-256 hash of your release signing certificate (hex, lowercase).
+    // Obtain via: keytool -list -v -keystore your.keystore | grep SHA256
+    // Leave empty to skip signature check.
+    private const val EXPECTED_SIGNATURE_SHA256 = ""
+
     fun isCompromised(context: Context): Boolean {
-        return isDebuggerAttached() || isRooted(context) || isRunningOnEmulator()
+        return isDebuggerAttached() ||
+                isRooted(context) ||
+                isRunningOnEmulator() ||
+                isFridaDetected() ||
+                !isSignatureValid(context)
     }
 
     private fun isDebuggerAttached(): Boolean =
@@ -29,12 +42,45 @@ object SecurityGuard {
             "/system/sd/xbin/su",
             "/system/bin/failsafe/su",
             "/data/local/su",
-            "/su/bin/su"
+            "/su/bin/su",
+            "/system/bin/.ext/.su",
+            "/system/usr/we-need-root/su",
+            "/cache/su",
+            "/data/su",
+            "/dev/su",
+            // Magisk common paths
+            "/sbin/.magisk",
+            "/cache/.disable_magisk",
+            "/data/adb/magisk",
+            "/data/adb/modules"
         )
         for (path in paths) {
             if (File(path).exists()) return true
         }
-        // Check for Magisk or other common root apps via package (optional, may require query)
+
+        // Check for common root/Magisk packages
+        val rootPackages = arrayOf(
+            "com.topjohnwu.magisk",
+            "eu.chainfire.supersu",
+            "com.noshufou.android.su",
+            "com.koushikdutta.superuser",
+            "com.thirdparty.superuser",
+            "com.yellowes.su",
+            "com.kingroot.kinguser",
+            "com.kingo.root",
+            "com.smedialink.oneclickroot",
+            "com.zhiqupk.root.global",
+            "com.alephzain.framaroot"
+        )
+        val pm = context.packageManager
+        for (pkg in rootPackages) {
+            try {
+                pm.getPackageInfo(pkg, 0)
+                return true
+            } catch (_: PackageManager.NameNotFoundException) {
+                // Not installed
+            }
+        }
         return false
     }
 
@@ -46,6 +92,51 @@ object SecurityGuard {
                 || Build.MODEL.contains("Android SDK built for x86")
                 || Build.MANUFACTURER.contains("Genymotion")
                 || (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
-                || "google_sdk" == Build.PRODUCT)
+                || "google_sdk" == Build.PRODUCT
+                || Build.HARDWARE.contains("goldfish")
+                || Build.HARDWARE.contains("ranchu"))
+    }
+
+    private fun isFridaDetected(): Boolean {
+        // Simple process/port checks; more advanced can use native or file scans
+        val fridaPaths = arrayOf(
+            "/data/local/tmp/frida-server",
+            "/data/local/tmp/re.frida.server"
+        )
+        for (path in fridaPaths) {
+            if (File(path).exists()) return true
+        }
+        return false
+    }
+
+    private fun isSignatureValid(context: Context): Boolean {
+        if (EXPECTED_SIGNATURE_SHA256.isEmpty()) return true // Skip if not configured
+        return try {
+            val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                context.packageManager.getPackageInfo(
+                    context.packageName,
+                    PackageManager.GET_SIGNING_CERTIFICATES
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                context.packageManager.getPackageInfo(
+                    context.packageName,
+                    PackageManager.GET_SIGNATURES
+                )
+            }
+            val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                packageInfo.signingInfo?.apkContentsSigners
+            } else {
+                @Suppress("DEPRECATION")
+                packageInfo.signatures
+            }
+            signatures?.any { sig ->
+                val md = MessageDigest.getInstance("SHA-256")
+                val digest = md.digest(sig.toByteArray())
+                digest.joinToString("") { "%02x".format(it) } == EXPECTED_SIGNATURE_SHA256
+            } ?: false
+        } catch (_: Exception) {
+            false
+        }
     }
 }
