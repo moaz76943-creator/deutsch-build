@@ -1,5 +1,23 @@
 # Performance Improvements
 
+## Grammar Hub ListView UI Jank and Memory Optimization (2026-11-27)
+
+**Change:** In `lib/ui_v35/grammar/grammar_hub_page.dart` `GrammarHubPage`, added `cacheExtent: 300`, `addAutomaticKeepAlives: false` to `ListView.separated`, and wrapped each `AppGlassCard` topic item in `RepaintBoundary`.
+
+**Before:** Default cacheExtent (~250), keep-alives enabled, no explicit repaint isolation on glass topic cards.
+
+**After:** Bounded pre-build, no keep-alives for pure items; isolated repaints.
+
+**Expected measurable impact:**
+- Reduced UI jank (higher scroll FPS, lower frame build times) during grammar topic list scrolling on mid-range devices, especially with glass effects and level switches.
+- Lower peak memory for off-screen topic cards (no AutomaticKeepAlive).
+- Modest battery savings from fewer overpaints and GC events.
+- No impact on functionality, offline integrity, or security (pure UI change; R8, minify, offline permissions, caches, SecurityGuard unchanged).
+
+**Best practices applied:** Efficient RecyclerView-equivalent (ListView.separated + cacheExtent + !keepAlives + RepaintBoundary), lazy building.
+
+**Verification:** Profile scroll performance in Flutter DevTools Performance view or Android Studio Profiler during GrammarHubPage scrolling with many topics. Compare frame times and memory before/after.
+
 ## ImageCache Further Tuning (2026-11-26)
 
 **Change:** Reduced Flutter `ImageCache` from 60 items / 10 MB to 50 items / 8 MB in `lib/main.dart`.
