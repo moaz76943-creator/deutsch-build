@@ -1327,4 +1327,294 @@ export const vocabExtra = [
     example: 'Die Frau liest ein Buch.',
     exampleAr: 'المرأة تقرأ كتاباً.'
   },
+  {
+    id: 'v-extra-761',
+    type: 'verb',
+    infinitive: 'sprechen',
+    arabic: 'يتكلم',
+    conjugation: {
+      ich: 'spreche',
+      du: 'sprichst',
+      er: 'spricht',
+      wir: 'sprechen',
+      ihr: 'sprecht',
+      sie_pl: 'sprechen',
+      präteritum: 'sprach',
+      perfekt: 'hat gesprochen',
+      aux: 'haben'
+    },
+    example: 'Ich spreche Deutsch und Arabisch.',
+    exampleAr: 'أتكلم الألمانية والعربية.'
+  },
+  {
+    id: 'v-extra-762',
+    type: 'verb',
+    infinitive: 'lernen',
+    arabic: 'يتعلم',
+    conjugation: {
+      ich: 'lerne',
+      du: 'lernst',
+      er: 'lernt',
+      wir: 'lernen',
+      ihr: 'lernt',
+      sie_pl: 'lernen',
+      präteritum: 'lernte',
+      perfekt: 'hat gelernt',
+      aux: 'haben'
+    },
+    example: 'Wir lernen jeden Tag neue Wörter.',
+    exampleAr: 'نتعلم كل يوم كلمات جديدة.'
+  },
+  {
+    id: 'v-extra-763',
+    type: 'verb',
+    infinitive: 'kaufen',
+    arabic: 'يشتري',
+    conjugation: {
+      ich: 'kaufe',
+      du: 'kaufst',
+      er: 'kauft',
+      wir: 'kaufen',
+      ihr: 'kauft',
+      sie_pl: 'kaufen',
+      präteritum: 'kaufte',
+      perfekt: 'hat gekauft',
+      aux: 'haben'
+    },
+    example: 'Sie kauft Brot im Supermarkt.',
+    exampleAr: 'هي تشتري الخبز في السوبرماركت.'
+  },
+  {
+    id: 'v-extra-764',
+    type: 'verb',
+    infinitive: 'wohnen',
+    arabic: 'يسكن',
+    conjugation: {
+      ich: 'wohne',
+      du: 'wohnst',
+      er: 'wohnt',
+      wir: 'wohnen',
+      ihr: 'wohnt',
+      sie_pl: 'wohnen',
+      präteritum: 'wohnte',
+      perfekt: 'hat gewohnt',
+      aux: 'haben'
+    },
+    example: 'Ich wohne in Berlin.',
+    exampleAr: 'أسكن في برلين.'
+  },
+  {
+    id: 'v-extra-765',
+    type: 'verb',
+    infinitive: 'fahren',
+    arabic: 'يسافر / يقود',
+    conjugation: {
+      ich: 'fahre',
+      du: 'fährst',
+      er: 'fährt',
+      wir: 'fahren',
+      ihr: 'fahrt',
+      sie_pl: 'fahren',
+      präteritum: 'fuhr',
+      perfekt: 'ist gefahren',
+      aux: 'sein'
+    },
+    example: 'Wir fahren mit dem Zug nach München.',
+    exampleAr: 'نسافر بالقطار إلى ميونخ.'
+  },
+  {
+    id: 'v-extra-766',
+    type: 'verb',
+    infinitive: 'lesen',
+    arabic: 'يقرأ',
+    conjugation: {
+      ich: 'lese',
+      du: 'liest',
+      er: 'liest',
+      wir: 'lesen',
+      ihr: 'lest',
+      sie_pl: 'lesen',
+      präteritum: 'las',
+      perfekt: 'hat gelesen',
+      aux: 'haben'
+    },
+    example: 'Er liest ein interessantes Buch.',
+    exampleAr: 'هو يقرأ كتاباً مثيراً للاهتمام.'
+  },
+  {
+    id: 'v-extra-767',
+    type: 'verb',
+    infinitive: 'schreiben',
+    arabic: 'يكتب',
+    conjugation: {
+      ich: 'schreibe',
+      du: 'schreibst',
+      er: 'schreibt',
+      wir: 'schreiben',
+      ihr: 'schreibt',
+      sie_pl: 'schreiben',
+      präteritum: 'schrieb',
+      perfekt: 'hat geschrieben',
+      aux: 'haben'
+    },
+    example: 'Ich schreibe eine E-Mail.',
+    exampleAr: 'أكتب بريداً إلكترونياً.'
+  },
+  {
+    id: 'v-extra-768',
+    type: 'verb',
+    infinitive: 'hören',
+    arabic: 'يسمع / يستمع',
+    conjugation: {
+      ich: 'höre',
+      du: 'hörst',
+      er: 'hört',
+      wir: 'hören',
+      ihr: 'hört',
+      sie_pl: 'hören',
+      präteritum: 'hörte',
+      perfekt: 'hat gehört',
+      aux: 'haben'
+    },
+    example: 'Hörst du die Musik?',
+    exampleAr: 'هل تسمع الموسيقى؟'
+  },
+  {
+    id: 'v-extra-769',
+    type: 'verb',
+    infinitive: 'spielen',
+    arabic: 'يلعب',
+    conjugation: {
+      ich: 'spiele',
+      du: 'spielst',
+      er: 'spielt',
+      wir: 'spielen',
+      ihr: 'spielt',
+      sie_pl: 'spielen',
+      präteritum: 'spielte',
+      perfekt: 'hat gespielt',
+      aux: 'haben'
+    },
+    example: 'Die Kinder spielen im Park.',
+    exampleAr: 'الأطفال يلعبون في الحديقة.'
+  },
+  {
+    id: 'v-extra-770',
+    type: 'verb',
+    infinitive: 'kochen',
+    arabic: 'يطبخ',
+    conjugation: {
+      ich: 'koche',
+      du: 'kochst',
+      er: 'kocht',
+      wir: 'kochen',
+      ihr: 'kocht',
+      sie_pl: 'kochen',
+      präteritum: 'kochte',
+      perfekt: 'hat gekocht',
+      aux: 'haben'
+    },
+    example: 'Meine Mutter kocht leckeres Essen.',
+    exampleAr: 'أمي تطبخ طعاماً لذيذاً.'
+  },
+  {
+    id: 'v-extra-771',
+    type: 'noun',
+    word: 'Tisch',
+    article: 'der',
+    plural: 'Tische',
+    arabic: 'الطاولة',
+    example: 'Der Tisch ist aus Holz.',
+    exampleAr: 'الطاولة من الخشب.'
+  },
+  {
+    id: 'v-extra-772',
+    type: 'noun',
+    word: 'Tür',
+    article: 'die',
+    plural: 'Türen',
+    arabic: 'الباب',
+    example: 'Bitte mach die Tür zu.',
+    exampleAr: 'من فضلك أغلق الباب.'
+  },
+  {
+    id: 'v-extra-773',
+    type: 'noun',
+    word: 'Buch',
+    article: 'das',
+    plural: 'Bücher',
+    arabic: 'الكتاب',
+    example: 'Ich lese ein gutes Buch.',
+    exampleAr: 'أقرأ كتاباً جيداً.'
+  },
+  {
+    id: 'v-extra-774',
+    type: 'noun',
+    word: 'Stuhl',
+    article: 'der',
+    plural: 'Stühle',
+    arabic: 'الكرسي',
+    example: 'Der Stuhl steht neben dem Tisch.',
+    exampleAr: 'الكرسي يقف بجانب الطاولة.'
+  },
+  {
+    id: 'v-extra-775',
+    type: 'noun',
+    word: 'Schule',
+    article: 'die',
+    plural: 'Schulen',
+    arabic: 'المدرسة',
+    example: 'Die Schule beginnt um acht Uhr.',
+    exampleAr: 'المدرسة تبدأ في الساعة الثامنة.'
+  },
+  {
+    id: 'v-extra-776',
+    type: 'noun',
+    word: 'Haus',
+    article: 'das',
+    plural: 'Häuser',
+    arabic: 'البيت',
+    example: 'Unser Haus ist groß.',
+    exampleAr: 'بيتنا كبير.'
+  },
+  {
+    id: 'v-extra-777',
+    type: 'noun',
+    word: 'Baum',
+    article: 'der',
+    plural: 'Bäume',
+    arabic: 'الشجرة',
+    example: 'Der Baum ist grün.',
+    exampleAr: 'الشجرة خضراء.'
+  },
+  {
+    id: 'v-extra-778',
+    type: 'noun',
+    word: 'Blume',
+    article: 'die',
+    plural: 'Blumen',
+    arabic: 'الزهرة',
+    example: 'Die Blumen duften schön.',
+    exampleAr: 'الزهور رائحتها جميلة.'
+  },
+  {
+    id: 'v-extra-779',
+    type: 'noun',
+    word: 'Fenster',
+    article: 'das',
+    plural: 'Fenster',
+    arabic: 'النافذة',
+    example: 'Öffne bitte das Fenster.',
+    exampleAr: 'افتح النافذة من فضلك.'
+  },
+  {
+    id: 'v-extra-780',
+    type: 'noun',
+    word: 'Kaffee',
+    article: 'der',
+    plural: 'Kaffees',
+    arabic: 'القهوة',
+    example: 'Ich trinke morgens Kaffee.',
+    exampleAr: 'أشرب القهوة في الصباح.'
+  },
 ];
