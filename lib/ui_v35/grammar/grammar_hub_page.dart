@@ -259,6 +259,10 @@ class _GrammarHubPageState extends State<GrammarHubPage> {
                           ),
                         )
                       : ListView.separated(
+                          // Performance: bound pre-build, disable keep-alives, isolate repaints.
+                          // Expected lower jank and memory for off-screen grammar topic cards.
+                          cacheExtent: 300,
+                          addAutomaticKeepAlives: false,
                           padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
                           itemCount: _topics.length,
                           separatorBuilder: (_, __) =>
@@ -268,64 +272,66 @@ class _GrammarHubPageState extends State<GrammarHubPage> {
                             final accent = topic.isMastered
                                 ? AppColors.mastery
                                 : AppColors.primary;
-                            return AppGlassCard(
-                              onTap: () async {
-                                await Navigator.push<void>(
-                                  context,
-                                  MaterialPageRoute<void>(
-                                    builder: (context) =>
-                                        GrammarTopicDetailPage(
-                                      topic: topic,
-                                      dependencies: widget.dependencies,
-                                      learnerState: widget.learnerState,
+                            return RepaintBoundary(
+                              child: AppGlassCard(
+                                onTap: () async {
+                                  await Navigator.push<void>(
+                                    context,
+                                    MaterialPageRoute<void>(
+                                      builder: (context) =>
+                                          GrammarTopicDetailPage(
+                                        topic: topic,
+                                        dependencies: widget.dependencies,
+                                        learnerState: widget.learnerState,
+                                      ),
                                     ),
-                                  ),
-                                );
-                                await _loadTopics();
-                              },
-                              backgroundColor: scheme.surface,
-                              opacity: _glassOpacity(context),
-                              borderColor: accent.withAlpha(120),
-                              glowColor: topic.isMastered ? accent : null,
-                              child: Row(
-                                children: <Widget>[
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: <Widget>[
-                                        AppDirectionalText(
-                                          topic.titleDe,
-                                          languageCode: 'de',
-                                          style: AppTypography.title,
-                                        ),
-                                        const SizedBox(height: 4),
-                                        AppDirectionalText(
-                                          topic.titleAr,
-                                          languageCode: 'ar',
-                                          style: AppTypography.body,
-                                        ),
-                                      ],
+                                  );
+                                  await _loadTopics();
+                                },
+                                backgroundColor: scheme.surface,
+                                opacity: _glassOpacity(context),
+                                borderColor: accent.withAlpha(120),
+                                glowColor: topic.isMastered ? accent : null,
+                                child: Row(
+                                  children: <Widget>[
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: <Widget>[
+                                          AppDirectionalText(
+                                            topic.titleDe,
+                                            languageCode: 'de',
+                                            style: AppTypography.title,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          AppDirectionalText(
+                                            topic.titleAr,
+                                            languageCode: 'ar',
+                                            style: AppTypography.body,
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  AppAudioButton(
-                                    onPressed: () => _speakGerman(
-                                      topic.titleDe,
-                                      'grammar.topic.${topic.id}',
+                                    const SizedBox(width: 8),
+                                    AppAudioButton(
+                                      onPressed: () => _speakGerman(
+                                        topic.titleDe,
+                                        'grammar.topic.${topic.id}',
+                                      ),
+                                      semanticLabel:
+                                          'استمع إلى ${topic.titleDe}',
+                                      activeColor: accent,
                                     ),
-                                    semanticLabel:
-                                        'استمع إلى ${topic.titleDe}',
-                                    activeColor: accent,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Icon(
-                                    topic.isMastered
-                                        ? Icons.check_circle_rounded
-                                        : Icons.chevron_left_rounded,
-                                    color: accent,
-                                  ),
-                                ],
+                                    const SizedBox(width: 8),
+                                    Icon(
+                                      topic.isMastered
+                                          ? Icons.check_circle_rounded
+                                          : Icons.chevron_left_rounded,
+                                      color: accent,
+                                    ),
+                                  ],
+                                ),
                               ),
                             );
                           },
