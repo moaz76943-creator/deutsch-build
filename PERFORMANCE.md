@@ -1,5 +1,23 @@
 # Performance Improvements
 
+## Milestone Badges ListView UI Jank and Memory Optimization (2026-11-27)
+
+**Change:** In `lib/ui_v35/milestone_badges_page.dart` `MilestoneBadgesPage`, replaced eager `ListView(children: [header + ...map badges])` with `ListView.builder` (cacheExtent: 300, addAutomaticKeepAlives: false), wrapping each badge Card in `RepaintBoundary`.
+
+**Before:** All badge cards (and header) materialized up front; default cacheExtent; keep-alives enabled; no repaint isolation.
+
+**After:** Lazy item building only for visible + cacheExtent; no keep-alives for pure items; isolated repaints.
+
+**Expected measurable impact:**
+- Reduced UI jank (higher scroll FPS, lower frame build times) during badge list scrolling on mid-range devices if the badge list grows.
+- Lower peak memory for off-screen badge cards (no AutomaticKeepAlive, lazy construction).
+- Modest battery savings from fewer overpaints and GC events.
+- No impact on functionality, offline integrity, or security (pure UI change; R8, minify, offline permissions, caches, SecurityGuard unchanged).
+
+**Best practices applied:** Efficient RecyclerView-equivalent (ListView.builder + cacheExtent + !keepAlives + RepaintBoundary), lazy loading.
+
+**Verification:** Profile scroll performance in Flutter DevTools Performance view or Android Studio Profiler during MilestoneBadgesPage scrolling. Compare frame times and memory before/after.
+
 ## Grammar Hub ListView UI Jank and Memory Optimization (2026-11-27)
 
 **Change:** In `lib/ui_v35/grammar/grammar_hub_page.dart` `GrammarHubPage`, added `cacheExtent: 300`, `addAutomaticKeepAlives: false` to `ListView.separated`, and wrapped each `AppGlassCard` topic item in `RepaintBoundary`.
