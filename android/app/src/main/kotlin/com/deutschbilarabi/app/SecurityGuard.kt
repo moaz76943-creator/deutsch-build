@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Debug
+import com.google.android.play.protections.annotations.PlayAutomaticIntegrityProtection
 import java.io.File
 import java.security.MessageDigest
 
@@ -14,6 +15,7 @@ import java.security.MessageDigest
  * In release builds, suspicious environments cause the app to exit early.
  * Keep checks simple, fast, and non-network to preserve offline-first design.
  * Enhanced 2026-11-26: Added Xposed detection and more Frida indicators.
+ * 2026-11-27: Annotated critical method for Play Automatic Integrity Protection.
  */
 object SecurityGuard {
     // Replace with the SHA-256 hash of your release signing certificate (hex, lowercase).
@@ -21,6 +23,7 @@ object SecurityGuard {
     // Leave empty to skip signature check. Strongly recommended for production.
     private const val EXPECTED_SIGNATURE_SHA256 = ""
 
+    @PlayAutomaticIntegrityProtection()
     fun isCompromised(context: Context): Boolean {
         return isDebuggerAttached() ||
                 isRooted(context) ||
