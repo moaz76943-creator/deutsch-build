@@ -16,6 +16,13 @@
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
 
+# Keep Play Automatic Integrity Protection annotation for Google Play anti-tamper
+-keep class com.google.android.play.protections.annotations.PlayAutomaticIntegrityProtection* { *; }
+-keepattributes RuntimeVisibleAnnotations, AnnotationDefault
+-keepclassmembers,allowobfuscation class * {
+    @com.google.android.play.protections.annotations.PlayAutomaticIntegrityProtection *;
+}
+
 # SQLite / sqflite
 -keep class com.tekartik.sqflite.** { *; }
 -dontwarn com.tekartik.sqflite.**
