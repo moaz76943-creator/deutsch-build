@@ -43,46 +43,65 @@ class _MilestoneBadgesPageState extends State<MilestoneBadgesPage> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    final badges = StreakMilestonesEngine.availableBadges;
+
     return Scaffold(
       appBar: AppBar(title: const Text('إنجازات الاستمرارية')),
-      body: ListView(
+      body: ListView.builder(
         padding: const EdgeInsets.all(18),
-        children: [
-          Card(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  const Icon(
-                    Icons.local_fire_department,
-                    size: 48,
-                    color: Colors.orange,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'الاستمرارية الحالية: ${widget.currentStreak} أيام',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleLarge
-                        ?.copyWith(fontWeight: FontWeight.w900),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'الشارات',
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 10),
-          ...StreakMilestonesEngine.availableBadges.map((badge) {
-            final isUnlocked = unlockedBadges.contains(badge.id);
+        // Performance: bound pre-build area beyond viewport.
+        // Moderate value balances smoothness vs memory on badge cards.
+        cacheExtent: 300,
+        // Disable keep-alives for pure display items to lower memory.
+        addAutomaticKeepAlives: false,
+        itemCount: 3 + badges.length, // header card, spacer+title, badges
+        itemBuilder: (context, index) {
+          if (index == 0) {
             return Card(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    const Icon(
+                      Icons.local_fire_department,
+                      size: 48,
+                      color: Colors.orange,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'الاستمرارية الحالية: ${widget.currentStreak} أيام',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(fontWeight: FontWeight.w900),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+          if (index == 1) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 20),
+                Text(
+                  'الشارات',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 10),
+              ],
+            );
+          }
+          final badgeIndex = index - 2;
+          final badge = badges[badgeIndex];
+          final isUnlocked = unlockedBadges.contains(badge.id);
+          return RepaintBoundary(
+            child: Card(
               color: isUnlocked
                   ? null
                   : Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -108,9 +127,9 @@ class _MilestoneBadgesPageState extends State<MilestoneBadgesPage> {
                     ? const Icon(Icons.check_circle, color: Colors.green)
                     : null,
               ),
-            );
-          }),
-        ],
+            ),
+          );
+        },
       ),
     );
   }
