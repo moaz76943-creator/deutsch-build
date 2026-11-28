@@ -38,6 +38,11 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+// Optional: inject expected release signature SHA-256 at build time for anti-repackaging.
+// Set via -PEXPECTED_SIGNATURE_SHA256=... or gradle.properties / key.properties.
+// Obtain with: keytool -list -v -keystore <keystore> | grep SHA256
+def expectedSignatureSha256 = project.findProperty('EXPECTED_SIGNATURE_SHA256') ?: ""
+
 android {
     namespace "com.deutschbilarabi.app"
     compileSdk 36
@@ -67,6 +72,7 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
+        buildConfigField "String", "EXPECTED_SIGNATURE_SHA256", "\"${expectedSignatureSha256}\""
     }
 
     signingConfigs {
