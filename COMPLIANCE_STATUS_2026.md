@@ -32,7 +32,8 @@ The app meets current Google Play requirements for target API level, Core App Qu
 - `allowBackup="false"`, cleartext disabled, networkSecurityConfig strict, FLAG_SECURE in MainActivity.
 - No Play Integrity API (consistent with offline design; network permission removed). Integrity via Play signing, sandbox, and minification.
 - Native libs use NDK 28.2+ for 16 KB page size support (required for API 35+ updates; full enforcement Feb 2027).
-- Additional early integrity check in MainActivity (SecurityGuard against rooted/debugged/emulated environments in release builds). Signature verification is implemented but currently skipped (EXPECTED_SIGNATURE_SHA256 empty); configure the release certificate SHA-256 for full anti-repackaging protection.
+- Additional early integrity check in MainActivity (SecurityGuard against rooted/debugged/emulated environments in release builds).
+- **Improvement applied (Nov 28, 2026):** Signature verification is now driven by `BuildConfig.EXPECTED_SIGNATURE_SHA256`. Set the Gradle property `EXPECTED_SIGNATURE_SHA256` (hex lowercase) at release build time (e.g. `-PEXPECTED_SIGNATURE_SHA256=...` or in `key.properties`). This activates anti-repackaging checks without hardcoding secrets in source. Empty value safely skips the check.
 
 ## Core App Quality
 - Offline-first, no unnecessary permissions, stable expected (pre-launch report recommended).
@@ -48,6 +49,6 @@ The app meets current Google Play requirements for target API level, Core App Qu
 4. Test on API 36 devices for behavior changes (edge-to-edge, predictive back).
 5. Optionally enable GitHub Pages on deutsch-bilarabi-privacy as a backup URL.
 6. Plan foldable/large-screen testing ahead of April 2027 adaptive quality enforcement.
-7. **Integrity improvement:** Populate `EXPECTED_SIGNATURE_SHA256` in `SecurityGuard.kt` with the SHA-256 of the release signing certificate (obtain via `keytool -list -v -keystore ...`). This activates anti-repackaging checks without network dependency.
+7. **Integrity:** When building the production AAB, pass the release certificate SHA-256 via `-PEXPECTED_SIGNATURE_SHA256=<hash>` so the runtime check is active.
 
-**Status: Ready for production release. All code-level compliance items (target SDK, permissions, privacy policy URL, in-app disclosure, signing, integrity checks, predictive back, adaptive basics) are complete as of November 28, 2026. Remaining items are Play Console form completion, signature hash configuration for full integrity, and final testing.**
+**Status: Ready for production release. All code-level compliance items (target SDK, permissions, privacy policy URL, in-app disclosure, signing, integrity checks with build-time signature config, predictive back, adaptive basics) are complete as of November 28, 2026. Remaining items are Play Console form completion, providing the signature hash at build time, and final testing.**
