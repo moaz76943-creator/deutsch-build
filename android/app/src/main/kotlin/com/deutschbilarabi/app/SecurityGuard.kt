@@ -16,12 +16,14 @@ import java.security.MessageDigest
  * Keep checks simple, fast, and non-network to preserve offline-first design.
  * Enhanced 2026-11-26: Added Xposed detection and more Frida indicators.
  * 2026-11-27: Annotated critical method for Play Automatic Integrity Protection.
+ * 2026-11-28: Signature hash now injected via BuildConfig (set -PEXPECTED_SIGNATURE_SHA256 at build time).
  */
 object SecurityGuard {
-    // Replace with the SHA-256 hash of your release signing certificate (hex, lowercase).
+    // Expected SHA-256 of the release signing certificate (hex, lowercase).
+    // Injected at build time from Gradle property EXPECTED_SIGNATURE_SHA256.
     // Obtain via: keytool -list -v -keystore your.keystore | grep SHA256
-    // Leave empty to skip signature check. Strongly recommended for production.
-    private const val EXPECTED_SIGNATURE_SHA256 = ""
+    // Empty value skips the signature check (safe for development).
+    private val EXPECTED_SIGNATURE_SHA256 = BuildConfig.EXPECTED_SIGNATURE_SHA256
 
     @PlayAutomaticIntegrityProtection()
     fun isCompromised(context: Context): Boolean {
