@@ -139,15 +139,21 @@ class _OfflineLexiconHubState extends State<OfflineLexiconHub> {
                     ),
                   )
                 : ListView.builder(
+                    // Performance: bound pre-build area beyond viewport and disable keep-alives for pure cards.
+                    cacheExtent: 300,
+                    addAutomaticKeepAlives: false,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     itemCount: results.length,
                     itemBuilder: (c, i) {
                       final x = results[i];
-                      return _LexiconWordCard(
-                        item: x,
-                        profile: _profileFor(x),
-                        speak: _speak,
-                        presentation: widget.presentation,
+                      // Isolate repaints of complex lexicon word cards during scroll.
+                      return RepaintBoundary(
+                        child: _LexiconWordCard(
+                          item: x,
+                          profile: _profileFor(x),
+                          speak: _speak,
+                          presentation: widget.presentation,
+                        ),
                       );
                     },
                   ),
