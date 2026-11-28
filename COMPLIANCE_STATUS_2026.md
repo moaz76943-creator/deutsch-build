@@ -1,7 +1,7 @@
-# Google Play Compliance Status – Deutsch بالعربي (November 26, 2026 – verification)
+# Google Play Compliance Status – Deutsch بالعربي (November 28, 2026 – verification)
 
 ## Summary
-The app meets current Google Play requirements for target API level, Core App Quality, Data safety, permissions, privacy policy content, signing, and security standards. Risk of rejection is low. Privacy policy is publicly live at https://deutsch-bilarabi-privacy.netlify.app/privacy.html (last updated November 26, 2026). In-app links point to the live URL. All major code-level compliance items are in place.
+The app meets current Google Play requirements for target API level, Core App Quality, Data safety, permissions, privacy policy content, signing, and security standards. Risk of rejection is low. Privacy policy is publicly live at https://deutsch-bilarabi-privacy.netlify.app/privacy.html (last updated November 26, 2026). In-app links point to the live URL. All major code-level compliance items are in place. Verified against official target API (API 36 required for new apps/updates since Aug 31, 2026), 16 KB page size support, User Data / prominent disclosure policies, and Core App Quality guidelines (last checked Nov 28, 2026).
 
 ## Target SDK
 - `targetSdk 36` / `compileSdk 36` in `android/app/build.gradle`.
@@ -31,8 +31,8 @@ The app meets current Google Play requirements for target API level, Core App Qu
 - R8 minify + shrinkResources enabled.
 - `allowBackup="false"`, cleartext disabled, networkSecurityConfig strict, FLAG_SECURE in MainActivity.
 - No Play Integrity API (consistent with offline design; network permission removed). Integrity via Play signing, sandbox, and minification.
-- Native libs use NDK 28.2+ for 16 KB page size support.
-- Additional early integrity check in MainActivity (SecurityGuard against rooted/debugged/emulated environments in release builds).
+- Native libs use NDK 28.2+ for 16 KB page size support (required for API 35+ updates; full enforcement Feb 2027).
+- Additional early integrity check in MainActivity (SecurityGuard against rooted/debugged/emulated environments in release builds). Signature verification is implemented but currently skipped (EXPECTED_SIGNATURE_SHA256 empty); configure the release certificate SHA-256 for full anti-repackaging protection.
 
 ## Core App Quality
 - Offline-first, no unnecessary permissions, stable expected (pre-launch report recommended).
@@ -48,5 +48,6 @@ The app meets current Google Play requirements for target API level, Core App Qu
 4. Test on API 36 devices for behavior changes (edge-to-edge, predictive back).
 5. Optionally enable GitHub Pages on deutsch-bilarabi-privacy as a backup URL.
 6. Plan foldable/large-screen testing ahead of April 2027 adaptive quality enforcement.
+7. **Integrity improvement:** Populate `EXPECTED_SIGNATURE_SHA256` in `SecurityGuard.kt` with the SHA-256 of the release signing certificate (obtain via `keytool -list -v -keystore ...`). This activates anti-repackaging checks without network dependency.
 
-**Status: Ready for production release. All code-level compliance items (target SDK, permissions, privacy policy URL, in-app disclosure, signing, integrity checks, predictive back, adaptive basics) are complete as of November 26, 2026. Remaining items are Play Console form completion and final testing.**
+**Status: Ready for production release. All code-level compliance items (target SDK, permissions, privacy policy URL, in-app disclosure, signing, integrity checks, predictive back, adaptive basics) are complete as of November 28, 2026. Remaining items are Play Console form completion, signature hash configuration for full integrity, and final testing.**
