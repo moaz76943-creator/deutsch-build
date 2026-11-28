@@ -1,7 +1,7 @@
 # Google Play Compliance Status – Deutsch بالعربي (November 28, 2026 – verification)
 
 ## Summary
-The app meets current Google Play requirements for target API level, Core App Quality, Data safety, permissions, privacy policy content, signing, and security standards. Risk of rejection is low. Privacy policy is publicly live at https://deutsch-bilarabi-privacy.netlify.app/privacy.html (last updated November 26, 2026). In-app links point to the live URL. All major code-level compliance items are in place. Verified against official target API (API 36 required for new apps/updates since Aug 31, 2026), 16 KB page size support, User Data / prominent disclosure policies, and Core App Quality guidelines (last checked Nov 28, 2026).
+The app meets current Google Play requirements for target API level, Core App Quality, Data safety, permissions, privacy policy content, signing, and security standards. Risk of rejection is low. Privacy policy is publicly live at https://deutsch-bilarabi-privacy.netlify.app/privacy.html (last updated November 28, 2026). In-app links point to the live URL. All major code-level compliance items are in place. Verified against official target API (API 36 required for new apps/updates since Aug 31, 2026), 16 KB page size support, User Data / prominent disclosure policies, and Core App Quality guidelines (last checked Nov 28, 2026).
 
 ## Target SDK
 - `targetSdk 36` / `compileSdk 36` in `android/app/build.gradle`.
@@ -17,13 +17,13 @@ The app meets current Google Play requirements for target API level, Core App Qu
 
 ## Privacy Policy & Data Safety
 - Public privacy policy live at https://deutsch-bilarabi-privacy.netlify.app/privacy.html
-- Content is complete, accurate, and matches the offline design + on-device microphone processing.
+- **Improvement applied (Nov 28, 2026):** Synced public HTML policy (deutsch-bilarabi-privacy repo) to last-updated November 28, 2026. Added explicit note on 16 KB page size full enforcement (updates blocked from Feb 1, 2027 if non-compliant). Content remains complete, accurate, and matches the offline design + on-device microphone processing.
 - In-app link (constant `kPrivacyPolicyUrl` and Profile screen) points to the live Netlify URL.
 - Policy explicitly covers on-device microphone processing (not collection/sharing), local storage only, no network, deletion via uninstall.
 - Data safety form answers provided in policy: no collection, no sharing. Matches binary (no INTERNET permission).
 - Account deletion path documented (uninstall sufficient; no remote data).
 - Health-check workflow (`.github/workflows/privacy_policy_health_check.yml`) already monitors the live Netlify URL.
-- Last-updated date in repository and public policy: November 26, 2026 (consistent).
+- Last-updated date in repository and public policy: November 28, 2026 (consistent).
 
 ## Signing & Integrity Protection
 - Release signing config enforced (`secureRelease` via `release-signing.gradle`).
