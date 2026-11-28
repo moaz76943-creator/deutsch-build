@@ -1909,4 +1909,294 @@ export const vocabExtra = [
     example: 'Die Lehrerin erklärt die Aufgabe.',
     exampleAr: 'المعلمة تشرح المهمة.'
   },
+{
+    id: 'v-extra-801',
+    type: 'verb',
+    infinitive: 'kommen',
+    arabic: 'يأتي',
+    conjugation: {
+      ich: 'komme',
+      du: 'kommst',
+      er: 'kommt',
+      wir: 'kommen',
+      ihr: 'kommt',
+      sie_pl: 'kommen',
+      präteritum: 'kam',
+      perfekt: 'ist gekommen',
+      aux: 'sein'
+    },
+    example: 'Wann kommst du nach Hause?',
+    exampleAr: 'متى تأتي إلى المنزل؟'
+  },
+  {
+    id: 'v-extra-802',
+    type: 'verb',
+    infinitive: 'gehen',
+    arabic: 'يذهب',
+    conjugation: {
+      ich: 'gehe',
+      du: 'gehst',
+      er: 'geht',
+      wir: 'gehen',
+      ihr: 'geht',
+      sie_pl: 'gehen',
+      präteritum: 'ging',
+      perfekt: 'ist gegangen',
+      aux: 'sein'
+    },
+    example: 'Ich gehe jeden Tag zur Schule.',
+    exampleAr: 'أذهب إلى المدرسة كل يوم.'
+  },
+  {
+    id: 'v-extra-803',
+    type: 'verb',
+    infinitive: 'machen',
+    arabic: 'يفعل / يصنع',
+    conjugation: {
+      ich: 'mache',
+      du: 'machst',
+      er: 'macht',
+      wir: 'machen',
+      ihr: 'macht',
+      sie_pl: 'machen',
+      präteritum: 'machte',
+      perfekt: 'hat gemacht',
+      aux: 'haben'
+    },
+    example: 'Was machst du am Wochenende?',
+    exampleAr: 'ماذا تفعل في عطلة نهاية الأسبوع؟'
+  },
+  {
+    id: 'v-extra-804',
+    type: 'verb',
+    infinitive: 'sagen',
+    arabic: 'يقول',
+    conjugation: {
+      ich: 'sage',
+      du: 'sagst',
+      er: 'sagt',
+      wir: 'sagen',
+      ihr: 'sagt',
+      sie_pl: 'sagen',
+      präteritum: 'sagte',
+      perfekt: 'hat gesagt',
+      aux: 'haben'
+    },
+    example: 'Bitte sag mir die Wahrheit.',
+    exampleAr: 'من فضلك قل لي الحقيقة.'
+  },
+  {
+    id: 'v-extra-805',
+    type: 'verb',
+    infinitive: 'fragen',
+    arabic: 'يسأل',
+    conjugation: {
+      ich: 'frage',
+      du: 'fragst',
+      er: 'fragt',
+      wir: 'fragen',
+      ihr: 'fragt',
+      sie_pl: 'fragen',
+      präteritum: 'fragte',
+      perfekt: 'hat gefragt',
+      aux: 'haben'
+    },
+    example: 'Darf ich dich etwas fragen?',
+    exampleAr: 'هل يمكنني أن أسألك شيئاً؟'
+  },
+  {
+    id: 'v-extra-806',
+    type: 'verb',
+    infinitive: 'antworten',
+    arabic: 'يجيب',
+    conjugation: {
+      ich: 'antworte',
+      du: 'antwortest',
+      er: 'antwortet',
+      wir: 'antworten',
+      ihr: 'antwortet',
+      sie_pl: 'antworten',
+      präteritum: 'antwortete',
+      perfekt: 'hat geantwortet',
+      aux: 'haben'
+    },
+    example: 'Er antwortet nicht auf meine Nachricht.',
+    exampleAr: 'هو لا يجيب على رسالتي.'
+  },
+  {
+    id: 'v-extra-807',
+    type: 'verb',
+    infinitive: 'kaufen',
+    arabic: 'يشتري',
+    conjugation: {
+      ich: 'kaufe',
+      du: 'kaufst',
+      er: 'kauft',
+      wir: 'kaufen',
+      ihr: 'kauft',
+      sie_pl: 'kaufen',
+      präteritum: 'kaufte',
+      perfekt: 'hat gekauft',
+      aux: 'haben'
+    },
+    example: 'Ich kaufe Brot im Supermarkt.',
+    exampleAr: 'أشتري الخبز من السوبرماركت.'
+  },
+  {
+    id: 'v-extra-808',
+    type: 'verb',
+    infinitive: 'verkaufen',
+    arabic: 'يبيع',
+    conjugation: {
+      ich: 'verkaufe',
+      du: 'verkaufst',
+      er: 'verkauft',
+      wir: 'verkaufen',
+      ihr: 'verkauft',
+      sie_pl: 'verkaufen',
+      präteritum: 'verkaufte',
+      perfekt: 'hat verkauft',
+      aux: 'haben'
+    },
+    example: 'Sie verkauft ihr altes Fahrrad.',
+    exampleAr: 'هي تبيع دراجتها القديمة.'
+  },
+  {
+    id: 'v-extra-809',
+    type: 'verb',
+    infinitive: 'öffnen',
+    arabic: 'يفتح',
+    conjugation: {
+      ich: 'öffne',
+      du: 'öffnest',
+      er: 'öffnet',
+      wir: 'öffnen',
+      ihr: 'öffnet',
+      sie_pl: 'öffnen',
+      präteritum: 'öffnete',
+      perfekt: 'hat geöffnet',
+      aux: 'haben'
+    },
+    example: 'Kannst du bitte das Fenster öffnen?',
+    exampleAr: 'هل يمكنك فتح النافذة من فضلك؟'
+  },
+  {
+    id: 'v-extra-810',
+    type: 'verb',
+    infinitive: 'schließen',
+    arabic: 'يغلق',
+    conjugation: {
+      ich: 'schließe',
+      du: 'schließt',
+      er: 'schließt',
+      wir: 'schließen',
+      ihr: 'schließt',
+      sie_pl: 'schließen',
+      präteritum: 'schloss',
+      perfekt: 'hat geschlossen',
+      aux: 'haben'
+    },
+    example: 'Bitte schließ die Tür.',
+    exampleAr: 'من فضلك أغلق الباب.'
+  },
+  {
+    id: 'v-extra-811',
+    type: 'noun',
+    word: 'Tür',
+    article: 'die',
+    plural: 'Türen',
+    arabic: 'الباب',
+    example: 'Die Tür ist offen.',
+    exampleAr: 'الباب مفتوح.'
+  },
+  {
+    id: 'v-extra-812',
+    type: 'noun',
+    word: 'Fenster',
+    article: 'das',
+    plural: 'Fenster',
+    arabic: 'النافذة',
+    example: 'Das Fenster ist groß.',
+    exampleAr: 'النافذة كبيرة.'
+  },
+  {
+    id: 'v-extra-813',
+    type: 'noun',
+    word: 'Tisch',
+    article: 'der',
+    plural: 'Tische',
+    arabic: 'الطاولة',
+    example: 'Der Tisch ist rund.',
+    exampleAr: 'الطاولة مستديرة.'
+  },
+  {
+    id: 'v-extra-814',
+    type: 'noun',
+    word: 'Stuhl',
+    article: 'der',
+    plural: 'Stühle',
+    arabic: 'الكرسي',
+    example: 'Bitte setz dich auf den Stuhl.',
+    exampleAr: 'من فضلك اجلس على الكرسي.'
+  },
+  {
+    id: 'v-extra-815',
+    type: 'noun',
+    word: 'Bett',
+    article: 'das',
+    plural: 'Betten',
+    arabic: 'السرير',
+    example: 'Das Bett ist bequem.',
+    exampleAr: 'السرير مريح.'
+  },
+  {
+    id: 'v-extra-816',
+    type: 'noun',
+    word: 'Küche',
+    article: 'die',
+    plural: 'Küchen',
+    arabic: 'المطبخ',
+    example: 'In der Küche koche ich das Essen.',
+    exampleAr: 'في المطبخ أطبخ الطعام.'
+  },
+  {
+    id: 'v-extra-817',
+    type: 'noun',
+    word: 'Bad',
+    article: 'das',
+    plural: 'Bäder',
+    arabic: 'الحمام',
+    example: 'Das Bad ist klein aber sauber.',
+    exampleAr: 'الحمام صغير لكنه نظيف.'
+  },
+  {
+    id: 'v-extra-818',
+    type: 'noun',
+    word: 'Auto',
+    article: 'das',
+    plural: 'Autos',
+    arabic: 'السيارة',
+    example: 'Mein Auto ist rot.',
+    exampleAr: 'سيارتي حمراء.'
+  },
+  {
+    id: 'v-extra-819',
+    type: 'noun',
+    word: 'Fahrrad',
+    article: 'das',
+    plural: 'Fahrräder',
+    arabic: 'الدراجة',
+    example: 'Ich fahre mit dem Fahrrad zur Arbeit.',
+    exampleAr: 'أذهب إلى العمل بالدراجة.'
+  },
+  {
+    id: 'v-extra-820',
+    type: 'noun',
+    word: 'Bus',
+    article: 'der',
+    plural: 'Busse',
+    arabic: 'الحافلة',
+    example: 'Der Bus kommt in fünf Minuten.',
+    exampleAr: 'الحافلة تأتي بعد خمس دقائق.'
+  },
 ];

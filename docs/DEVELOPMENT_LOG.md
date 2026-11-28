@@ -68,3 +68,14 @@
 - Re-ran npm test: PASS (131 unique IDs).
 - No crashes. Auth/DB OFF.
 - Ready for preview if applicable.
+
+## Session 2026-11-28 03:09 +03 — Grok Build hourly
+
+- Read AGENTS.md. Auth/DB remain OFF.
+- Ran npm test: PASS (131 unique IDs).
+- Action: Added 20 new high-quality A1/A2 items to vocab-extra.ts (10 verbs with full conjugations incl. Präteritum/Perfekt/aux, 10 nouns with der/die/das + plural).
+- New IDs: v-extra-801 to v-extra-820. No ID repeats. No auto-deletion of similars.
+- Content integrity: accurate conjugations (incl. irregulars like kommen, gehen, schließen), correct articles/plurals (e.g. Türen, Fenster, Tische, Stühle, Betten, Küchen, Bäder, Autos, Fahrräder, Busse), natural German examples + accurate Arabic translations.
+- Re-ran npm test: PASS (151 unique IDs).
+- No crashes. Auth/DB OFF.
+- Ready for preview if applicable.
