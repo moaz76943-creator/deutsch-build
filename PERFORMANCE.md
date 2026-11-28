@@ -1,5 +1,23 @@
 # Performance Improvements
 
+## Offline Lexicon Hub ListView UI Jank and Memory Optimization (2026-11-28)
+
+**Change:** In `lib/ui_v35/pages/offline_lexicon_hub.dart` `OfflineLexiconHub`, added `cacheExtent: 300`, `addAutomaticKeepAlives: false` to `ListView.builder`, and wrapped each `_LexiconWordCard` in `RepaintBoundary`.
+
+**Before:** Default cacheExtent (~250), keep-alives enabled, no explicit repaint isolation on complex word cards (text, chips, progress, InkWell).
+
+**After:** Bounded pre-build, no keep-alives for pure items; isolated repaints.
+
+**Expected measurable impact:**
+- Reduced UI jank (higher scroll FPS, lower frame build times) during lexicon search results scrolling on mid-range devices, especially with many learned vocabulary items.
+- Lower peak memory for off-screen word cards (no AutomaticKeepAlive).
+- Modest battery savings from fewer overpaints and GC events.
+- No impact on functionality, offline integrity, or security (pure UI change; R8, minify, offline permissions, caches, SecurityGuard unchanged).
+
+**Best practices applied:** Efficient RecyclerView-equivalent (ListView.builder + cacheExtent + !keepAlives + RepaintBoundary), lazy building.
+
+**Verification:** Profile scroll performance in Flutter DevTools Performance view or Android Studio Profiler during OfflineLexiconHub scrolling with a large learned vocabulary set. Compare frame times and memory before/after.
+
 ## ImageCache Further Tuning (2026-11-27)
 
 **Change:** Reduced Flutter `ImageCache` from 50 items / 8 MB to 40 items / 6 MB in `lib/main.dart`.
