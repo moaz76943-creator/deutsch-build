@@ -1,6 +1,6 @@
 # Privacy Policy for Deutsch بالعربي
 
-**Last updated:** November 26, 2026
+**Last updated:** November 28, 2026
 
 **Developer / Entity:** moaz76943-creator (matches Google Play developer account listing)
 
@@ -54,7 +54,7 @@ Exact answers for the Play Console Data safety form (must match this policy):
 - **Data shared:** None.
 - **Is all of the user data collected by your app encrypted in transit?** N/A (no data collected; no network traffic from the app).
 - **Do you provide a way for users to request that their data is deleted?** Yes — see the dedicated section below. Uninstalling the app removes all local data. No server-side data exists.
-- **Security practices:** Local data protected by Android sandbox and encryption where used. App uses Google Play App Signing. Release builds enforce minification, resource shrinking, and signing. Native libraries (including SQLite via sqlite3_flutter_libs) are built with NDK r28+ for 16 KB page size alignment, meeting Google Play's page size compatibility requirements for apps targeting API 35+.
+- **Security practices:** Local data protected by Android sandbox and encryption where used. App uses Google Play App Signing. Release builds enforce minification, resource shrinking, and signing. Native libraries (including SQLite via sqlite3_flutter_libs) are built with NDK r28+ for 16 KB page size alignment, meeting Google Play's page size compatibility requirements for apps targeting API 35+ (full update block for non-compliant builds starts February 1, 2027).
 
 ## Your Rights and Data Deletion
 
@@ -78,14 +78,14 @@ Because the app stores data only locally on your device and does not create user
 
 - Distributed via Google Play App Signing (upload key separate from the signing key managed by Google).
 - Targets Android 16 (API level 36), meeting the August 31, 2026 requirement for new apps and updates. Existing apps need at least API 35 to remain available to new users on newer devices.
-- Native code compiled with NDK 28.2+ ensuring 16 KB memory page size alignment (required for updates targeting API 35+; enforcement strengthens in 2027).
+- Native code compiled with NDK 28.2+ ensuring 16 KB memory page size alignment (required for updates targeting API 35+; enforcement strengthens February 1, 2027 when non-compliant updates can no longer be released).
 - allowBackup="false"; usesCleartextTraffic="false"; data extraction rules configured; R8/ProGuard minification and resource shrinking enabled in release.
 - Prominent disclosure is shown in-app before any sensitive permission request (e.g., microphone). See required text above. Failure to show this disclosure is a policy violation.
 - FLAG_SECURE is set to prevent screenshots of sensitive learning content in the app switcher (disabled only in debug builds).
 - Edge-to-edge display enabled for API 35+ compatibility.
 - Predictive back navigation enabled via android:enableOnBackInvokedCallback="true" for Android 16 compatibility and Core App Quality.
 - Adaptive / large-screen support: android:resizeableActivity="true" and full configChanges declared to prepare for Google Play Tier 3 adaptive app quality requirements (effective April 2027 for foldables). No letterboxing expected.
-- No Play Integrity or other network-dependent integrity APIs are included, consistent with the fully offline design. Integrity is maintained through Play App Signing, code minification, and platform sandboxing. Basic runtime checks for debugger/root/emulator are present in release builds.
+- No Play Integrity or other network-dependent integrity APIs are included, consistent with the fully offline design. Integrity is maintained through Play App Signing, code minification, and platform sandboxing. Basic runtime checks for debugger/root/emulator are present in release builds. Signature verification uses BuildConfig.EXPECTED_SIGNATURE_SHA256 when provided at build time.
 
 ## Children's Privacy
 
